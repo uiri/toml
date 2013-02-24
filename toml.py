@@ -4,7 +4,23 @@ def parse(s):
     retval = {}
     currentlevel = retval
     if isinstance(s, str):
+        sl = list(s)
+        openarr = 0
+        delnum = 1
+        for i in xrange(len(sl)):
+            if i == len(sl) - delnum:
+                break
+            if sl[i] == '[':
+                openarr += 1
+            if sl[i] == ']':
+                openarr -= 1
+            if sl[i] == '\n' and openarr:
+                sl.pop(i)
+                delnum += 1
+        s = ''.join(sl)
         s = s.split('\n')
+    else:
+        raise Exception("What exactly are you trying to pull?")
     for line in s:
         line = line.strip()
         if '#' in line:
@@ -18,6 +34,7 @@ def parse(s):
                             quoted[i] = quoted[i].split("#")[0]
                             quoted = quoted[:i]
                             quoted.append('')
+                            break
                 line = '"'.join(quoted)
         if line == "":
             continue
