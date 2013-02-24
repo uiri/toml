@@ -58,6 +58,10 @@ def parse_value(v):
     elif v == 'false':
         return False
     elif v[0] == '"':
+        escapes = ['0', 'n', 'r', 't', '"', '\\']
+        escapedchars = ['\0', '\n', '\r', '\t', '\"', '\\']
+        for i in xrange(len(escapes)):
+            v = v.replace("\\"+escapes[i], escapedchars[i])
         return v[1:-1]
     elif v[0] == '[':
         return parse_array(v)
@@ -67,7 +71,11 @@ def parse_value(v):
         else:
             raise Exception("Wait, what?")
     else:
-        return int(v)
+        try:
+            int(v)
+            return int(v)
+        except ValueError:
+            return float(v)
 
 
 def parse_array(a):
