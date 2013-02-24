@@ -6,36 +6,30 @@ def parse(s):
     if isinstance(s, str):
         sl = list(s)
         openarr = 0
+        openstring = False
         delnum = 1
         for i in xrange(len(sl)):
-            if i == len(sl) - delnum:
-                break
-            if sl[i] == '[':
+            if sl[i] == '"':
+                openstring = not openstring
+            if sl[i] == '#' and not openstring:
+                j = i
+                while sl[j-1] != '\n':
+                    sl.insert(j, ' ')
+                    sl.pop(j-1)
+                    j += 1
+            if sl[i] == '[' and not openstring:
                 openarr += 1
-            if sl[i] == ']':
+            if sl[i] == ']' and not openstring:
                 openarr -= 1
             if sl[i] == '\n' and openarr:
-                sl.pop(i)
-                delnum += 1
+                sl.insert(i, ' ')
+                sl.pop(i+1)
         s = ''.join(sl)
         s = s.split('\n')
     else:
         raise Exception("What exactly are you trying to pull?")
     for line in s:
         line = line.strip()
-        if '#' in line:
-            if '"' not in line:
-                line = line.split("#")[0]
-            else:
-                quoted = line.split('"')
-                for i in xrange(len(quoted)):
-                    if i%2 == 0:
-                        if '#' in quoted[i]:
-                            quoted[i] = quoted[i].split("#")[0]
-                            quoted = quoted[:i]
-                            quoted.append('')
-                            break
-                line = '"'.join(quoted)
         if line == "":
             continue
         if line[0] == '[':
