@@ -62,7 +62,7 @@ def parse_value(v):
         escapedchars = ['\0', '\n', '\r', '\t', '\"', '\\']
         for i in xrange(len(escapes)):
             v = v.replace("\\"+escapes[i], escapedchars[i])
-        return v[1:-1]
+        return unicode(v[1:-1])
     elif v[0] == '[':
         return parse_array(v)
     elif len(v) == 20 and v[-1] == 'Z':
