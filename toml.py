@@ -100,3 +100,30 @@ def parse_array(a):
         a[i] = a[i].strip()
         retval.append(parse_value(a[i]))
     return retval
+
+def emit(o):
+    retval = ""
+    addtoretval, sections = emit_sections(o)
+    retval += addtoretval
+    while sections != {}:
+        newsections = {}
+        for section in sections:
+            addtoretval, addtosections = emit_sections(sections[section])
+            if addtoretval:
+                retval += "["+section+"]\n"
+                retval += addtoretval
+            for s in addtosections:
+                print s
+                newsections[section+"."+s] = addtosections[s]
+        sections = newsections
+    return retval
+
+def emit_sections(o):
+    retstr = ""
+    retdict = {}
+    for section in o:
+        if not isinstance(o[section], dict):
+            retstr += section + " = " + str(o[section]) + '\n'
+        else:
+            retdict[section] = o[section]
+    return (retstr, retdict)
