@@ -1,3 +1,5 @@
+import datetime
+
 def parse(s):
     retval = {}
     currentlevel = retval
@@ -24,5 +26,17 @@ def parse(s):
             pair = line.split('=')
             for i in xrange(len(pair)):
                 pair[i] = pair[i].strip()
-            currentlevel[pair[0]] = pair[1]
+            if pair[1] == 'true':
+                value = True
+            elif pair[1] == 'false':
+                value = False
+            elif pair[1][0] == '"' or pair[1][0] == '[':
+                # arrays are kind of scaring me right now...
+                value = pair[1]
+            elif len(pair[1]) == 20 and pair[1][-1] == 'Z':
+                if pair[1][10] == 'T':
+                    value = datetime.datetime.strptime(pair[1], "%Y-%m-%dT%H:%M:%SZ")
+            else:
+                value = int(pair[1])
+            currentlevel[pair[0]] = value
     return retval
