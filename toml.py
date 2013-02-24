@@ -7,7 +7,18 @@ def parse(s):
         s = s.split('\n')
     for line in s:
         line = line.strip()
-        line = line.split("#")[0]
+        if '#' in line:
+            if '"' not in line:
+                line = line.split("#")[0]
+            else:
+                quoted = line.split('"')
+                for i in xrange(len(quoted)):
+                    if i%2 == 0:
+                        if '#' in quoted[i]:
+                            quoted[i] = quoted[i].split("#")[0]
+                            quoted = quoted[:i]
+                            quoted.append('')
+                line = '"'.join(quoted)
         if line == "":
             continue
         if line[0] == '[':
