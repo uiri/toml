@@ -13,9 +13,9 @@ def parse(s):
                 openstring = not openstring
             if sl[i] == '#' and not openstring:
                 j = i
-                while sl[j-1] != '\n':
+                while sl[j] != '\n':
                     sl.insert(j, ' ')
-                    sl.pop(j-1)
+                    sl.pop(j+1)
                     j += 1
             if sl[i] == '[' and not openstring:
                 openarr += 1
@@ -45,20 +45,50 @@ def parse(s):
                     currentlevel[group] = {}
                 currentlevel = currentlevel[group]
         elif "=" in line:
-            pair = line.split('=')
+            pair = line.split('=', 1)
             for i in xrange(len(pair)):
                 pair[i] = pair[i].strip()
-            if pair[1] == 'true':
-                value = True
-            elif pair[1] == 'false':
-                value = False
-            elif pair[1][0] == '"' or pair[1][0] == '[':
-                # arrays are kind of scaring me right now...
-                value = pair[1]
-            elif len(pair[1]) == 20 and pair[1][-1] == 'Z':
-                if pair[1][10] == 'T':
-                    value = datetime.datetime.strptime(pair[1], "%Y-%m-%dT%H:%M:%SZ")
-            else:
-                value = int(pair[1])
+            value = parse_value(pair[1])
             currentlevel[pair[0]] = value
+    return retval
+
+def parse_value(v):
+    if v == 'true':
+        return True
+    elif v == 'false':
+        return False
+    elif v[0] == '"':
+        return v[1:-1]
+    elif v[0] == '[':
+        return parse_array(v)
+    elif len(v) == 20 and v[-1] == 'Z':
+        if v[10] == 'T':
+            return datetime.datetime.strptime(v, "%Y-%m-%dT%H:%M:%SZ")
+        else:
+            raise Exception("Wait, what?")
+    else:
+        return int(v)
+
+
+def parse_array(a):
+    retval = []
+    if '[' not in a[1:-1]:
+        a = a[1:-1].split(',')
+    else:
+        al = list(a[1:-1])
+        a = []
+        openarr = 0
+        j = 1
+        for i in xrange(len(al)):
+            if al[i] == '[':
+                openarr += 1
+            elif al[i] == ']':
+                openarr -= 1
+            elif al[i] == ',' and not openarr:
+                a.append(''.join(al[j:i]))
+                j = i+1
+        a.append(''.join(al[j:]))
+    for i in xrange(len(a)):
+        a[i] = a[i].strip()
+        retval.append(parse_value(a[i]))
     return retval
