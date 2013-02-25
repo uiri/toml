@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='toml',
-      version='0.6.0',
+      version='0.6.5',
       description="Python Library for Tom's Obvious, Minimal Language",
       author="Uiri Noyb",
       author_email="uiri@xqz.ca",
