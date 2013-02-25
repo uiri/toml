@@ -1,5 +1,7 @@
 from distutils.core import setup
 
+with open("README.md") as readmefile:
+    readme = readmefile.read()
 setup(name='toml',
       version='0.6.5',
       description="Python Library for Tom's Obvious, Minimal Language",
@@ -8,4 +10,5 @@ setup(name='toml',
       url="https://github.com/uiri/toml",
       py_modules=['toml'],
       license="License :: OSI Approved :: MIT License",
+      long_description=readme,
 )
