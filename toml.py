@@ -98,7 +98,8 @@ def parse_array(a):
         a.append(''.join(al[j:]))
     for i in xrange(len(a)):
         a[i] = a[i].strip()
-        retval.append(parse_value(a[i]))
+        if a[i] != '':
+            retval.append(parse_value(a[i]))
     return retval
 
 def emit(o):
@@ -113,7 +114,6 @@ def emit(o):
                 retval += "["+section+"]\n"
                 retval += addtoretval
             for s in addtosections:
-                print s
                 newsections[section+"."+s] = addtosections[s]
         sections = newsections
     return retval
@@ -123,7 +123,36 @@ def emit_sections(o):
     retdict = {}
     for section in o:
         if not isinstance(o[section], dict):
-            retstr += section + " = " + str(o[section]) + '\n'
+            retstr += section + " = " + str(emit_value(o[section])) + '\n'
         else:
             retdict[section] = o[section]
     return (retstr, retdict)
+
+def emit_value(v):
+    if isinstance(v, list):
+        t = []
+        retval = "["
+        for u in v:
+            t.append(emit_value(u))
+        while t != []:
+            s = []
+            for u in t:
+                if isinstance(u, list):
+                    for r in u:
+                        s.append(r)
+                else:
+                    retval += " " + str(u) + ","
+            t = s
+        retval += "]"
+        return retval
+    if isinstance(v, (str, unicode)):
+        escapes = ['\\', '0', 'n', 'r', 't', '"']
+        escapedchars = ['\\', '\0', '\n', '\r', '\t', '\"']
+        for i in xrange(len(escapes)):
+            v = v.replace(escapedchars[i], "\\"+escapes[i])
+        return str('"'+v+'"')
+    if isinstance(v, bool):
+        return str(v).lower()
+    if isinstance(v, datetime.datetime):
+        return v.isoformat()[:19]+'Z'
+    return v
