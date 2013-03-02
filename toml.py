@@ -1,7 +1,12 @@
 import datetime
 
+try:
+    from collections import OrderedDict
+except ImportError:  # Python < 2.7
+    from ordereddict import OrderedDict
+
 def parse(s):
-    retval = {}
+    retval = OrderedDict()
     currentlevel = retval
     if isinstance(s, str):
         sl = list(s)
@@ -42,7 +47,7 @@ def parse(s):
                     if i == len(groups) - 1:
                         raise Exception("What? "+group+" already exists?"+str(currentlevel))
                 except KeyError:
-                    currentlevel[group] = {}
+                    currentlevel[group] = OrderedDict()
                 currentlevel = currentlevel[group]
         elif "=" in line:
             pair = line.split('=', 1)
@@ -107,7 +112,7 @@ def emit(o):
     addtoretval, sections = emit_sections(o)
     retval += addtoretval
     while sections != {}:
-        newsections = {}
+        newsections = OrderedDict()
         for section in sections:
             addtoretval, addtosections = emit_sections(sections[section])
             if addtoretval:
@@ -120,7 +125,7 @@ def emit(o):
 
 def emit_sections(o):
     retstr = ""
-    retdict = {}
+    retdict = OrderedDict()
     for section in o:
         if not isinstance(o[section], dict):
             retstr += section + " = " + str(emit_value(o[section])) + '\n'
