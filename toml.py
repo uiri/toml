@@ -1,6 +1,7 @@
 import datetime
 
 def dumps(s):
+    """Returns a dictionary containing s, a string, parsed as toml."""
     retval = {}
     currentlevel = retval
     if isinstance(s, str):
@@ -103,6 +104,7 @@ def dump_array(a):
     return retval
 
 def loads(o):
+    """Returns a string containing the toml corresponding to o, a dictionary"""
     retval = ""
     addtoretval, sections = load_sections(o)
     retval += addtoretval
