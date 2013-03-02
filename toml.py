@@ -1,6 +1,6 @@
 import datetime
 
-def parse(s):
+def dumps(s):
     retval = {}
     currentlevel = retval
     if isinstance(s, str):
@@ -48,11 +48,11 @@ def parse(s):
             pair = line.split('=', 1)
             for i in xrange(len(pair)):
                 pair[i] = pair[i].strip()
-            value = parse_value(pair[1])
+            value = dump_value(pair[1])
             currentlevel[pair[0]] = value
     return retval
 
-def parse_value(v):
+def dump_value(v):
     if v == 'true':
         return True
     elif v == 'false':
@@ -64,7 +64,7 @@ def parse_value(v):
             v = v.replace("\\"+escapes[i], escapedchars[i])
         return unicode(v[1:-1])
     elif v[0] == '[':
-        return parse_array(v)
+        return dump_array(v)
     elif len(v) == 20 and v[-1] == 'Z':
         if v[10] == 'T':
             return datetime.datetime.strptime(v, "%Y-%m-%dT%H:%M:%SZ")
@@ -78,7 +78,7 @@ def parse_value(v):
             return float(v)
 
 
-def parse_array(a):
+def dump_array(a):
     retval = []
     if '[' not in a[1:-1]:
         a = a[1:-1].split(',')
@@ -99,17 +99,17 @@ def parse_array(a):
     for i in xrange(len(a)):
         a[i] = a[i].strip()
         if a[i] != '':
-            retval.append(parse_value(a[i]))
+            retval.append(dump_value(a[i]))
     return retval
 
-def emit(o):
+def loads(o):
     retval = ""
-    addtoretval, sections = emit_sections(o)
+    addtoretval, sections = load_sections(o)
     retval += addtoretval
     while sections != {}:
         newsections = {}
         for section in sections:
-            addtoretval, addtosections = emit_sections(sections[section])
+            addtoretval, addtosections = load_sections(sections[section])
             if addtoretval:
                 retval += "["+section+"]\n"
                 retval += addtoretval
@@ -118,22 +118,22 @@ def emit(o):
         sections = newsections
     return retval
 
-def emit_sections(o):
+def load_sections(o):
     retstr = ""
     retdict = {}
     for section in o:
         if not isinstance(o[section], dict):
-            retstr += section + " = " + str(emit_value(o[section])) + '\n'
+            retstr += section + " = " + str(load_value(o[section])) + '\n'
         else:
             retdict[section] = o[section]
     return (retstr, retdict)
 
-def emit_value(v):
+def load_value(v):
     if isinstance(v, list):
         t = []
         retval = "["
         for u in v:
-            t.append(emit_value(u))
+            t.append(load_value(u))
         while t != []:
             s = []
             for u in t:
