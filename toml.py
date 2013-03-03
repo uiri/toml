@@ -32,6 +32,8 @@ def loads(s):
                     openarr -= 1
             if sl[i] == '\n':
                 if openarr:
+                    if openstring:
+                        raise Exception("Unbalanced quotes")
                     sl.insert(i, ' ')
                     sl.pop(i+1)
                 else:
@@ -47,7 +49,11 @@ def loads(s):
         if line == "":
             continue
         if line[0] == '[':
-            groups = line[1:-1].split('.')
+            line = line[1:].split(']', 1)
+            if line[1].strip() != "":
+                raise Exception("Key group not on a line by itself.")
+            line = line[0]
+            groups = line.split('.')
             currentlevel = retval
             for i in xrange(len(groups)):
                 group = groups[i]
@@ -72,6 +78,16 @@ def load_value(v):
     elif v == 'false':
         return False
     elif v[0] == '"':
+        testv = v[1:].split('"')
+        closed = False
+        for tv in testv:
+            if tv == '':
+                closed = True
+            elif tv[-1] != '\\':
+                if closed:
+                    raise Exception("Stuff after closed string. WTF?")
+                else:
+                    closed = True
         escapes = ['0', 'n', 'r', 't', '"', '\\']
         escapedchars = ['\0', '\n', '\r', '\t', '\"', '\\']
         escapeseqs = v.split('\\')[1:]
