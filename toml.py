@@ -61,6 +61,27 @@ def dump_value(v):
     elif v[0] == '"':
         escapes = ['0', 'n', 'r', 't', '"', '\\']
         escapedchars = ['\0', '\n', '\r', '\t', '\"', '\\']
+        escapeseqs = v.split('\\')[1:]
+        for i in escapeseqs:
+            if i[0] not in escapes and i[0] != 'x':
+                raise Exception("Reserved escape sequence used")
+        if "\\x" in v:
+            hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
+                        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+            hexbytes = v.split('\\x')
+            newv = unicode(hexbytes[0])
+            hexbytes = hexbytes[1:]
+            for hx in hexbytes:
+                hxb = ""
+                if hx[0].lower() in hexchars:
+                    hxb += hx[0].lower()
+                    if hx[1].lower() in hexchars:
+                        hxb += hx[1].lower()
+                if len(hxb) != 2:
+                    raise Exception("Invalid escape sequence")
+                newv += unichr(int(hxb, 16))
+                newv += unicode(hx[2:])
+            v = newv
         for i in xrange(len(escapes)):
             v = v.replace("\\"+escapes[i], escapedchars[i])
         return unicode(v[1:-1])
