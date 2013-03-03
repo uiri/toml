@@ -8,23 +8,36 @@ def loads(s):
         sl = list(s)
         openarr = 0
         openstring = False
+        beginline = True
+        keygroup = False
         delnum = 1
         for i in xrange(len(sl)):
-            if sl[i] == '"':
+            if sl[i] == '"' and sl[i-1] != '\\':
                 openstring = not openstring
-            if sl[i] == '#' and not openstring:
+            if sl[i] == '#' and not openstring and not keygroup:
                 j = i
                 while sl[j] != '\n':
                     sl.insert(j, ' ')
                     sl.pop(j+1)
                     j += 1
             if sl[i] == '[' and not openstring:
-                openarr += 1
+                if beginline:
+                    keygroup = True
+                else:
+                    openarr += 1
             if sl[i] == ']' and not openstring:
-                openarr -= 1
-            if sl[i] == '\n' and openarr:
-                sl.insert(i, ' ')
-                sl.pop(i+1)
+                if keygroup:
+                    keygroup = False
+                else:
+                    openarr -= 1
+            if sl[i] == '\n':
+                if openarr:
+                    sl.insert(i, ' ')
+                    sl.pop(i+1)
+                else:
+                    beginline = True
+            elif beginline and sl[i] != ' ' and sl[i] != '\t':
+                beginline = False
         s = ''.join(sl)
         s = s.split('\n')
     else:
