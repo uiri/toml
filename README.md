@@ -26,9 +26,9 @@ pip install toml
 ```
 
 
-toml.dumps --- takes a string to be parsed as toml and returns the corresponding dictionary
+toml.loads --- takes a string to be parsed as toml and returns the corresponding dictionary
 
-toml.loads --- takes a dictionary and returns a string which is the contents of the corresponding toml file.
+toml.dumps --- takes a dictionary and returns a string which is the contents of the corresponding toml file.
 
 
 There are other functions which I use to dump and load various fragments of toml but dumps and loads will cover most usage.

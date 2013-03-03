@@ -1,6 +1,6 @@
 import datetime
 
-def dumps(s):
+def loads(s):
     """Returns a dictionary containing s, a string, parsed as toml."""
     retval = {}
     currentlevel = retval
@@ -49,11 +49,11 @@ def dumps(s):
             pair = line.split('=', 1)
             for i in xrange(len(pair)):
                 pair[i] = pair[i].strip()
-            value = dump_value(pair[1])
+            value = load_value(pair[1])
             currentlevel[pair[0]] = value
     return retval
 
-def dump_value(v):
+def load_value(v):
     if v == 'true':
         return True
     elif v == 'false':
@@ -86,7 +86,7 @@ def dump_value(v):
             v = v.replace("\\"+escapes[i], escapedchars[i])
         return unicode(v[1:-1])
     elif v[0] == '[':
-        return dump_array(v)
+        return load_array(v)
     elif len(v) == 20 and v[-1] == 'Z':
         if v[10] == 'T':
             return datetime.datetime.strptime(v, "%Y-%m-%dT%H:%M:%SZ")
@@ -100,7 +100,7 @@ def dump_value(v):
             return float(v)
 
 
-def dump_array(a):
+def load_array(a):
     retval = []
     if '[' not in a[1:-1]:
         a = a[1:-1].split(',')
@@ -121,18 +121,18 @@ def dump_array(a):
     for i in xrange(len(a)):
         a[i] = a[i].strip()
         if a[i] != '':
-            retval.append(dump_value(a[i]))
+            retval.append(load_value(a[i]))
     return retval
 
-def loads(o):
+def dumps(o):
     """Returns a string containing the toml corresponding to o, a dictionary"""
     retval = ""
-    addtoretval, sections = load_sections(o)
+    addtoretval, sections = dump_sections(o)
     retval += addtoretval
     while sections != {}:
         newsections = {}
         for section in sections:
-            addtoretval, addtosections = load_sections(sections[section])
+            addtoretval, addtosections = dump_sections(sections[section])
             if addtoretval:
                 retval += "["+section+"]\n"
                 retval += addtoretval
@@ -141,22 +141,22 @@ def loads(o):
         sections = newsections
     return retval
 
-def load_sections(o):
+def dump_sections(o):
     retstr = ""
     retdict = {}
     for section in o:
         if not isinstance(o[section], dict):
-            retstr += section + " = " + str(load_value(o[section])) + '\n'
+            retstr += section + " = " + str(dump_value(o[section])) + '\n'
         else:
             retdict[section] = o[section]
     return (retstr, retdict)
 
-def load_value(v):
+def dump_value(v):
     if isinstance(v, list):
         t = []
         retval = "["
         for u in v:
-            t.append(load_value(u))
+            t.append(dump_value(u))
         while t != []:
             s = []
             for u in t:
