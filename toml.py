@@ -56,6 +56,8 @@ def loads(s):
             if line[1].strip() != "":
                 raise Exception("Key group not on a line by itself.")
             line = line[0]
+            if line == "":
+                raise Exception("Can't have a keygroup with an empty name")
             groups = line.split('.')
             currentlevel = retval
             for i in xrange(len(groups)):
