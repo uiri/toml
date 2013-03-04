@@ -74,7 +74,11 @@ def loads(s):
             pair[0] = pair[0].strip()
             pair[1] = pair[1].strip()
             value = load_value(pair[1])
-            currentlevel[pair[0]] = value
+            try:
+                currentlevel[pair[0]]
+                raise Exception("Duplicate keys!")
+            except KeyError:
+                currentlevel[pair[0]] = value
     return retval
 
 def load_value(v):
