@@ -92,8 +92,9 @@ def load_value(v):
         escapedchars = ['\0', '\n', '\r', '\t', '\"', '\\']
         escapeseqs = v.split('\\')[1:]
         for i in escapeseqs:
-            if i[0] not in escapes and i[0] != 'x':
-                raise Exception("Reserved escape sequence used")
+            if i != '':
+                if i[0] not in escapes and i[0] != 'x':
+                    raise Exception("Reserved escape sequence used")
         if "\\x" in v:
             hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
                         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
@@ -131,13 +132,14 @@ def load_value(v):
 
 def load_array(a):
     retval = []
+    a = a.strip()
     if '[' not in a[1:-1]:
         a = a[1:-1].split(',')
     else:
         al = list(a[1:-1])
         a = []
         openarr = 0
-        j = 1
+        j = 0
         for i in xrange(len(al)):
             if al[i] == '[':
                 openarr += 1
