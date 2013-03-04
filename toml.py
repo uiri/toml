@@ -69,8 +69,10 @@ def loads(s):
                 currentlevel = currentlevel[group]
         elif "=" in line:
             pair = line.split('=', 1)
-            for i in xrange(len(pair)):
-                pair[i] = pair[i].strip()
+            if pair[0] == pair[0].rstrip():
+                raise Exception("Missing whitespace between key name and =")
+            pair[0] = pair[0].strip()
+            pair[1] = pair[1].strip()
             value = load_value(pair[1])
             currentlevel[pair[0]] = value
     return retval
@@ -131,11 +133,22 @@ def load_value(v):
         else:
             raise Exception("Wait, what?")
     else:
-        try:
-            int(v)
-            return int(v)
-        except ValueError:
-            return float(v)
+        digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+        neg = False
+        if v[0] == '-':
+            neg = True
+            v = v[1:]
+        if '.' in v:
+            if v.split('.', 1)[1] == '':
+                raise Exception("This float is missing digits after the point")
+            if v[0] not in digits:
+                raise Exception("This float doesn't have a leading digit")
+            v = float(v)
+        else:
+            v = int(v)
+        if neg:
+            return 0 - v
+        return v
 
 
 def load_array(a):
