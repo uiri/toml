@@ -14,6 +14,8 @@ def loads(s):
         for i in xrange(len(sl)):
             if sl[i] == '"' and sl[i-1] != '\\':
                 openstring = not openstring
+            if keygroup and (sl[i] == ' ' or sl[i] == '\t'):
+                keygroup = False
             if sl[i] == '#' and not openstring and not keygroup:
                 j = i
                 while sl[j] != '\n':
@@ -40,6 +42,7 @@ def loads(s):
                     beginline = True
             elif beginline and sl[i] != ' ' and sl[i] != '\t':
                 beginline = False
+                keygroup = True
         s = ''.join(sl)
         s = s.split('\n')
     else:
@@ -91,10 +94,15 @@ def load_value(v):
         escapes = ['0', 'n', 'r', 't', '"', '\\']
         escapedchars = ['\0', '\n', '\r', '\t', '\"', '\\']
         escapeseqs = v.split('\\')[1:]
+        backslash = False
         for i in escapeseqs:
-            if i != '':
-                if i[0] not in escapes and i[0] != 'x':
+            if i == '':
+                backslash = not backslash
+            else:
+                if i[0] not in escapes and i[0] != 'x' and not backslash:
                     raise Exception("Reserved escape sequence used")
+                if backslash:
+                    backslash = False
         if "\\x" in v:
             hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
                         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
