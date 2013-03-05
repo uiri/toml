@@ -1,6 +1,7 @@
 import datetime
 
 def loads(s):
+    implicitgroups = []
     """Returns a dictionary containing s, a string, parsed as toml."""
     retval = {}
     currentlevel = retval
@@ -65,8 +66,13 @@ def loads(s):
                 try:
                     currentlevel[group]
                     if i == len(groups) - 1:
-                        raise Exception("What? "+group+" already exists?"+str(currentlevel))
+                        if group in implicitgroups:
+                            implicitgroups.remove(group)
+                        else:
+                            raise Exception("What? "+group+" already exists?"+str(currentlevel))
                 except KeyError:
+                    if i != len(groups) - 1:
+                        implicitgroups.append(group)
                     currentlevel[group] = {}
                 currentlevel = currentlevel[group]
         elif "=" in line:
