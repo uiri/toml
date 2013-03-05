@@ -75,7 +75,7 @@ def loads(s):
                 raise Exception("Missing whitespace between key name and =")
             pair[0] = pair[0].strip()
             pair[1] = pair[1].strip()
-            value = load_value(pair[1])
+            value, vtype = load_value(pair[1])
             try:
                 currentlevel[pair[0]]
                 raise Exception("Duplicate keys!")
@@ -85,9 +85,9 @@ def loads(s):
 
 def load_value(v):
     if v == 'true':
-        return True
+        return (True, "bool")
     elif v == 'false':
-        return False
+        return (False, "bool")
     elif v[0] == '"':
         testv = v[1:].split('"')
         closed = False
@@ -130,15 +130,16 @@ def load_value(v):
             v = newv
         for i in xrange(len(escapes)):
             v = v.replace("\\"+escapes[i], escapedchars[i])
-        return unicode(v[1:-1])
+        return (unicode(v[1:-1]), "str")
     elif v[0] == '[':
-        return load_array(v)
+        return (load_array(v), "array")
     elif len(v) == 20 and v[-1] == 'Z':
         if v[10] == 'T':
-            return datetime.datetime.strptime(v, "%Y-%m-%dT%H:%M:%SZ")
+            return (datetime.datetime.strptime(v, "%Y-%m-%dT%H:%M:%SZ"), "date")
         else:
             raise Exception("Wait, what?")
     else:
+        itype = "int"
         digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         neg = False
         if v[0] == '-':
@@ -150,14 +151,16 @@ def load_value(v):
             if v[0] not in digits:
                 raise Exception("This float doesn't have a leading digit")
             v = float(v)
+            itype = "float"
         else:
             v = int(v)
         if neg:
-            return 0 - v
-        return v
+            return (0 - v, itype)
+        return (v, itype)
 
 
 def load_array(a):
+    atype = None
     retval = []
     a = a.strip()
     if '[' not in a[1:-1]:
@@ -179,7 +182,13 @@ def load_array(a):
     for i in xrange(len(a)):
         a[i] = a[i].strip()
         if a[i] != '':
-            retval.append(load_value(a[i]))
+            nval, ntype = load_value(a[i])
+            if atype:
+                if ntype != atype:
+                    raise Exception("Not a homogeneous array")
+            else:
+                atype = ntype
+            retval.append(nval)
     return retval
 
 def dumps(o):
