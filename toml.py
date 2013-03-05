@@ -22,12 +22,12 @@ def loads(s):
                     sl.insert(j, ' ')
                     sl.pop(j+1)
                     j += 1
-            if sl[i] == '[' and not openstring:
+            if sl[i] == '[' and not openstring and not keygroup:
                 if beginline:
                     keygroup = True
                 else:
                     openarr += 1
-            if sl[i] == ']' and not openstring:
+            if sl[i] == ']' and not openstring and not keygroup:
                 if keygroup:
                     keygroup = False
                 else:
@@ -70,7 +70,16 @@ def loads(s):
                     currentlevel[group] = {}
                 currentlevel = currentlevel[group]
         elif "=" in line:
-            pair = line.split('=', 1)
+            print line
+            i = 1
+            pair = line.split('=', i)
+            while pair[-2][-1] != ' ' and pair[-2][-1] != '\t':
+                i += 1
+                pair = line.split('=', i)
+            newpair = []
+            newpair.append('='.join(pair[:-1]))
+            newpair.append(pair[-1])
+            pair = newpair
             if pair[0] == pair[0].rstrip():
                 print pair[0]
                 raise Exception("Missing whitespace between key name and =")
