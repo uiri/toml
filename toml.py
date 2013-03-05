@@ -56,12 +56,12 @@ def loads(s):
             if line[1].strip() != "":
                 raise Exception("Key group not on a line by itself.")
             line = line[0]
-            if line == "":
-                raise Exception("Can't have a keygroup with an empty name")
             groups = line.split('.')
             currentlevel = retval
             for i in xrange(len(groups)):
                 group = groups[i]
+                if group == "":
+                    raise Exception("Can't have a keygroup with an empty name")
                 try:
                     currentlevel[group]
                     if i == len(groups) - 1:
@@ -72,6 +72,7 @@ def loads(s):
         elif "=" in line:
             pair = line.split('=', 1)
             if pair[0] == pair[0].rstrip():
+                print pair[0]
                 raise Exception("Missing whitespace between key name and =")
             pair[0] = pair[0].strip()
             pair[1] = pair[1].strip()
