@@ -79,16 +79,13 @@ def loads(s):
             print line
             i = 1
             pair = line.split('=', i)
-            while pair[-2][-1] != ' ' and pair[-2][-1] != '\t':
+            while pair[-1][0] != ' ' and pair[-1][0] != '\t':
                 i += 1
                 pair = line.split('=', i)
             newpair = []
             newpair.append('='.join(pair[:-1]))
             newpair.append(pair[-1])
             pair = newpair
-            if pair[0] == pair[0].rstrip():
-                print pair[0]
-                raise Exception("Missing whitespace between key name and =")
             pair[0] = pair[0].strip()
             pair[1] = pair[1].strip()
             value, vtype = load_value(pair[1])
