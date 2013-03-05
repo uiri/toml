@@ -33,9 +33,9 @@ def loads(s):
                 else:
                     openarr -= 1
             if sl[i] == '\n':
+                if openstring:
+                    raise Exception("Unbalanced quotes")
                 if openarr:
-                    if openstring:
-                        raise Exception("Unbalanced quotes")
                     sl.insert(i, ' ')
                     sl.pop(i+1)
                 else:
