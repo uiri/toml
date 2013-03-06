@@ -76,7 +76,6 @@ def loads(s):
                     currentlevel[group] = {}
                 currentlevel = currentlevel[group]
         elif "=" in line:
-            print line
             i = 1
             pair = line.split('=', i)
             while pair[-1][0] != ' ' and pair[-1][0] != '\t':
