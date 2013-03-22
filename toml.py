@@ -5,7 +5,7 @@ def loads(s):
     """Returns a dictionary containing s, a string, parsed as toml."""
     retval = {}
     currentlevel = retval
-    if isinstance(s, str):
+    if isinstance(s, basestring):
         sl = list(s)
         openarr = 0
         openstring = False
