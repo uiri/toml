@@ -43,7 +43,7 @@ Example usage:
 import toml
 
 with open("conf.toml") as conffile:
-     config = toml.dumps(conffile.read())
+     config = toml.loads(conffile.read())
 # do stuff with config here
 . . .
 ```
