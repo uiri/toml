@@ -123,10 +123,10 @@ def load_value(v):
                     raise Exception("Reserved escape sequence used")
                 if backslash:
                     backslash = False
-        if "\\x" in v:
+        if "\\u" in v:
             hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
                         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
-            hexbytes = v.split('\\x')
+            hexbytes = v.split('\\u')
             newv = unicode(hexbytes[0])
             hexbytes = hexbytes[1:]
             for hx in hexbytes:
