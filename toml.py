@@ -119,7 +119,7 @@ def load_value(v):
             if i == '':
                 backslash = not backslash
             else:
-                if i[0] not in escapes and i[0] != 'x' and not backslash:
+                if i[0] not in escapes and i[0] != 'u' and not backslash:
                     raise Exception("Reserved escape sequence used")
                 if backslash:
                     backslash = False
