@@ -1,5 +1,13 @@
 import datetime
 
+try:
+    _range = xrange
+except NameError:
+    unicode = str
+    _range = range
+    basestring = str
+    unichr = chr
+
 def loads(s):
     implicitgroups = []
     """Returns a dictionary containing s, a string, parsed as toml."""
@@ -12,7 +20,7 @@ def loads(s):
         beginline = True
         keygroup = False
         delnum = 1
-        for i in xrange(len(sl)):
+        for i in range(len(sl)):
             if sl[i] == '"' and sl[i-1] != '\\':
                 openstring = not openstring
             if keygroup and (sl[i] == ' ' or sl[i] == '\t'):
@@ -59,7 +67,7 @@ def loads(s):
             line = line[0]
             groups = line.split('.')
             currentlevel = retval
-            for i in xrange(len(groups)):
+            for i in range(len(groups)):
                 group = groups[i]
                 if group == "":
                     raise Exception("Can't have a keygroup with an empty name")
@@ -140,7 +148,7 @@ def load_value(v):
                 newv += unichr(int(hxb, 16))
                 newv += unicode(hx[2:])
             v = newv
-        for i in xrange(len(escapes)):
+        for i in range(len(escapes)):
             v = v.replace("\\"+escapes[i], escapedchars[i])
         return (unicode(v[1:-1]), "str")
     elif v[0] == '[':
@@ -182,7 +190,7 @@ def load_array(a):
         a = []
         openarr = 0
         j = 0
-        for i in xrange(len(al)):
+        for i in range(len(al)):
             if al[i] == '[':
                 openarr += 1
             elif al[i] == ']':
@@ -191,7 +199,7 @@ def load_array(a):
                 a.append(''.join(al[j:i]))
                 j = i+1
         a.append(''.join(al[j:]))
-    for i in xrange(len(a)):
+    for i in range(len(a)):
         a[i] = a[i].strip()
         if a[i] != '':
             nval, ntype = load_value(a[i])
@@ -250,7 +258,7 @@ def dump_value(v):
     if isinstance(v, (str, unicode)):
         escapes = ['\\', '0', 'b', 'f', '/', 'n', 'r', 't', '"']
         escapedchars = ['\\', '\0', '\b', '\f', '/', '\n', '\r', '\t', '\"']
-        for i in xrange(len(escapes)):
+        for i in range(len(escapes)):
             v = v.replace(escapedchars[i], "\\"+escapes[i])
         return str('"'+v+'"')
     if isinstance(v, bool):
