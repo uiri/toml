@@ -9,8 +9,8 @@ except NameError:
     unichr = chr
 
 def loads(s):
-    implicitgroups = []
     """Returns a dictionary containing s, a string, parsed as toml."""
+    implicitgroups = []
     retval = {}
     currentlevel = retval
     if isinstance(s, basestring):
