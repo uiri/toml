@@ -8,6 +8,27 @@ except NameError:
     basestring = str
     unichr = chr
 
+def load(f):
+    """Returns a dictionary containing the named file parsed as toml."""
+    if isinstance(f, basestring):
+        with open(f) as ffile:
+            return loads(ffile.read())
+    elif isinstance(f, list):
+        for l in f:
+            if not isinstance(l, basestring):
+                raise Exception("Load expects a list to contain filenames only")
+        d = []
+        for l in f:
+            d.append(load(l))
+        r = {}
+        for l in d:
+            toml_merge_dict(r, l)
+        return r
+    elif f.read:
+        return loads(f.read())
+    else:
+        raise Exception("You can only load a file descriptor, filename or list")
+
 def loads(s):
     """Returns a dictionary containing s, a string, parsed as toml."""
     implicitgroups = []
@@ -211,6 +232,15 @@ def load_array(a):
             retval.append(nval)
     return retval
 
+def dump(o, f):
+    """Writes out to f the toml corresponding to o. Returns said toml."""
+    if f.write:
+        d = dumps(o)
+        f.write(d)
+        return d
+    else:
+        raise Exception("You can only dump an object to a file descriptor")
+
 def dumps(o):
     """Returns a string containing the toml corresponding to o, a dictionary"""
     retval = ""
@@ -266,3 +296,17 @@ def dump_value(v):
     if isinstance(v, datetime.datetime):
         return v.isoformat()[:19]+'Z'
     return v
+
+def toml_merge_dict(a, b):
+    for k in a:
+        if isinstance(a[k], dict):
+            try:
+                b[k]
+            except KeyError:
+                continue
+            if isinstance(b[k], dict):
+                b[k] = toml_merge_dict(a[k], b[k])
+            else:
+                raise Exception("Can't merge dict and nondict in toml object")
+    a.update(b)
+    return a
