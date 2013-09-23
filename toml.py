@@ -107,9 +107,12 @@ def loads(s):
         elif "=" in line:
             i = 1
             pair = line.split('=', i)
+            l = len(line)
             while pair[-1][0] != ' ' and pair[-1][0] != '\t':
                 i += 1
                 pair = line.split('=', i)
+                if i >= l:
+                    raise Exception("A key must be ended by whitespace.")
             newpair = []
             newpair.append('='.join(pair[:-1]))
             newpair.append(pair[-1])
