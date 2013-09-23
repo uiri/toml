@@ -38,6 +38,7 @@ def loads(s):
         sl = list(s)
         openarr = 0
         openstring = False
+        arrayoftables = True
         beginline = True
         keygroup = False
         delnum = 1
@@ -46,20 +47,28 @@ def loads(s):
                 openstring = not openstring
             if keygroup and (sl[i] == ' ' or sl[i] == '\t'):
                 keygroup = False
-            if sl[i] == '#' and not openstring and not keygroup:
+            if arrayoftables and (sl[i] == ' ' or sl[i] == '\t'):
+                arrayoftables = False
+            if sl[i] == '#' and not openstring and not keygroup and not arrayoftables:
                 j = i
                 while sl[j] != '\n':
                     sl.insert(j, ' ')
                     sl.pop(j+1)
                     j += 1
-            if sl[i] == '[' and not openstring and not keygroup:
+            if sl[i] == '[' and not openstring and not keygroup and not arrayoftables:
                 if beginline:
-                    keygroup = True
+                    if sl[i+1] == '[':
+                        arrayoftables = True
+                    else:
+                        keygroup = True
                 else:
                     openarr += 1
-            if sl[i] == ']' and not openstring and not keygroup:
+            if sl[i] == ']' and not openstring and not keygroup and not arrayoftables:
                 if keygroup:
                     keygroup = False
+                elif arrayoftables:
+                    if sl[i-1] == ']':
+                        arrayoftables = False
                 else:
                     openarr -= 1
             if sl[i] == '\n':
@@ -82,7 +91,12 @@ def loads(s):
         if line == "":
             continue
         if line[0] == '[':
-            line = line[1:].split(']', 1)
+            arrayoftables = False
+            if line[1] == '[':
+                arrayoftables = True
+                line = line[2:].split(']]', 1)
+            else:
+                line = line[1:].split(']', 1)
             if line[1].strip() != "":
                 raise Exception("Key group not on a line by itself.")
             line = line[0]
@@ -97,13 +111,19 @@ def loads(s):
                     if i == len(groups) - 1:
                         if group in implicitgroups:
                             implicitgroups.remove(group)
+                        elif arrayoftables:
+                            currentlevel[group].insert(0, {})
                         else:
                             raise Exception("What? "+group+" already exists?"+str(currentlevel))
                 except KeyError:
                     if i != len(groups) - 1:
                         implicitgroups.append(group)
                     currentlevel[group] = {}
+                    if i == len(groups) - 1 and arrayoftables:
+                        currentlevel[group] = [{}]
                 currentlevel = currentlevel[group]
+            if arrayoftables:
+                currentlevel = currentlevel[0]
         elif "=" in line:
             i = 1
             pair = line.split('=', i)
