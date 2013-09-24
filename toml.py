@@ -267,12 +267,12 @@ def dump(o, f):
 def dumps(o):
     """Returns a string containing the toml corresponding to o, a dictionary"""
     retval = ""
-    addtoretval, sections = dump_sections(o)
+    addtoretval, sections = dump_sections(o, "")
     retval += addtoretval
     while sections != {}:
         newsections = {}
         for section in sections:
-            addtoretval, addtosections = dump_sections(sections[section])
+            addtoretval, addtosections = dump_sections(sections[section], section)
             if addtoretval:
                 retval += "["+section+"]\n"
                 retval += addtoretval
@@ -281,12 +281,19 @@ def dumps(o):
         sections = newsections
     return retval
 
-def dump_sections(o):
+def dump_sections(o, sup):
     retstr = ""
     retdict = {}
     for section in o:
         if not isinstance(o[section], dict):
-            retstr += section + " = " + str(dump_value(o[section])) + '\n'
+            if isinstance(o[section], list) and isinstance(o[section][0], dict):
+                for a in o[section]:
+                    retstr += "[["+sup+"."+section+"]]\n"
+                    s, d = dump_sections(a, sup+"."+section)
+                    if s:
+                        retstr += s
+            else:
+                retstr += section + " = " + str(dump_value(o[section])) + '\n'
         else:
             retdict[section] = o[section]
     return (retstr, retdict)
