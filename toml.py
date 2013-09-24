@@ -283,13 +283,15 @@ def dumps(o):
 
 def dump_sections(o, sup):
     retstr = ""
+    if sup != "" and sup[-1] != ".":
+        sup += '.'
     retdict = {}
     for section in o:
         if not isinstance(o[section], dict):
             if isinstance(o[section], list) and isinstance(o[section][0], dict):
                 for a in o[section]:
-                    retstr += "[["+sup+"."+section+"]]\n"
-                    s, d = dump_sections(a, sup+"."+section)
+                    retstr += "[["+sup+section+"]]\n"
+                    s, d = dump_sections(a, sup+section)
                     if s:
                         retstr += s
             else:
