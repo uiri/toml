@@ -115,6 +115,14 @@ def loads(s):
                             currentlevel[group].insert(0, {})
                         else:
                             raise Exception("What? "+group+" already exists?"+str(currentlevel))
+                except TypeError:
+                    if i != len(groups) - 1:
+                        implicitgroups.append(group)
+                    currentlevel = currentlevel[0]
+                    if arrayoftables:
+                        currentlevel[group] = [{}]
+                    else:
+                        currentlevel[group] = {}
                 except KeyError:
                     if i != len(groups) - 1:
                         implicitgroups.append(group)
@@ -122,8 +130,8 @@ def loads(s):
                     if i == len(groups) - 1 and arrayoftables:
                         currentlevel[group] = [{}]
                 currentlevel = currentlevel[group]
-            if arrayoftables:
-                currentlevel = currentlevel[0]
+                if arrayoftables:
+                    currentlevel = currentlevel[0]
         elif "=" in line:
             i = 1
             pair = line.split('=', i)
@@ -286,18 +294,40 @@ def dump_sections(o, sup):
     if sup != "" and sup[-1] != ".":
         sup += '.'
     retdict = {}
+    arraystr = ""
     for section in o:
         if not isinstance(o[section], dict):
-            if isinstance(o[section], list) and isinstance(o[section][0], dict):
+            arrayoftables = False
+            if isinstance(o[section], list):
                 for a in o[section]:
-                    retstr += "[["+sup+section+"]]\n"
+                    if isinstance(a, dict):
+                        arrayoftables = True
+            if arrayoftables:
+                for a in o[section]:
+                    arraytabstr = ""
+                    arraystr += "[["+sup+section+"]]\n"
                     s, d = dump_sections(a, sup+section)
                     if s:
-                        retstr += s
+                        if s[0] == "[":
+                            arraytabstr += s
+                        else:
+                            arraystr += s
+                    while d != {}:
+                        newd = {}
+                        for dsec in d:
+                            s1, d1 = dump_sections(d[dsec], sup+section+dsec)
+                            if s1:
+                                arraytabstr += "["+sup+section+"."+dsec+"]\n"
+                                arraytabstr += s1
+                            for s1 in d1:
+                                newd[dsec+"."+s1] = d1[s1]
+                        d = newd
+                    arraystr += arraytabstr
             else:
                 retstr += section + " = " + str(dump_value(o[section])) + '\n'
         else:
             retdict[section] = o[section]
+    retstr += arraystr
     return (retstr, retdict)
 
 def dump_value(v):
