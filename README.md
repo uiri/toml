@@ -1,6 +1,8 @@
 TOML
 ====
 
+Original repository: https://github.com/uiri/toml
+
 See also https://github.com/mojombo/toml
 
 Python module which parses and emits TOML.
@@ -14,12 +16,7 @@ See http://j.xqz.ca/toml-status for up to date test results.
 Current Version of the Specification
 ------------------------------------
 
-https://github.com/mojombo/toml/blob/v0.1.0/README.md
-
-TO DO
------
-
-- Make sure the library keeps up with the spec as it evolves.
+https://github.com/mojombo/toml/blob/v0.2.0/README.md
 
 QUICK GUIDE
 -----------
