@@ -130,17 +130,23 @@ def loads(s):
                     if i == len(groups) - 1 and arrayoftables:
                         currentlevel[group] = [{}]
                 currentlevel = currentlevel[group]
-                if arrayoftables:
+                if arrayoftables and i == len(groups) - 1:
                     currentlevel = currentlevel[0]
         elif "=" in line:
             i = 1
             pair = line.split('=', i)
             l = len(line)
-            while pair[-1][0] != ' ' and pair[-1][0] != '\t':
-                i += 1
-                pair = line.split('=', i)
-                if i >= l:
-                    raise Exception("A key must be ended by whitespace.")
+            while pair[-1][0] != ' ' and pair[-1][0] != '\t' and pair[-1][0] != '"' and pair[-1][0] != '[' and pair[-1] != 'true' and pair[-1] != 'false':
+                try:
+                    float(pair[-1])
+                    break
+                except ValueError:
+                    try:
+                        datetime.datetime.strptime(pair[-1], "%Y-%m-%dT%H:%M:%SZ")
+                        break
+                    except ValueError:
+                        i += 1
+                        pair = line.split('=', i)
             newpair = []
             newpair.append('='.join(pair[:-1]))
             newpair.append(pair[-1])
@@ -191,18 +197,27 @@ def load_value(v):
             hexbytes = hexbytes[1:]
             for hx in hexbytes:
                 hxb = ""
-                if hx[0].lower() in hexchars:
-                    hxb += hx[0].lower()
-                    if hx[1].lower() in hexchars:
-                        hxb += hx[1].lower()
-                if len(hxb) != 2:
+                try:
+                    if hx[0].lower() in hexchars:
+                        hxb += hx[0].lower()
+                        if hx[1].lower() in hexchars:
+                            hxb += hx[1].lower()
+                        if hx[2].lower() in hexchars:
+                            hxb += hx[2].lower()
+                            if hx[3].lower() in hexchars:
+                                hxb += hx[3].lower()
+                except IndexError:
+                    if len(hxb) != 2:
+                        print len(hxb)
+                        raise Exception("Invalid escape sequence")
+                if len(hxb) != 4 and len(hxb) != 2:
                     raise Exception("Invalid escape sequence")
                 newv += unichr(int(hxb, 16))
-                newv += unicode(hx[2:])
+                newv += unicode(hx[len(hxb):])
             v = newv
         for i in range(len(escapes)):
             v = v.replace("\\"+escapes[i], escapedchars[i])
-        return (unicode(v[1:-1]), "str")
+        return (v[1:-1], "str")
     elif v[0] == '[':
         return (load_array(v), "array")
     elif len(v) == 20 and v[-1] == 'Z':

@@ -17,7 +17,7 @@ def tag(value):
             a.append(tag(v))
         return {'type': 'array', 'value': a}
     elif isinstance(value, basestring):
-        return {'type': 'string', 'value': str(value)}
+        return {'type': 'string', 'value': value}
     elif isinstance(value, bool):
         return {'type': 'bool', 'value': str(value).lower()}
     elif isinstance(value, int):
