@@ -5,16 +5,33 @@ import json
 import sys
 import toml
 
+try:
+    _range = xrange
+    iteritems = dict.iteritems
+except NameError:
+    unicode = str
+    _range = range
+    basestring = str
+    unichr = chr
+    iteritems = dict.items
+    long = int
+
 def tag(value):
     if isinstance(value, dict):
         d = { }
-        for k, v in value.iteritems():
+        for k, v in iteritems(value):
             d[k] = tag(v)
         return d
     elif isinstance(value, list):
         a = []
         for v in value:
             a.append(tag(v))
+        try:
+            a[0]["value"]
+        except KeyError:
+            return a
+        except IndexError:
+            pass
         return {'type': 'array', 'value': a}
     elif isinstance(value, basestring):
         return {'type': 'string', 'value': value}
@@ -35,5 +52,5 @@ def tag(value):
 if __name__ == '__main__':
     tdata = toml.loads(sys.stdin.read())
     tagged = tag(tdata)
-    print json.dumps(tagged)
+    print(json.dumps(tagged))
 
