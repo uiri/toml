@@ -35,6 +35,10 @@ def loads(s):
     retval = {}
     currentlevel = retval
     if isinstance(s, basestring):
+        try:
+            s.decode('utf8')
+        except AttributeError:
+            pass
         sl = list(s)
         openarr = 0
         openstring = False
@@ -111,8 +115,10 @@ def loads(s):
                     if i == len(groups) - 1:
                         if group in implicitgroups:
                             implicitgroups.remove(group)
+                            if arrayoftables:
+                                raise Exception("An implicitly defined table can't be an array")
                         elif arrayoftables:
-                            currentlevel[group].insert(0, {})
+                            currentlevel[group].append({})
                         else:
                             raise Exception("What? "+group+" already exists?"+str(currentlevel))
                 except TypeError:
@@ -130,8 +136,11 @@ def loads(s):
                     if i == len(groups) - 1 and arrayoftables:
                         currentlevel[group] = [{}]
                 currentlevel = currentlevel[group]
-                if arrayoftables and i == len(groups) - 1:
-                    currentlevel = currentlevel[0]
+                if arrayoftables:
+                    try:
+                        currentlevel = currentlevel[-1]
+                    except KeyError:
+                        pass
         elif "=" in line:
             i = 1
             pair = line.split('=', i)
@@ -193,7 +202,7 @@ def load_value(v):
             hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
                         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
             hexbytes = v.split('\\u')
-            newv = unicode(hexbytes[0])
+            newv = hexbytes[0]
             hexbytes = hexbytes[1:]
             for hx in hexbytes:
                 hxb = ""
@@ -208,7 +217,6 @@ def load_value(v):
                                 hxb += hx[3].lower()
                 except IndexError:
                     if len(hxb) != 2:
-                        print len(hxb)
                         raise Exception("Invalid escape sequence")
                 if len(hxb) != 4 and len(hxb) != 2:
                     raise Exception("Invalid escape sequence")
