@@ -104,6 +104,10 @@ def loads(s):
             if line[1].strip() != "":
                 raise Exception("Key group not on a line by itself.")
             line = line[0]
+            if '[' in line:
+                raise Exception("Key group name cannot contain '['")
+            if ']' in line:
+                raise Exception("Key group name cannot contain']'")
             groups = line.split('.')
             currentlevel = retval
             for i in range(len(groups)):
