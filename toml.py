@@ -47,7 +47,9 @@ def loads(s):
         keygroup = False
         delnum = 1
         for i in range(len(sl)):
-            if sl[i] == '"' and sl[i-1] != '\\':
+            if sl[i] == '"' and (
+                (i > 0 and sl[i-1] != '\\') or 
+                (i > 1 and sl[i-1] == '\\' and sl[i-2] == '\\')):
                 openstring = not openstring
             if keygroup and (sl[i] == ' ' or sl[i] == '\t'):
                 keygroup = False
@@ -185,7 +187,7 @@ def load_value(v):
         for tv in testv:
             if tv == '':
                 closed = True
-            elif tv[-1] != '\\':
+            elif tv[-1] != '\\' or tv[-2] == '\\':
                 if closed:
                     raise Exception("Stuff after closed string. WTF?")
                 else:
@@ -229,6 +231,9 @@ def load_value(v):
             v = newv
         for i in range(len(escapes)):
             v = v.replace("\\"+escapes[i], escapedchars[i])
+            # (where (n) signifies a member of escapes:
+            # undo (\\)(\\)(n) -> (\\)(\n)
+            v = v.replace("\\"+escapedchars[i], "\\\\"+escapes[i])
         return (v[1:-1], "str")
     elif v[0] == '[':
         return (load_array(v), "array")
