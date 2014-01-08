@@ -1,4 +1,4 @@
-import datetime
+import datetime, decimal
 
 try:
     _range = xrange
@@ -389,6 +389,8 @@ def dump_value(v):
         return str(v).lower()
     if isinstance(v, datetime.datetime):
         return v.isoformat()[:19]+'Z'
+    if isinstance(v, float):
+        return '{0:f}'.format(decimal.Decimal(str(v)))
     return v
 
 def toml_merge_dict(a, b):
