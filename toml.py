@@ -47,10 +47,20 @@ def loads(s):
         keygroup = False
         delnum = 1
         for i in range(len(sl)):
-            if sl[i] == '"' and (
-                (i > 0 and sl[i-1] != '\\') or 
-                (i > 1 and sl[i-1] == '\\' and sl[i-2] == '\\')):
-                openstring = not openstring
+            if sl[i] == '"':
+                oddbackslash = False
+                try:
+                    k = 1
+                    j = sl[i-k]
+                    oddbackslash = False
+                    while j == '\\':
+                        oddbackslash = not oddbackslash
+                        k += 1
+                        j = sl[i-k]
+                except IndexError:
+                    pass
+                if not oddbackslash:
+                    openstring = not openstring
             if keygroup and (sl[i] == ' ' or sl[i] == '\t'):
                 keygroup = False
             if arrayoftables and (sl[i] == ' ' or sl[i] == '\t'):
@@ -187,11 +197,22 @@ def load_value(v):
         for tv in testv:
             if tv == '':
                 closed = True
-            elif tv[-1] != '\\' or tv[-2] == '\\':
-                if closed:
-                    raise Exception("Stuff after closed string. WTF?")
-                else:
-                    closed = True
+            else:
+                oddbackslash = False
+                try:
+                    i = -1
+                    j = tv[i]
+                    while j == '\\':
+                        oddbackslash = not oddbackslash
+                        i -= 1
+                        j = tv[i]
+                except IndexError:
+                    pass
+                if not oddbackslash:
+                    if closed:
+                        raise Exception("Stuff after closed string. WTF?")
+                    else:
+                        closed = True
         escapes = ['0', 'b', 'f', '/', 'n', 'r', 't', '"', '\\']
         escapedchars = ['\0', '\b', '\f', '/', '\n', '\r', '\t', '\"', '\\']
         escapeseqs = v.split('\\')[1:]
