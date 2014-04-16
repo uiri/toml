@@ -1,9 +1,9 @@
 from distutils.core import setup
 
-with open("README.md") as readmefile:
+with open("README.rst") as readmefile:
     readme = readmefile.read()
 setup(name='toml',
-      version='0.8.1',
+      version='0.8.2',
       description="Python Library for Tom's Obvious, Minimal Language",
       author="Uiri Noyb",
       author_email="uiri@xqz.ca",
