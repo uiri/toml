@@ -21,11 +21,7 @@ https://github.com/mojombo/toml/blob/v0.2.0/README.md
 QUICK GUIDE
 -----------
 
-
-```
-pip install toml
-```
-
+``pip install toml``
 
 toml.loads --- takes a string to be parsed as toml and returns the corresponding dictionary
 
@@ -36,11 +32,11 @@ There are other functions which I use to dump and load various fragments of toml
 
 Example usage:
 
-```
-import toml
+.. code:: python
 
-with open("conf.toml") as conffile:
-     config = toml.loads(conffile.read())
-# do stuff with config here
-. . .
-```
+  import toml
+
+  with open("conf.toml") as conffile:
+      config = toml.loads(conffile.read())
+  # do stuff with config here
+  . . .
