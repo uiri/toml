@@ -415,8 +415,8 @@ def dump_value(v):
         retval += "]"
         return retval
     if isinstance(v, (str, unicode)):
-        escapes = ['\\', '0', 'b', 'f', '/', 'n', 'r', 't', '"']
-        escapedchars = ['\\', '\0', '\b', '\f', '/', '\n', '\r', '\t', '\"']
+        escapes = ['\\', '0', 'b', 'f', 'n', 'r', 't', '"']
+        escapedchars = ['\\', '\0', '\b', '\f', '\n', '\r', '\t', '\"']
         for i in range(len(escapes)):
             v = v.replace(escapedchars[i], "\\"+escapes[i])
         return str('"'+v+'"')
