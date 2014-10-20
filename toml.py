@@ -104,7 +104,7 @@ def loads(s):
         raise Exception("What exactly are you trying to pull?")
     for line in s:
         line = line.strip()
-        if line == "":
+        if line == "" or line == "#":
             continue
         if line[0] == '[':
             arrayoftables = False
