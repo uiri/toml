@@ -140,7 +140,7 @@ def loads(s):
                 except TypeError:
                     if i != len(groups) - 1:
                         implicitgroups.append(group)
-                    currentlevel = currentlevel[0]
+                    currentlevel = currentlevel[-1]
                     if arrayoftables:
                         currentlevel[group] = [{}]
                     else:
