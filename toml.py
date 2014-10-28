@@ -46,6 +46,7 @@ def loads(s):
         beginline = True
         keygroup = False
         delnum = 1
+        intablename = False
         for i in range(len(sl)):
             if sl[i] == '"':
                 oddbackslash = False
@@ -75,17 +76,21 @@ def loads(s):
                 if beginline:
                     if sl[i+1] == '[':
                         arrayoftables = True
+                        intablename = True
                     else:
                         keygroup = True
+                        intablename = True
                 else:
                     openarr += 1
             if sl[i] == ']' and not openstring:
                 if keygroup:
                     keygroup = False
+                    intablename = False
                 elif arrayoftables:
                     if sl[i-1] == ']':
                         arrayoftables = False
-                else:
+                        intablename = False
+                elif not intablename:
                     openarr -= 1
             if sl[i] == '\n':
                 if openstring:
