@@ -61,10 +61,6 @@ def loads(s):
                     pass
                 if not oddbackslash:
                     openstring = not openstring
-            if keygroup and (sl[i] == ' ' or sl[i] == '\t'):
-                keygroup = False
-            if arrayoftables and (sl[i] == ' ' or sl[i] == '\t'):
-                arrayoftables = False
             if sl[i] == '#' and not openstring and not keygroup and not arrayoftables:
                 j = i
                 while sl[j] != '\n':
