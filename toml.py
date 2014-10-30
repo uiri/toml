@@ -46,6 +46,7 @@ def loads(s):
         beginline = True
         keygroup = False
         delnum = 1
+        intablename = False
         for i in range(len(sl)):
             if sl[i] == '"':
                 oddbackslash = False
@@ -75,8 +76,10 @@ def loads(s):
                 if beginline:
                     if sl[i+1] == '[':
                         arrayoftables = True
+                        intablename = True
                     else:
                         keygroup = True
+                        intablename = True
                 else:
                     openarr += 1
             if sl[i] == ']' and not openstring:
@@ -85,8 +88,9 @@ def loads(s):
                 elif arrayoftables:
                     if sl[i-1] == ']':
                         arrayoftables = False
-                else:
+                elif not intablename and sl[i-1] != ']':
                     openarr -= 1
+                intablename = False
             if sl[i] == '\n':
                 if openstring:
                     raise Exception("Unbalanced quotes")
