@@ -45,8 +45,14 @@ def loads(s):
         arrayoftables = False
         beginline = True
         keygroup = False
+        keyname = False
         delnum = 1
         for i in range(len(sl)):
+            if keyname:
+                if sl[i] == '=':
+                    keyname = False
+                else:
+                    continue
             if sl[i] == '"':
                 oddbackslash = False
                 try:
@@ -93,7 +99,8 @@ def loads(s):
                     beginline = True
             elif beginline and sl[i] != ' ' and sl[i] != '\t':
                 beginline = False
-                keygroup = True
+                if not keygroup and not arrayoftables:
+                    keyname = True
         s = ''.join(sl)
         s = s.split('\n')
     else:
