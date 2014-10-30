@@ -85,13 +85,12 @@ def loads(s):
             if sl[i] == ']' and not openstring:
                 if keygroup:
                     keygroup = False
-                    intablename = False
                 elif arrayoftables:
                     if sl[i-1] == ']':
                         arrayoftables = False
-                        intablename = False
-                elif not intablename:
+                elif not intablename and sl[i-1] != ']':
                     openarr -= 1
+                intablename = False
             if sl[i] == '\n':
                 if openstring:
                     raise Exception("Unbalanced quotes")
