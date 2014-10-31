@@ -144,10 +144,12 @@ def loads(s):
                     if i != len(groups) - 1:
                         implicitgroups.append(group)
                     currentlevel = currentlevel[-1]
-                    if arrayoftables:
-                        currentlevel[group] = [{}]
-                    else:
+                    try:
+                        currentlevel[group]
+                    except KeyError:
                         currentlevel[group] = {}
+                        if i == len(groups) - 1 and arrayoftables:
+                            currentlevel[group] = [{}]
                 except KeyError:
                     if i != len(groups) - 1:
                         implicitgroups.append(group)
@@ -385,7 +387,7 @@ def dump_sections(o, sup):
                     while d != {}:
                         newd = {}
                         for dsec in d:
-                            s1, d1 = dump_sections(d[dsec], sup+section+dsec)
+                            s1, d1 = dump_sections(d[dsec], sup+section+"."+dsec)
                             if s1:
                                 arraytabstr += "["+sup+section+"."+dsec+"]\n"
                                 arraytabstr += s1
