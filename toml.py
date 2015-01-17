@@ -42,38 +42,78 @@ def loads(s):
         sl = list(s)
         openarr = 0
         openstring = False
+        openstrchar = ""
+        multilinestr = False
         arrayoftables = False
         beginline = True
         keygroup = False
         keyname = False
         delnum = 1
         for i in range(len(sl)):
-            if keyname:
+            if keyname and not openstring:                
+                if sl[i] == '\n':
+                    raise Exception("Key name found without value. Reached end of line.")
+                if sl[i] == '#':
+                    raise Exception("Found invalid character in key name: '#'")
                 if sl[i] == '=':
                     keyname = False
                 else:
                     continue
-            if sl[i] == '"':
-                oddbackslash = False
+            if sl[i] == "'" and openstrchar != '"':
+                k = 1
                 try:
-                    k = 1
-                    j = sl[i-k]
-                    oddbackslash = False
-                    while j == '\\':
+                    while sl[i-k] == "'":
+                        k += 1
+                        if k == 3:
+                            break
+                except IndexError:
+                    pass
+                if k == 3:
+                    multilinestr = not multilinestr
+                    openstring = multilinestr
+                else:
+                    openstring = not openstring
+                if openstring:
+                    openstrchar = "'"
+                else:
+                    openstrchar = ""
+            if sl[i] == '"' and openstrchar != "'":
+                oddbackslash = False
+                k = 1
+                tripquote = False
+                try:
+                    while sl[i-k] == '"':
+                        k += 1
+                        if k == 3:
+                            tripquote = True
+                            break
+                    while sl[i-k] == '\\':
                         oddbackslash = not oddbackslash
                         k += 1
-                        j = sl[i-k]
                 except IndexError:
                     pass
                 if not oddbackslash:
-                    openstring = not openstring
-            if sl[i] == '#' and not openstring and not keygroup and not arrayoftables:
+                    if tripquote:
+                        multilinestr = not multilinestr
+                        openstring = multilinestr
+                    else:
+                        openstring = not openstring
+                if openstring:
+                    openstrchar = '"'
+                else:
+                    openstrchar = ""
+            if sl[i] == '#' and not openstring and not keygroup and \
+                    not arrayoftables:
                 j = i
-                while sl[j] != '\n':
-                    sl.insert(j, ' ')
-                    sl.pop(j+1)
-                    j += 1
-            if sl[i] == '[' and not openstring and not keygroup and not arrayoftables:
+                try:
+                    while sl[j] != '\n':
+                        sl.insert(j, ' ')
+                        sl.pop(j+1)
+                        j += 1
+                except IndexError:
+                    break
+            if sl[i] == '[' and not openstring and not keygroup and \
+                    not arrayoftables:
                 if beginline:
                     if sl[i+1] == '[':
                         arrayoftables = True
@@ -90,9 +130,14 @@ def loads(s):
                 else:
                     openarr -= 1
             if sl[i] == '\n':
-                if openstring:
-                    raise Exception("Unbalanced quotes")
-                if openarr:
+                if openstring or multilinestr:
+                    if not multilinestr:
+                        raise Exception("Unbalanced quotes")
+                    if sl[i-1] == "'" or sl[i-1] == '"':
+                        sl.insert(i, sl[i-1])
+                        sl.pop(i+1)
+                        sl[i-3] = ' '
+                elif openarr:
                     sl.insert(i, ' ')
                     sl.pop(i+1)
                 else:
@@ -100,13 +145,43 @@ def loads(s):
             elif beginline and sl[i] != ' ' and sl[i] != '\t':
                 beginline = False
                 if not keygroup and not arrayoftables:
+                    if sl[i] == '=':
+                        raise Exception("Found empty keyname. ")
                     keyname = True
         s = ''.join(sl)
         s = s.split('\n')
     else:
         raise Exception("What exactly are you trying to pull?")
+    multikey = None
+    multilinestr = ""
+    multibackslash = False
     for line in s:
         line = line.strip()
+        if multikey:
+            if multibackslash:
+                strippedline = line.lstrip(' \t\n')
+                if strippedline == '':
+                    continue
+                multilinestr += strippedline
+            else:
+                multilinestr += line
+            multibackslash = False
+            if len(line) > 2 and line[-1] == multilinestr[0] and \
+                    line[-2] == multilinestr[0] and line[-3] == multilinestr[0]:
+                value, vtype = load_value(multilinestr)
+                currentlevel[multikey] = value
+                multikey = None
+                multilinestr = ""
+            else:
+                k = len(multilinestr) -1
+                while k > -1 and multilinestr[k] == '\\':
+                    multibackslash = not multibackslash
+                    k -= 1
+                if multibackslash:
+                    multilinestr = multilinestr[:-1]
+                else:
+                    multilinestr += "\n"
+            continue
         if line == "":
             continue
         if line[0] == '[':
@@ -166,7 +241,10 @@ def loads(s):
             i = 1
             pair = line.split('=', i)
             l = len(line)
-            while pair[-1][0] != ' ' and pair[-1][0] != '\t' and pair[-1][0] != '"' and pair[-1][0] != '[' and pair[-1] != 'true' and pair[-1] != 'false':
+            while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
+                    pair[-1][0] != "'" and pair[-1][0] != '"' and \
+                    pair[-1][0] != '[' and pair[-1] != 'true' and \
+                    pair[-1] != 'false':
                 try:
                     float(pair[-1])
                     break
@@ -183,13 +261,68 @@ def loads(s):
             pair = newpair
             pair[0] = pair[0].strip()
             pair[1] = pair[1].strip()
-            value, vtype = load_value(pair[1])
+            if len(pair[1]) > 2 and (pair[1][0] == '"' or pair[1][0] == "'") \
+                    and pair[1][1] == pair[1][0] and pair[1][2] == pair[1][0] \
+                    and not (len(pair[1]) > 5 and pair[1][-1] == pair[1][0] \
+                                 and pair[1][-2] == pair[1][0] and \
+                                 pair[1][-3] == pair[1][0]):
+                k = len(pair[1]) -1
+                while k > -1 and pair[1][k] == '\\':
+                    multibackslash = not multibackslash
+                    k -= 1
+                if multibackslash:
+                    multilinestr = pair[1][:-1]
+                else:
+                    multilinestr = pair[1] + "\n"
+                multikey = pair[0]
+            else:
+                value, vtype = load_value(pair[1])
             try:
                 currentlevel[pair[0]]
                 raise Exception("Duplicate keys!")
             except KeyError:
-                currentlevel[pair[0]] = value
+                if multikey:
+                    continue
+                else:
+                    currentlevel[pair[0]] = value
     return retval
+
+def load_unicode_escapes(v, hexbytes, prefix):
+    hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
+                '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+    skip = False
+    i = len(v) - 1
+    while i > -1 and v[i] == '\\':
+        skip = not skip
+        i -= 1
+    for hx in hexbytes:
+        if skip:
+            skip = False
+            i = len(hx) - 1
+            while i > -1 and hx[i] == '\\':
+                skip = not skip
+                i -= 1
+            v += prefix
+            v += hx
+            continue
+        hxb = ""
+        try:
+            if hx[0].lower() in hexchars:
+                hxb += hx[0].lower()
+                if hx[1].lower() in hexchars:
+                    hxb += hx[1].lower()
+                if hx[2].lower() in hexchars:
+                    hxb += hx[2].lower()
+                    if hx[3].lower() in hexchars:
+                        hxb += hx[3].lower()
+        except IndexError:
+            if len(hxb) != 2:
+                raise Exception("Invalid escape sequence")
+        if len(hxb) != 4 and len(hxb) != 2:
+            raise Exception("Invalid escape sequence")
+        v += unichr(int(hxb, 16))
+        v += unicode(hx[len(hxb):])
+    return v
 
 def load_value(v):
     if v == 'true':
@@ -198,6 +331,8 @@ def load_value(v):
         return (False, "bool")
     elif v[0] == '"':
         testv = v[1:].split('"')
+        if testv[0] == '' and testv[1] == '':
+            testv = testv[2:-2]
         closed = False
         for tv in testv:
             if tv == '':
@@ -226,40 +361,26 @@ def load_value(v):
             if i == '':
                 backslash = not backslash
             else:
-                if i[0] not in escapes and i[0] != 'u' and not backslash:
+                if i[0] not in escapes and i[0] != 'u' and i != 'U' and \
+                        not backslash:
                     raise Exception("Reserved escape sequence used")
                 if backslash:
                     backslash = False
-        if "\\u" in v:
-            hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
-                        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
-            hexbytes = v.split('\\u')
-            newv = hexbytes[0]
-            hexbytes = hexbytes[1:]
-            for hx in hexbytes:
-                hxb = ""
-                try:
-                    if hx[0].lower() in hexchars:
-                        hxb += hx[0].lower()
-                        if hx[1].lower() in hexchars:
-                            hxb += hx[1].lower()
-                        if hx[2].lower() in hexchars:
-                            hxb += hx[2].lower()
-                            if hx[3].lower() in hexchars:
-                                hxb += hx[3].lower()
-                except IndexError:
-                    if len(hxb) != 2:
-                        raise Exception("Invalid escape sequence")
-                if len(hxb) != 4 and len(hxb) != 2:
-                    raise Exception("Invalid escape sequence")
-                newv += unichr(int(hxb, 16))
-                newv += unicode(hx[len(hxb):])
-            v = newv
+        for prefix in ["\\u", "\\U"]:
+            if prefix in v:
+                hexbytes = v.split(prefix)
+                v = load_unicode_escapes(hexbytes[0], hexbytes[1:], prefix)
         for i in range(len(escapes)):
             if escapes[i] == '\\':
                 v = v.replace("\\"+escapes[i], escapedchars[i])
             else:
                 v = re.sub("([^\\\\](\\\\\\\\)*)\\\\"+escapes[i], "\\1"+escapedchars[i], v)
+        if v[1] == '"':
+            v = v[2:-2]
+        return (v[1:-1], "str")
+    elif v[0] == "'":
+        if v[1] == "'":
+            v = v[2:-2]
         return (v[1:-1], "str")
     elif v[0] == '[':
         return (load_array(v), "array")
@@ -420,10 +541,15 @@ def dump_value(v):
         retval += "]"
         return retval
     if isinstance(v, (str, unicode)):
-        escapes = ['\\', '0', 'b', 'f', 'n', 'r', 't', '"']
-        escapedchars = ['\\', '\0', '\b', '\f', '\n', '\r', '\t', '\"']
-        for i in range(len(escapes)):
-            v = v.replace(escapedchars[i], "\\"+escapes[i])
+        v = "%r" % v
+        if v[0] == 'u':
+            v = v[1:]
+        singlequote = v[0] == "'"
+        v = v[1:-1]
+        if singlequote:
+            v = v.replace("\\'", "'")
+            v = v.replace('"', '\\"')
+        v = v.replace("\\x", "\\u00")
         return str('"'+v+'"')
     if isinstance(v, bool):
         return str(v).lower()
