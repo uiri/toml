@@ -50,7 +50,7 @@ def loads(s):
         keyname = False
         delnum = 1
         for i in range(len(sl)):
-            if keyname and not openstring:                
+            if keyname and not openstring:
                 if sl[i] == '\n':
                     raise Exception("Key name found without value. Reached end of line.")
                 if sl[i] == '#':
@@ -517,7 +517,9 @@ def dump_sections(o, sup):
                         d = newd
                     arraystr += arraytabstr
             else:
-                retstr += section + " = " + str(dump_value(o[section])) + '\n'
+                if o[section] is not None:
+                    retstr += (section + " = " +
+                               str(dump_value(o[section])) + '\n')
         else:
             retdict[section] = o[section]
     retstr += arraystr
