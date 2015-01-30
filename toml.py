@@ -29,10 +29,10 @@ def load(f):
     else:
         raise Exception("You can only load a file descriptor, filename or list")
 
-def loads(s):
+def loads(s, _dict=dict):
     """Returns a dictionary containing s, a string, parsed as toml."""
     implicitgroups = []
-    retval = {}
+    retval = _dict()
     currentlevel = retval
     if isinstance(s, basestring):
         try:
