@@ -238,9 +238,7 @@ def loads(s, _dict=dict):
                     except KeyError:
                         pass
         elif "=" in line:
-            i = 1
-            pair = line.split('=', i)
-            l = len(line)
+            pair = line.split('=', 1)
             while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
                     pair[-1][0] != "'" and pair[-1][0] != '"' and \
                     pair[-1][0] != '[' and pair[-1] != 'true' and \
