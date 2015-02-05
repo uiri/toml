@@ -238,9 +238,7 @@ def loads(s, _dict=dict):
                     except KeyError:
                         pass
         elif "=" in line:
-            i = 1
-            pair = line.split('=', i)
-            l = len(line)
+            pair = line.split('=', 1)
             while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
                     pair[-1][0] != "'" and pair[-1][0] != '"' and \
                     pair[-1][0] != '[' and pair[-1] != 'true' and \
@@ -253,8 +251,7 @@ def loads(s, _dict=dict):
                         datetime.datetime.strptime(pair[-1], "%Y-%m-%dT%H:%M:%SZ")
                         break
                     except ValueError:
-                        i += 1
-                        pair = line.split('=', i)
+                        raise Exception("What's the datatype of '"+pair[-1]+"'?")
             newpair = []
             newpair.append('='.join(pair[:-1]))
             newpair.append(pair[-1])
