@@ -249,12 +249,21 @@ def loads(s, _dict=dict):
                     float(pair[-1])
                     break
                 except ValueError:
-                    try:
-                        datetime.datetime.strptime(pair[-1], "%Y-%m-%dT%H:%M:%SZ")
-                        break
-                    except ValueError:
-                        i += 1
-                        pair = line.split('=', i)
+                    pass
+                try:
+                    datetime.datetime.strptime(pair[-1], "%Y-%m-%dT%H:%M:%SZ")
+                    break
+                except ValueError:
+                    pass
+                try:
+                    datetime.datetime.strptime(pair[-1], "%Y-%m-%dT")
+                    break
+                except ValueError:
+                    i += 1
+                    prev_val = pair[-1]
+                    pair = line.split('=', i)
+                    if prev_val == pair[-1]:
+                        raise Exception("Invalid date or number")
             newpair = []
             newpair.append('='.join(pair[:-1]))
             newpair.append(pair[-1])
