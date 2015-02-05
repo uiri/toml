@@ -253,8 +253,7 @@ def loads(s, _dict=dict):
                         datetime.datetime.strptime(pair[-1], "%Y-%m-%dT%H:%M:%SZ")
                         break
                     except ValueError:
-                        i += 1
-                        pair = line.split('=', i)
+                        raise Exception("What's the datatype of '"+pair[-1]+"'?")
             newpair = []
             newpair.append('='.join(pair[:-1]))
             newpair.append(pair[-1])
