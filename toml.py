@@ -8,24 +8,24 @@ except NameError:
     basestring = str
     unichr = chr
 
-def load(f):
+def load(f, _dict=dict):
     """Returns a dictionary containing the named file parsed as toml."""
     if isinstance(f, basestring):
         with open(f) as ffile:
-            return loads(ffile.read())
+            return loads(ffile.read(), _dict)
     elif isinstance(f, list):
         for l in f:
             if not isinstance(l, basestring):
                 raise Exception("Load expects a list to contain filenames only")
-        d = []
+        d = _dict()
         for l in f:
             d.append(load(l))
-        r = {}
+        r = _dict()
         for l in d:
             toml_merge_dict(r, l)
         return r
     elif f.read:
-        return loads(f.read())
+        return loads(f.read(), _dict)
     else:
         raise Exception("You can only load a file descriptor, filename or list")
 
@@ -212,7 +212,7 @@ def loads(s, _dict=dict):
                             if arrayoftables:
                                 raise Exception("An implicitly defined table can't be an array")
                         elif arrayoftables:
-                            currentlevel[group].append({})
+                            currentlevel[group].append(_dict())
                         else:
                             raise Exception("What? "+group+" already exists?"+str(currentlevel))
                 except TypeError:
@@ -222,15 +222,15 @@ def loads(s, _dict=dict):
                     try:
                         currentlevel[group]
                     except KeyError:
-                        currentlevel[group] = {}
+                        currentlevel[group] = _dict()
                         if i == len(groups) - 1 and arrayoftables:
-                            currentlevel[group] = [{}]
+                            currentlevel[group] = [_dict()]
                 except KeyError:
                     if i != len(groups) - 1:
                         implicitgroups.append(group)
-                    currentlevel[group] = {}
+                    currentlevel[group] = _dict()
                     if i == len(groups) - 1 and arrayoftables:
-                        currentlevel[group] = [{}]
+                        currentlevel[group] = [_dict()]
                 currentlevel = currentlevel[group]
                 if arrayoftables:
                     try:
