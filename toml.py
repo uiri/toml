@@ -292,10 +292,19 @@ def loads(s, _dict=dict):
     return retval
 
 def load_date(val):
-    date_strings = ["%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S.%fZ", 
-                    "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z",
-                    "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S.%f"]
-    for date_string in date_strings:
+    date_strings = [
+        ("%Y-%m-%dT%H:%M:%SZ", 20), ("%Y-%m-%dT%H:%M:%S.%fZ", 27),
+        ("%Y-%m-%dT%H:%M:%Sz", 20), ("%Y-%m-%dT%H:%M:%S.%fz", 27),
+        ("%Y-%m-%dT%H:%M:%S%z", 26), ("%Y-%m-%dT%H:%M:%S.%f%z", 33),
+        # ("%Y-%m-%dT%H:%M:%S", 19), ("%Y-%m-%dT%H:%M:%S.%f", 26),
+        ("%Y-%m-%dt%H:%M:%SZ", 20), ("%Y-%m-%dt%H:%M:%S.%fZ", 27),
+        ("%Y-%m-%dt%H:%M:%Sz", 20), ("%Y-%m-%dt%H:%M:%S.%fz", 27),
+        ("%Y-%m-%dt%H:%M:%S%z", 26), ("%Y-%m-%dt%H:%M:%S.%f%z", 33),
+        # ("%Y-%m-%dt%H:%M:%S", 19), ("%Y-%m-%dt%H:%M:%S.%f", 26),
+        ]
+    for date_string, date_len in date_strings:
+        if len(val) != date_len:
+            continue
         try:
             valid_date = datetime.datetime.strptime(val, date_string)
             return valid_date
