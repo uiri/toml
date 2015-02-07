@@ -240,6 +240,7 @@ def loads(s, _dict=dict):
         elif "=" in line:
             i = 1
             pair = line.split('=', i)
+            pair[-1] = re.sub(r'_', '', pair[-1])
             l = len(line)
             while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
                     pair[-1][0] != "'" and pair[-1][0] != '"' and \
@@ -250,20 +251,14 @@ def loads(s, _dict=dict):
                     break
                 except ValueError:
                     pass
-                try:
-                    datetime.datetime.strptime(pair[-1], "%Y-%m-%dT%H:%M:%SZ")
+                if load_date(pair[-1]) != None:
                     break
-                except ValueError:
-                    pass
-                try:
-                    datetime.datetime.strptime(pair[-1], "%Y-%m-%dT")
-                    break
-                except ValueError:
-                    i += 1
-                    prev_val = pair[-1]
-                    pair = line.split('=', i)
-                    if prev_val == pair[-1]:
-                        raise Exception("Invalid date or number")
+                i += 1
+                prev_val = pair[-1]
+                pair = line.split('=', i)
+                pair[-1] = re.sub(r'_', '', pair[-1])
+                if prev_val == pair[-1]:
+                    raise Exception("Invalid date or number")
             newpair = []
             newpair.append('='.join(pair[:-1]))
             newpair.append(pair[-1])
@@ -295,6 +290,18 @@ def loads(s, _dict=dict):
                 else:
                     currentlevel[pair[0]] = value
     return retval
+
+def load_date(val):
+    date_strings = ["%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S.%fZ", 
+                    "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z",
+                    "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S.%f"]
+    for date_string in date_strings:
+        try:
+            valid_date = datetime.datetime.strptime(val, date_string)
+            return valid_date
+        except ValueError:
+            pass
+    return None
 
 def load_unicode_escapes(v, hexbytes, prefix):
     hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
@@ -393,31 +400,29 @@ def load_value(v):
         return (v[1:-1], "str")
     elif v[0] == '[':
         return (load_array(v), "array")
-    elif len(v) == 20 and v[-1] == 'Z':
-        if v[10] == 'T':
-            return (datetime.datetime.strptime(v, "%Y-%m-%dT%H:%M:%SZ"), "date")
-        else:
-            raise Exception("Wait, what?")
     else:
-        itype = "int"
-        digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        neg = False
-        if v[0] == '-':
-            neg = True
-            v = v[1:]
-        if '.' in v:
-            if v.split('.', 1)[1] == '':
-                raise Exception("This float is missing digits after the point")
-            if v[0] not in digits:
-                raise Exception("This float doesn't have a leading digit")
-            v = float(v)
-            itype = "float"
+        parsed_date = load_date(v)
+        if parsed_date != None:
+            return (parsed_date, "date")
         else:
-            v = int(v)
-        if neg:
-            return (0 - v, itype)
-        return (v, itype)
-
+            itype = "int"
+            digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+            neg = False
+            if v[0] == '-':
+                neg = True
+                v = v[1:]
+            if '.' in v:
+                if v.split('.', 1)[1] == '':
+                    raise Exception("This float is missing digits after the point")
+                if v[0] not in digits:
+                    raise Exception("This float doesn't have a leading digit")
+                v = float(v)
+                itype = "float"
+            else:
+                v = int(v)
+            if neg:
+                return (0 - v, itype)
+            return (v, itype)
 
 def load_array(a):
     atype = None
