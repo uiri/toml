@@ -393,11 +393,11 @@ def load_value(v):
                 v = re.sub("([^\\\\](\\\\\\\\)*)\\\\"+escapes[i], "\\1"+escapedchars[i], v)
         if v[1] == '"':
             v = v[2:-2]
-        return (v[1:-1], "str")
+        return (v[1:-1].decode("utf-8"), "str")
     elif v[0] == "'":
         if v[1] == "'":
             v = v[2:-2]
-        return (v[1:-1], "str")
+        return (v[1:-1].decode("utf-8"), "str")
     elif v[0] == '[':
         return (load_array(v), "array")
     else:
