@@ -50,6 +50,8 @@ def loads(s, _dict=dict):
         keyname = False
         delnum = 1
         for i in range(len(sl)):
+            if sl[i] == '\r' and sl[i+1] == '\n':
+                continue
             if keyname and not openstring:
                 if sl[i] == '\n':
                     raise Exception("Key name found without value. Reached end of line.")
@@ -378,8 +380,8 @@ def load_value(v):
                         raise Exception("Stuff after closed string. WTF?")
                     else:
                         closed = True
-        escapes = ['0', 'b', 'f', '/', 'n', 'r', 't', '"', '\\']
-        escapedchars = ['\0', '\b', '\f', '/', '\n', '\r', '\t', '\"', '\\']
+        escapes = ['0', 'b', 'f', 'n', 'r', 't', '"', '\\']
+        escapedchars = ['\0', '\b', '\f', '\n', '\r', '\t', '\"', '\\']
         escapeseqs = v.split('\\')[1:]
         backslash = False
         for i in escapeseqs:
