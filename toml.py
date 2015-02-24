@@ -1,5 +1,18 @@
 import datetime, decimal, re
 
+class TomlTz(datetime.tzinfo):
+
+    def __new__(self, toml_offset):
+        self._raw_offset = toml_offset
+        self._hours = int(toml_offset[:3])
+        self._minutes = int(toml_offset[4:6])
+
+    def tzname(self, dt):
+        return "UTC"+self._raw_offset
+
+    def utcoffset(self, dt):
+        return datetime.timedelta(hours=self._hours, minutes=self._minutes)
+
 try:
     _range = xrange
 except NameError:
@@ -296,25 +309,19 @@ def loads(s, _dict=dict):
     return retval
 
 def load_date(val):
-    date_strings = [
-        ("%Y-%m-%dT%H:%M:%SZ", 20), ("%Y-%m-%dT%H:%M:%S.%fZ", 27),
-        ("%Y-%m-%dT%H:%M:%Sz", 20), ("%Y-%m-%dT%H:%M:%S.%fz", 27),
-        ("%Y-%m-%dT%H:%M:%S%z", 26), ("%Y-%m-%dT%H:%M:%S.%f%z", 33),
-        # ("%Y-%m-%dT%H:%M:%S", 19), ("%Y-%m-%dT%H:%M:%S.%f", 26),
-        ("%Y-%m-%dt%H:%M:%SZ", 20), ("%Y-%m-%dt%H:%M:%S.%fZ", 27),
-        ("%Y-%m-%dt%H:%M:%Sz", 20), ("%Y-%m-%dt%H:%M:%S.%fz", 27),
-        ("%Y-%m-%dt%H:%M:%S%z", 26), ("%Y-%m-%dt%H:%M:%S.%f%z", 33),
-        # ("%Y-%m-%dt%H:%M:%S", 19), ("%Y-%m-%dt%H:%M:%S.%f", 26),
-        ]
-    for date_string, date_len in date_strings:
-        if len(val) != date_len:
-            continue
-        try:
-            valid_date = datetime.datetime.strptime(val, date_string)
-            return valid_date
-        except ValueError:
-            pass
-    return None
+    microsecond = 0
+    tz = None
+    if len(val) > 19 and val[19] == '.':
+        microsecond = int(val[20:26])
+        if len(val) > 26:
+            tz = TomlTz(val[26:31])
+    elif len(val) > 20:
+        tz = TomlTz(val[19:24])
+    try:
+        d = datetime.datetime(int(val[:4]), int(val[5:7]), int(val[8:10]), int(val[11:13]), int(val[14:16]), int(val[17:19]), microsecond, tz)
+    except ValueError:
+        return None
+    return d
 
 def load_unicode_escapes(v, hexbytes, prefix):
     hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
