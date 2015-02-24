@@ -242,7 +242,8 @@ def loads(s, _dict=dict):
         elif "=" in line:
             i = 1
             pair = line.split('=', i)
-            pair[-1] = re.sub(r'_', '', pair[-1])
+            if re.match(r'^[0-9]', pair[-1]):
+                pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
             l = len(line)
             while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
                     pair[-1][0] != "'" and pair[-1][0] != '"' and \
@@ -258,7 +259,8 @@ def loads(s, _dict=dict):
                 i += 1
                 prev_val = pair[-1]
                 pair = line.split('=', i)
-                pair[-1] = re.sub(r'_', '', pair[-1])
+                if re.match(r'^[0-9]', pair[-1]):
+                    pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
                 if prev_val == pair[-1]:
                     raise Exception("Invalid date or number")
             newpair = []
