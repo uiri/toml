@@ -16,7 +16,7 @@ See http://j.xqz.ca/toml-status for up to date test results.
 Current Version of the Specification
 ------------------------------------
 
-https://github.com/mojombo/toml/blob/v0.3.1/README.md
+https://github.com/mojombo/toml/blob/v0.4.0/README.md
 
 QUICK GUIDE
 -----------

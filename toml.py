@@ -60,20 +60,33 @@ def loads(s, _dict=dict):
         arrayoftables = False
         beginline = True
         keygroup = False
-        keyname = False
+        keyname = 0
         delnum = 1
         for i in range(len(sl)):
             if sl[i] == '\r' and sl[i+1] == '\n':
+                sl[i] = ' '
                 continue
-            if keyname and not openstring:
+            if keyname:
                 if sl[i] == '\n':
                     raise Exception("Key name found without value. Reached end of line.")
-                if sl[i] == '#':
-                    raise Exception("Found invalid character in key name: '#'")
-                if sl[i] == '=':
-                    keyname = False
-                else:
+                if openstring:
+                    if sl[i] == openstrchar:
+                        keyname = 2
+                        openstring = False
+                        openstrchar = ""
                     continue
+                elif keyname == 1:
+                    if sl[i].isspace():
+                        keyname = 2
+                        continue
+                    elif sl[i].isalnum() or sl[i] == '_' or sl[i] == '-':
+                        continue
+                elif keyname == 2 and sl[i].isspace():
+                    continue
+                if sl[i] == '=':
+                    keyname = 0
+                else:
+                    raise Exception("Found invalid character in key name: '"+sl[i]+"'. Try quoting the key name.")
             if sl[i] == "'" and openstrchar != '"':
                 k = 1
                 try:
@@ -162,7 +175,7 @@ def loads(s, _dict=dict):
                 if not keygroup and not arrayoftables:
                     if sl[i] == '=':
                         raise Exception("Found empty keyname. ")
-                    keyname = True
+                    keyname = 1
         s = ''.join(sl)
         s = s.split('\n')
     else:
@@ -208,12 +221,25 @@ def loads(s, _dict=dict):
                 line = line[1:].split(']', 1)
             if line[1].strip() != "":
                 raise Exception("Key group not on a line by itself.")
-            line = line[0]
-            if '[' in line:
-                raise Exception("Key group name cannot contain '['")
-            if ']' in line:
-                raise Exception("Key group name cannot contain']'")
-            groups = line.split('.')
+            groups = line[0].split('.')
+            i = 0
+            while i < len(groups):
+                groups[i] = groups[i].strip()
+                if groups[i][0] == '"' or groups[i][0] == "'":
+                    groupstr = groups[i]
+                    j = i+1
+                    while not groupstr[0] == groupstr[-1]:
+                        j += 1
+                        groupstr = '.'.join(groups[i:j])
+                    groups[i] = groupstr[1:-1]
+                    j -= 1
+                    while j > i:
+                        groups.pop(j)
+                        j -= 1
+                else:
+                    if not re.match(r'^[A-Za-z0-9_-]+$', groups[i]):
+                        raise Exception("Invalid group name '"+groups[i]+"'. Try quoting it.")
+                i += 1
             currentlevel = retval
             for i in range(len(groups)):
                 group = groups[i]
@@ -281,6 +307,9 @@ def loads(s, _dict=dict):
             newpair.append(pair[-1])
             pair = newpair
             pair[0] = pair[0].strip()
+            if (pair[0][0] == '"' or pair[0][0] == "'") and \
+                    (pair[0][-1] == '"' or pair[0][-1] == "'"):
+                pair[0] = pair[0][1:-1]
             pair[1] = pair[1].strip()
             if len(pair[1]) > 2 and (pair[1][0] == '"' or pair[1][0] == "'") \
                     and pair[1][1] == pair[1][0] and pair[1][2] == pair[1][0] \
@@ -342,20 +371,18 @@ def load_unicode_escapes(v, hexbytes, prefix):
             v += hx
             continue
         hxb = ""
-        try:
-            if hx[0].lower() in hexchars:
-                hxb += hx[0].lower()
-                if hx[1].lower() in hexchars:
-                    hxb += hx[1].lower()
-                if hx[2].lower() in hexchars:
-                    hxb += hx[2].lower()
-                    if hx[3].lower() in hexchars:
-                        hxb += hx[3].lower()
-        except IndexError:
-            if len(hxb) != 2:
+        i = 0
+        hxblen = 4
+        if prefix == "\\U":
+            hxblen = 8
+        while i < hxblen:
+            try:
+                if not hx[i].lower() in hexchars:
+                    raise IndexError("This is a hack")
+            except IndexError:
                 raise Exception("Invalid escape sequence")
-        if len(hxb) != 4 and len(hxb) != 2:
-            raise Exception("Invalid escape sequence")
+            hxb += hx[i].lower()
+            i += 1
         v += unichr(int(hxb, 16))
         v += unicode(hx[len(hxb):])
     return v
@@ -397,7 +424,7 @@ def load_value(v):
             if i == '':
                 backslash = not backslash
             else:
-                if i[0] not in escapes and i[0] != 'u' and i != 'U' and \
+                if i[0] not in escapes and i[0] != 'u' and i[0] != 'U' and \
                         not backslash:
                     raise Exception("Reserved escape sequence used")
                 if backslash:
@@ -523,6 +550,12 @@ def dump_sections(o, sup):
     retdict = {}
     arraystr = ""
     for section in o:
+        qsection = section
+        if not re.match(r'^[A-Za-z0-9_-]+$', section):
+            if '"' in section:
+                qsection = "'" + section + "'"
+            else:
+                qsection = '"' + section + '"'
         if not isinstance(o[section], dict):
             arrayoftables = False
             if isinstance(o[section], list):
@@ -532,8 +565,8 @@ def dump_sections(o, sup):
             if arrayoftables:
                 for a in o[section]:
                     arraytabstr = ""
-                    arraystr += "[["+sup+section+"]]\n"
-                    s, d = dump_sections(a, sup+section)
+                    arraystr += "[["+sup+qsection+"]]\n"
+                    s, d = dump_sections(a, sup+qsection)
                     if s:
                         if s[0] == "[":
                             arraytabstr += s
@@ -542,9 +575,9 @@ def dump_sections(o, sup):
                     while d != {}:
                         newd = {}
                         for dsec in d:
-                            s1, d1 = dump_sections(d[dsec], sup+section+"."+dsec)
+                            s1, d1 = dump_sections(d[dsec], sup+qsection+"."+dsec)
                             if s1:
-                                arraytabstr += "["+sup+section+"."+dsec+"]\n"
+                                arraytabstr += "["+sup+qsection+"."+dsec+"]\n"
                                 arraytabstr += s1
                             for s1 in d1:
                                 newd[dsec+"."+s1] = d1[s1]
@@ -552,10 +585,10 @@ def dump_sections(o, sup):
                     arraystr += arraytabstr
             else:
                 if o[section] is not None:
-                    retstr += (section + " = " +
+                    retstr += (qsection + " = " +
                                str(dump_value(o[section])) + '\n')
         else:
-            retdict[section] = o[section]
+            retdict[qsection] = o[section]
     retstr += arraystr
     return (retstr, retdict)
 
