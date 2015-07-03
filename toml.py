@@ -1,3 +1,5 @@
+# This software is released under the MIT license
+
 import datetime, decimal, re
 
 class TomlTz(datetime.tzinfo):
@@ -458,7 +460,7 @@ def load_value(v):
             if v[0] == '-':
                 neg = True
                 v = v[1:]
-            if '.' in v:
+            if '.' in v or 'e' in v:
                 if v.split('.', 1)[1] == '':
                     raise Exception("This float is missing digits after the point")
                 if v[0] not in digits:
@@ -625,7 +627,7 @@ def dump_value(v):
     if isinstance(v, datetime.datetime):
         return v.isoformat()[:19]+'Z'
     if isinstance(v, float):
-        return '{0:f}'.format(decimal.Decimal(str(v)))
+        return str(v)
     return v
 
 def toml_merge_dict(a, b):
