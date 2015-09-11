@@ -280,64 +280,83 @@ def loads(s, _dict=dict):
                         currentlevel = currentlevel[-1]
                     except KeyError:
                         pass
+        elif line[0] == "{":
+            if line[-1] != "}":
+                raise Exception("Line breaks are not allowed in inline objects")
+            groups = line[1:-1].split(",")
+            for group in groups:
+                status = load_line(group, currentlevel, multikey, multibackslash)
+                if status is not None:
+                    break
+            if status == "break":
+                break
+            elif status == "continue":
+                continue
         elif "=" in line:
-            i = 1
-            pair = line.split('=', i)
-            if re.match(r'^[0-9]', pair[-1]):
-                pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
-            l = len(line)
-            while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
-                    pair[-1][0] != "'" and pair[-1][0] != '"' and \
-                    pair[-1][0] != '[' and pair[-1] != 'true' and \
-                    pair[-1] != 'false':
-                try:
-                    float(pair[-1])
-                    break
-                except ValueError:
-                    pass
-                if load_date(pair[-1]) != None:
-                    break
-                i += 1
-                prev_val = pair[-1]
-                pair = line.split('=', i)
-                if re.match(r'^[0-9]', pair[-1]):
-                    pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
-                if prev_val == pair[-1]:
-                    raise Exception("Invalid date or number")
-            newpair = []
-            newpair.append('='.join(pair[:-1]))
-            newpair.append(pair[-1])
-            pair = newpair
-            pair[0] = pair[0].strip()
-            if (pair[0][0] == '"' or pair[0][0] == "'") and \
-                    (pair[0][-1] == '"' or pair[0][-1] == "'"):
-                pair[0] = pair[0][1:-1]
-            pair[1] = pair[1].strip()
-            if len(pair[1]) > 2 and (pair[1][0] == '"' or pair[1][0] == "'") \
-                    and pair[1][1] == pair[1][0] and pair[1][2] == pair[1][0] \
-                    and not (len(pair[1]) > 5 and pair[1][-1] == pair[1][0] \
-                                 and pair[1][-2] == pair[1][0] and \
-                                 pair[1][-3] == pair[1][0]):
-                k = len(pair[1]) -1
-                while k > -1 and pair[1][k] == '\\':
-                    multibackslash = not multibackslash
-                    k -= 1
-                if multibackslash:
-                    multilinestr = pair[1][:-1]
-                else:
-                    multilinestr = pair[1] + "\n"
-                multikey = pair[0]
-            else:
-                value, vtype = load_value(pair[1])
-            try:
-                currentlevel[pair[0]]
-                raise Exception("Duplicate keys!")
-            except KeyError:
-                if multikey:
-                    continue
-                else:
-                    currentlevel[pair[0]] = value
+            status = load_line(line, currentlevel, multikey, multibackslash)
+            if status == "break":
+                break
+            elif status == "continue":
+                continue
     return retval
+
+def load_line(line, currentlevel, multikey, multibackslash):
+    i = 1
+    pair = line.split('=', i)
+    if re.match(r'^[0-9]', pair[-1]):
+        pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
+    l = len(line)
+    while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
+            pair[-1][0] != "'" and pair[-1][0] != '"' and \
+            pair[-1][0] != '[' and pair[-1] != 'true' and \
+            pair[-1] != 'false':
+        try:
+            float(pair[-1])
+            return "break"
+        except ValueError:
+            pass
+        if load_date(pair[-1]) != None:
+            return "break"
+        i += 1
+        prev_val = pair[-1]
+        pair = line.split('=', i)
+        if re.match(r'^[0-9]', pair[-1]):
+            pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
+        if prev_val == pair[-1]:
+            raise Exception("Invalid date or number")
+    newpair = []
+    newpair.append('='.join(pair[:-1]))
+    newpair.append(pair[-1])
+    pair = newpair
+    pair[0] = pair[0].strip()
+    if (pair[0][0] == '"' or pair[0][0] == "'") and \
+            (pair[0][-1] == '"' or pair[0][-1] == "'"):
+        pair[0] = pair[0][1:-1]
+    pair[1] = pair[1].strip()
+    if len(pair[1]) > 2 and (pair[1][0] == '"' or pair[1][0] == "'") \
+            and pair[1][1] == pair[1][0] and pair[1][2] == pair[1][0] \
+            and not (len(pair[1]) > 5 and pair[1][-1] == pair[1][0] \
+                         and pair[1][-2] == pair[1][0] and \
+                         pair[1][-3] == pair[1][0]):
+        k = len(pair[1]) -1
+        while k > -1 and pair[1][k] == '\\':
+            multibackslash = not multibackslash
+            k -= 1
+        if multibackslash:
+            multilinestr = pair[1][:-1]
+        else:
+            multilinestr = pair[1] + "\n"
+        multikey = pair[0]
+    else:
+        value, vtype = load_value(pair[1])
+    try:
+        currentlevel[pair[0]]
+        raise Exception("Duplicate keys!")
+    except KeyError:
+        if multikey:
+            return "continue"
+        else:
+            currentlevel[pair[0]] = value
 
 def load_date(val):
     microsecond = 0
