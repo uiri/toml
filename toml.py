@@ -283,11 +283,7 @@ def loads(s, _dict=dict):
         elif line[0] == "{":
             if line[-1] != "}":
                 raise Exception("Line breaks are not allowed in inline objects")
-            groups = line[1:-1].split(",")
-            for group in groups:
-                status = load_line(group, currentlevel, multikey, multibackslash)
-                if status is not None:
-                    break
+            status = load_inline_object(line, currentlevel, multikey, multibackslash)
             if status == "break":
                 break
             elif status == "continue":
@@ -299,6 +295,13 @@ def loads(s, _dict=dict):
             elif status == "continue":
                 continue
     return retval
+
+def load_inline_object(line, currentlevel, multikey=False, multibackslash=False):
+    groups = line[1:-1].split(",")
+    for group in groups:
+        status = load_line(group, currentlevel, multikey, multibackslash)
+        if status is not None:
+            break
 
 def load_line(line, currentlevel, multikey, multibackslash):
     i = 1
@@ -468,6 +471,10 @@ def load_value(v):
         return (v[1:-1], "str")
     elif v[0] == '[':
         return (load_array(v), "array")
+    elif v[0] == '{':
+        inline_object = {}
+        load_inline_object(v, inline_object)
+        return (inline_object, "inline_object")
     else:
         parsed_date = load_date(v)
         if parsed_date != None:
@@ -501,7 +508,27 @@ def load_array(a):
         tmpa = a[1:-1].strip()
         if tmpa != '' and tmpa[0] == '"':
             strarray = True
-        a = a[1:-1].split(',')
+        if '{' not in a[1:-1]:
+            a = a[1:-1].split(',')
+        else:
+            # a is an inline object, we must find the matching parenthesis to difine groups
+            new_a = []
+            start_group_index = 1
+            end_group_index = 2
+            while end_group_index < len(a[1:-1]):
+                if a[end_group_index] == '}':
+                    # Increase end_group_index by 1 to get the closing bracket
+                    end_group_index += 1
+                    new_a.append(a[start_group_index:end_group_index])
+                    # The next start index is at least after the closing bracket, a closing bracket
+                    # can be followed by a comma since we are in an array.
+                    start_group_index = end_group_index + 1
+                    while a[start_group_index] != '{' and start_group_index < len(a[1:-1]):
+                        start_group_index += 1
+                    end_group_index = start_group_index + 1
+                else:
+                    end_group_index += 1
+            a = new_a
         b = 0
         if strarray:
             while b < len(a) - 1:
