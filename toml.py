@@ -315,11 +315,11 @@ def load_line(line, currentlevel, multikey, multibackslash):
             pair[-1] != 'false':
         try:
             float(pair[-1])
-            return "break"
+            break
         except ValueError:
             pass
         if load_date(pair[-1]) != None:
-            return "break"
+            break
         i += 1
         prev_val = pair[-1]
         pair = line.split('=', i)
