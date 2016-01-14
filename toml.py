@@ -301,7 +301,20 @@ def loads(s, _dict=dict):
     return retval
 
 def load_inline_object(line, currentlevel, multikey=False, multibackslash=False):
-    groups = line[1:-1].split(",")
+    candidate_groups = line[1:-1].split(",")
+    groups = []
+    while len(candidate_groups) > 0:
+        candidate_group = candidate_groups.pop(0)
+        _, value = candidate_group.split('=', 1)
+        value = value.strip()
+        if (value[0] == value[-1] and value[0] in ('"', "'")) or \
+                re.match('^[0-9]', value) or \
+                value in ('true', 'false'):
+            groups.append(candidate_group)
+        else:
+            next_candidate = candidate_groups.pop(0)
+            candidate = candidate_group + ',' + next_candidate
+            candidate_groups.insert(0, candidate)
     for group in groups:
         status = load_line(group, currentlevel, multikey, multibackslash)
         if status is not None:
