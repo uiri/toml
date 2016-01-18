@@ -309,7 +309,8 @@ def load_inline_object(line, currentlevel, multikey=False, multibackslash=False)
         value = value.strip()
         if (value[0] == value[-1] and value[0] in ('"', "'")) or \
                 re.match('^[0-9]', value) or \
-                value in ('true', 'false'):
+                value in ('true', 'false') or \
+                value[0] == "[" and value[-1] == "]":
             groups.append(candidate_group)
         else:
             next_candidate = candidate_groups.pop(0)
