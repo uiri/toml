@@ -283,21 +283,11 @@ def loads(s, _dict=dict):
         elif line[0] == "{":
             if line[-1] != "}":
                 raise Exception("Line breaks are not allowed in inline objects")
-            ret = load_inline_object(line, currentlevel, multikey, multibackslash)
-            if ret is not None:
-                status, multikey, multilinestr, multibackslash = ret
-                if status == "break":
-                    break
-                elif status == "continue":
-                    continue
+            load_inline_object(line, currentlevel, multikey, multibackslash)
         elif "=" in line:
             ret = load_line(line, currentlevel, multikey, multibackslash)
             if ret is not None:
-                status, multikey, multilinestr, multibackslash = ret
-                if status == "break":
-                    break
-                elif status == "continue":
-                    continue
+                multikey, multilinestr, multibackslash = ret
     return retval
 
 def load_inline_object(line, currentlevel, multikey=False, multibackslash=False):
@@ -375,7 +365,7 @@ def load_line(line, currentlevel, multikey, multibackslash):
         raise Exception("Duplicate keys!")
     except KeyError:
         if multikey:
-            return "continue", multikey, multilinestr, multibackslash
+            return multikey, multilinestr, multibackslash
         else:
             currentlevel[pair[0]] = value
 
