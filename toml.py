@@ -34,11 +34,8 @@ def load(f, _dict=dict):
                 raise Exception("Load expects a list to contain filenames only")
         d = _dict()
         for l in f:
-            d.append(load(l))
-        r = _dict()
-        for l in d:
-            toml_merge_dict(r, l)
-        return r
+            d.update(load(l))
+        return d
     elif f.read:
         return loads(f.read(), _dict)
     else:
