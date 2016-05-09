@@ -5,4 +5,4 @@ python:
 install:
  - python setup.py install
 script:
- - cat examples/example-v0.4.0.toml | python toml_test.py
+ - python toml_test.py < examples/example-v0.4.0.toml
