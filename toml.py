@@ -5,15 +5,21 @@ import datetime, decimal, re
 class TomlTz(datetime.tzinfo):
 
     def __init__(self, toml_offset):
-        self._raw_offset = toml_offset
-        self._hours = int(toml_offset[:3])
-        self._minutes = int(toml_offset[4:6])
+        if toml_offset == "Z":
+            self._raw_offset = "+00:00"
+        else:
+            self._raw_offset = toml_offset
+        self._hours = int(self._raw_offset[:3])
+        self._minutes = int(self._raw_offset[4:6])
 
     def tzname(self, dt):
         return "UTC"+self._raw_offset
 
     def utcoffset(self, dt):
         return datetime.timedelta(hours=self._hours, minutes=self._minutes)
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
 
 try:
     _range = xrange
@@ -369,12 +375,13 @@ def load_line(line, currentlevel, multikey, multibackslash):
 def load_date(val):
     microsecond = 0
     tz = None
-    if len(val) > 19 and val[19] == '.':
-        microsecond = int(val[20:26])
-        if len(val) > 26:
-            tz = TomlTz(val[26:32])
-    elif len(val) > 20:
-        tz = TomlTz(val[19:25])
+    if len(val) > 19:
+        if val[19] == '.':
+            microsecond = int(val[20:26])
+            if len(val) > 26:
+                tz = TomlTz(val[26:32])
+        else:
+            tz = TomlTz(val[19:25])
     try:
         d = datetime.datetime(int(val[:4]), int(val[5:7]), int(val[8:10]), int(val[11:13]), int(val[14:16]), int(val[17:19]), microsecond, tz)
     except ValueError:
