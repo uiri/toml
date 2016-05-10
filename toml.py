@@ -4,7 +4,7 @@ import datetime, decimal, re
 
 class TomlTz(datetime.tzinfo):
 
-    def __new__(self, toml_offset):
+    def __init__(self, toml_offset):
         self._raw_offset = toml_offset
         self._hours = int(toml_offset[:3])
         self._minutes = int(toml_offset[4:6])
@@ -372,9 +372,9 @@ def load_date(val):
     if len(val) > 19 and val[19] == '.':
         microsecond = int(val[20:26])
         if len(val) > 26:
-            tz = TomlTz(val[26:31])
+            tz = TomlTz(val[26:32])
     elif len(val) > 20:
-        tz = TomlTz(val[19:24])
+        tz = TomlTz(val[19:25])
     try:
         d = datetime.datetime(int(val[:4]), int(val[5:7]), int(val[8:10]), int(val[11:13]), int(val[14:16]), int(val[17:19]), microsecond, tz)
     except ValueError:
