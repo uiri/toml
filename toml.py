@@ -52,139 +52,138 @@ def loads(s, _dict=dict):
     implicitgroups = []
     retval = _dict()
     currentlevel = retval
-    if isinstance(s, basestring):
-        try:
-            s.decode('utf8')
-        except AttributeError:
-            pass
-        sl = list(s)
-        openarr = 0
-        openstring = False
-        openstrchar = ""
-        multilinestr = False
-        arrayoftables = False
-        beginline = True
-        keygroup = False
-        keyname = 0
-        delnum = 1
-        for i in range(len(sl)):
-            if sl[i] == '\r' and sl[i+1] == '\n':
-                sl[i] = ' '
+    if not isinstance(s, basestring):
+        raise Exception("What exactly are you trying to pull?")
+    try:
+        s.decode('utf8')
+    except AttributeError:
+        pass
+    sl = list(s)
+    openarr = 0
+    openstring = False
+    openstrchar = ""
+    multilinestr = False
+    arrayoftables = False
+    beginline = True
+    keygroup = False
+    keyname = 0
+    delnum = 1
+    for i in range(len(sl)):
+        if sl[i] == '\r' and sl[i+1] == '\n':
+            sl[i] = ' '
+            continue
+        if keyname:
+            if sl[i] == '\n':
+                raise Exception("Key name found without value. Reached end of line.")
+            if openstring:
+                if sl[i] == openstrchar:
+                    keyname = 2
+                    openstring = False
+                    openstrchar = ""
                 continue
-            if keyname:
-                if sl[i] == '\n':
-                    raise Exception("Key name found without value. Reached end of line.")
-                if openstring:
-                    if sl[i] == openstrchar:
-                        keyname = 2
-                        openstring = False
-                        openstrchar = ""
+            elif keyname == 1:
+                if sl[i].isspace():
+                    keyname = 2
                     continue
-                elif keyname == 1:
-                    if sl[i].isspace():
-                        keyname = 2
-                        continue
-                    elif sl[i].isalnum() or sl[i] == '_' or sl[i] == '-':
-                        continue
-                elif keyname == 2 and sl[i].isspace():
+                elif sl[i].isalnum() or sl[i] == '_' or sl[i] == '-':
                     continue
-                if sl[i] == '=':
-                    keyname = 0
-                else:
-                    raise Exception("Found invalid character in key name: '"+sl[i]+"'. Try quoting the key name.")
-            if sl[i] == "'" and openstrchar != '"':
-                k = 1
-                try:
-                    while sl[i-k] == "'":
-                        k += 1
-                        if k == 3:
-                            break
-                except IndexError:
-                    pass
-                if k == 3:
+            elif keyname == 2 and sl[i].isspace():
+                continue
+            if sl[i] == '=':
+                keyname = 0
+            else:
+                raise Exception("Found invalid character in key name: '"+sl[i]+"'. Try quoting the key name.")
+        if sl[i] == "'" and openstrchar != '"':
+            k = 1
+            try:
+                while sl[i-k] == "'":
+                    k += 1
+                    if k == 3:
+                        break
+            except IndexError:
+                pass
+            if k == 3:
+                multilinestr = not multilinestr
+                openstring = multilinestr
+            else:
+                openstring = not openstring
+            if openstring:
+                openstrchar = "'"
+            else:
+                openstrchar = ""
+        if sl[i] == '"' and openstrchar != "'":
+            oddbackslash = False
+            k = 1
+            tripquote = False
+            try:
+                while sl[i-k] == '"':
+                    k += 1
+                    if k == 3:
+                        tripquote = True
+                        break
+                while sl[i-k] == '\\':
+                    oddbackslash = not oddbackslash
+                    k += 1
+            except IndexError:
+                pass
+            if not oddbackslash:
+                if tripquote:
                     multilinestr = not multilinestr
                     openstring = multilinestr
                 else:
                     openstring = not openstring
-                if openstring:
-                    openstrchar = "'"
+            if openstring:
+                openstrchar = '"'
+            else:
+                openstrchar = ""
+        if sl[i] == '#' and not openstring and not keygroup and \
+                not arrayoftables:
+            j = i
+            try:
+                while sl[j] != '\n':
+                    sl.insert(j, ' ')
+                    sl.pop(j+1)
+                    j += 1
+            except IndexError:
+                break
+        if sl[i] == '[' and not openstring and not keygroup and \
+                not arrayoftables:
+            if beginline:
+                if sl[i+1] == '[':
+                    arrayoftables = True
                 else:
-                    openstrchar = ""
-            if sl[i] == '"' and openstrchar != "'":
-                oddbackslash = False
-                k = 1
-                tripquote = False
-                try:
-                    while sl[i-k] == '"':
-                        k += 1
-                        if k == 3:
-                            tripquote = True
-                            break
-                    while sl[i-k] == '\\':
-                        oddbackslash = not oddbackslash
-                        k += 1
-                except IndexError:
-                    pass
-                if not oddbackslash:
-                    if tripquote:
-                        multilinestr = not multilinestr
-                        openstring = multilinestr
-                    else:
-                        openstring = not openstring
-                if openstring:
-                    openstrchar = '"'
-                else:
-                    openstrchar = ""
-            if sl[i] == '#' and not openstring and not keygroup and \
-                    not arrayoftables:
-                j = i
-                try:
-                    while sl[j] != '\n':
-                        sl.insert(j, ' ')
-                        sl.pop(j+1)
-                        j += 1
-                except IndexError:
-                    break
-            if sl[i] == '[' and not openstring and not keygroup and \
-                    not arrayoftables:
-                if beginline:
-                    if sl[i+1] == '[':
-                        arrayoftables = True
-                    else:
-                        keygroup = True
-                else:
-                    openarr += 1
-            if sl[i] == ']' and not openstring:
-                if keygroup:
-                    keygroup = False
-                elif arrayoftables:
-                    if sl[i-1] == ']':
-                        arrayoftables = False
-                else:
-                    openarr -= 1
-            if sl[i] == '\n':
-                if openstring or multilinestr:
-                    if not multilinestr:
-                        raise Exception("Unbalanced quotes")
-                    if sl[i-1] == "'" or sl[i-1] == '"':
-                        sl.insert(i, sl[i-1])
-                        sl.pop(i+1)
-                        sl[i-3] = ' '
-                elif openarr:
-                    sl.insert(i, ' ')
+                    keygroup = True
+            else:
+                openarr += 1
+        if sl[i] == ']' and not openstring:
+            if keygroup:
+                keygroup = False
+            elif arrayoftables:
+                if sl[i-1] == ']':
+                    arrayoftables = False
+            else:
+                openarr -= 1
+        if sl[i] == '\n':
+            if openstring or multilinestr:
+                if not multilinestr:
+                    raise Exception("Unbalanced quotes")
+                if sl[i-1] == "'" or sl[i-1] == '"':
+                    sl.insert(i, sl[i-1])
                     sl.pop(i+1)
-                else:
-                    beginline = True
-            elif beginline and sl[i] != ' ' and sl[i] != '\t':
-                beginline = False
-                if not keygroup and not arrayoftables:
-                    if sl[i] == '=':
-                        raise Exception("Found empty keyname. ")
-                    keyname = 1
-        s = ''.join(sl)
-        s = s.split('\n')
-    else:
-        raise Exception("What exactly are you trying to pull?")
+                    sl[i-3] = ' '
+            elif openarr:
+                sl.insert(i, ' ')
+                sl.pop(i+1)
+            else:
+                beginline = True
+        elif beginline and sl[i] != ' ' and sl[i] != '\t':
+            beginline = False
+            if not keygroup and not arrayoftables:
+                if sl[i] == '=':
+                    raise Exception("Found empty keyname. ")
+                keyname = 1
+    s = ''.join(sl)
+    s = s.split('\n')
     multikey = None
     multilinestr = ""
     multibackslash = False
@@ -491,25 +490,24 @@ def load_value(v):
         parsed_date = load_date(v)
         if parsed_date != None:
             return (parsed_date, "date")
+        itype = "int"
+        digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+        neg = False
+        if v[0] == '-':
+            neg = True
+            v = v[1:]
+        if '.' in v or 'e' in v:
+            if v.split('.', 1)[1] == '':
+                raise Exception("This float is missing digits after the point")
+            if v[0] not in digits:
+                raise Exception("This float doesn't have a leading digit")
+            v = float(v)
+            itype = "float"
         else:
-            itype = "int"
-            digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-            neg = False
-            if v[0] == '-':
-                neg = True
-                v = v[1:]
-            if '.' in v or 'e' in v:
-                if v.split('.', 1)[1] == '':
-                    raise Exception("This float is missing digits after the point")
-                if v[0] not in digits:
-                    raise Exception("This float doesn't have a leading digit")
-                v = float(v)
-                itype = "float"
-            else:
-                v = int(v)
-            if neg:
-                return (0 - v, itype)
-            return (v, itype)
+            v = int(v)
+        if neg:
+            return (0 - v, itype)
+        return (v, itype)
 
 def load_array(a):
     atype = None
@@ -582,12 +580,11 @@ def load_array(a):
 
 def dump(o, f):
     """Writes out to f the toml corresponding to o. Returns said toml."""
-    if f.write:
-        d = dumps(o)
-        f.write(d)
-        return d
-    else:
+    if not f.write:
         raise Exception("You can only dump an object to a file descriptor")
+    d = dumps(o)
+    f.write(d)
+    return d
 
 def dumps(o):
     """Returns a string containing the toml corresponding to o, a dictionary"""
@@ -698,9 +695,8 @@ def toml_merge_dict(a, b):
                 b[k]
             except KeyError:
                 continue
-            if isinstance(b[k], dict):
-                b[k] = toml_merge_dict(a[k], b[k])
-            else:
+            if not isinstance(b[k], dict):
                 raise Exception("Can't merge dict and nondict in toml object")
+            b[k] = toml_merge_dict(a[k], b[k])
     a.update(b)
     return a
