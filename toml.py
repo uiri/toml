@@ -55,7 +55,7 @@ def loads(s, _dict=dict):
     if not isinstance(s, basestring):
         raise Exception("What exactly are you trying to pull?")
     try:
-        s.decode('utf8')
+        s = s.decode('utf8')
     except AttributeError:
         pass
     sl = list(s)
