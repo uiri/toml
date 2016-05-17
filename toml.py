@@ -144,8 +144,7 @@ def loads(s, _dict=dict):
             j = i
             try:
                 while sl[j] != '\n':
-                    sl.insert(j, ' ')
-                    sl.pop(j+1)
+                    sl[j] = ' '
                     j += 1
             except IndexError:
                 break
@@ -171,12 +170,10 @@ def loads(s, _dict=dict):
                 if not multilinestr:
                     raise TomlDecodeError("Unbalanced quotes")
                 if sl[i-1] == "'" or sl[i-1] == '"':
-                    sl.insert(i, sl[i-1])
-                    sl.pop(i+1)
+                    sl[i] = sl[i-1]
                     sl[i-3] = ' '
             elif openarr:
-                sl.insert(i, ' ')
-                sl.pop(i+1)
+                sl[i] = ' '
             else:
                 beginline = True
         elif beginline and sl[i] != ' ' and sl[i] != '\t':
@@ -192,12 +189,11 @@ def loads(s, _dict=dict):
     multibackslash = False
     for line in s:
         line = line.strip()
+        if line == "":
+            continue
         if multikey:
             if multibackslash:
-                strippedline = line.lstrip(' \t\n')
-                if strippedline == '':
-                    continue
-                multilinestr += strippedline
+                multilinestr += line
             else:
                 multilinestr += line
             multibackslash = False
@@ -216,8 +212,6 @@ def loads(s, _dict=dict):
                     multilinestr = multilinestr[:-1]
                 else:
                     multilinestr += "\n"
-            continue
-        if line == "":
             continue
         if line[0] == '[':
             arrayoftables = False
@@ -239,10 +233,7 @@ def loads(s, _dict=dict):
                         j += 1
                         groupstr = '.'.join(groups[i:j])
                     groups[i] = groupstr[1:-1]
-                    j -= 1
-                    while j > i:
-                        groups.pop(j)
-                        j -= 1
+                    groups[i+1:j] = []
                 else:
                     if not re.match(r'^[A-Za-z0-9_-]+$', groups[i]):
                         raise TomlDecodeError("Invalid group name '"+groups[i]+"'. Try quoting it.")
@@ -308,9 +299,8 @@ def load_inline_object(line, currentlevel, multikey=False, multibackslash=False)
                 value[0] == "[" and value[-1] == "]":
             groups.append(candidate_group)
         else:
-            next_candidate = candidate_groups.pop(0)
-            candidate = candidate_group + ',' + next_candidate
-            candidate_groups.insert(0, candidate)
+            candidate = candidate_group[1:] + ',' + candidate_group[0]
+            candidate_groups[0] = candidate
     for group in groups:
         status = load_line(group, currentlevel, multikey, multibackslash)
         if status is not None:
@@ -344,7 +334,6 @@ def load_line(line, currentlevel, multikey, multibackslash):
     if (pair[0][0] == '"' or pair[0][0] == "'") and \
             (pair[0][-1] == '"' or pair[0][-1] == "'"):
         pair[0] = pair[0][1:-1]
-    pair[1] = pair[1].strip()
     if len(pair[1]) > 2 and (pair[1][0] == '"' or pair[1][0] == "'") \
             and pair[1][1] == pair[1][0] and pair[1][2] == pair[1][0] \
             and not (len(pair[1]) > 5 and pair[1][-1] == pair[1][0] \
