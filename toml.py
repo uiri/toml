@@ -1,6 +1,7 @@
 # This software is released under the MIT license
 
-import datetime, decimal, re
+import re
+import datetime
 
 class TomlDecodeError(Exception):
     pass
@@ -69,7 +70,6 @@ def loads(s, _dict=dict):
     beginline = True
     keygroup = False
     keyname = 0
-    delnum = 1
     for i in range(len(sl)):
         if sl[i] == '\r' and sl[i+1] == '\n':
             sl[i] = ' '
@@ -310,7 +310,6 @@ def load_line(line, currentlevel, multikey, multibackslash):
     pair = line.split('=', i)
     if re.match(r'^[0-9]', pair[-1]):
         pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
-    l = len(line)
     while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
             pair[-1][0] != "'" and pair[-1][0] != '"' and \
             pair[-1][0] != '[' and pair[-1] != 'true' and \
@@ -320,7 +319,7 @@ def load_line(line, currentlevel, multikey, multibackslash):
             break
         except ValueError:
             pass
-        if load_date(pair[-1]) != None:
+        if load_date(pair[-1]) is not None:
             break
         i += 1
         prev_val = pair[-1]
@@ -335,8 +334,8 @@ def load_line(line, currentlevel, multikey, multibackslash):
         pair[0] = pair[0][1:-1]
     if len(pair[1]) > 2 and (pair[1][0] == '"' or pair[1][0] == "'") \
             and pair[1][1] == pair[1][0] and pair[1][2] == pair[1][0] \
-            and not (len(pair[1]) > 5 and pair[1][-1] == pair[1][0] \
-                         and pair[1][-2] == pair[1][0] and \
+            and not (len(pair[1]) > 5 and pair[1][-1] == pair[1][0] and \
+                         pair[1][-2] == pair[1][0] and \
                          pair[1][-3] == pair[1][0]):
         k = len(pair[1]) -1
         while k > -1 and pair[1][k] == '\\':
@@ -478,7 +477,7 @@ def load_value(v):
         return (inline_object, "inline_object")
     else:
         parsed_date = load_date(v)
-        if parsed_date != None:
+        if parsed_date is not None:
             return (parsed_date, "date")
         itype = "int"
         digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
