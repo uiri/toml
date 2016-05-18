@@ -51,6 +51,8 @@ def load(f, _dict=dict):
     else:
         raise TypeError("You can only load a file descriptor, filename or list")
 
+groupname_re = re.compile(r'^[A-Za-z0-9_-]+$')
+
 def loads(s, _dict=dict):
     """Returns a dictionary containing s, a string, parsed as toml."""
     implicitgroups = []
@@ -235,7 +237,7 @@ def loads(s, _dict=dict):
                     groups[i] = groupstr[1:-1]
                     groups[i+1:j] = []
                 else:
-                    if not re.match(r'^[A-Za-z0-9_-]+$', groups[i]):
+                    if not groupname_re.match(groups[i]):
                         raise TomlDecodeError("Invalid group name '"+groups[i]+"'. Try quoting it.")
                 i += 1
             currentlevel = retval
@@ -294,7 +296,7 @@ def load_inline_object(line, currentlevel, multikey=False, multibackslash=False)
         _, value = candidate_group.split('=', 1)
         value = value.strip()
         if (value[0] == value[-1] and value[0] in ('"', "'")) or \
-                re.match('^[0-9]', value) or \
+                value.isnumeric() or \
                 value in ('true', 'false') or \
                 value[0] == "[" and value[-1] == "]":
             groups.append(candidate_group)
@@ -306,11 +308,14 @@ def load_inline_object(line, currentlevel, multikey=False, multibackslash=False)
         if status is not None:
             break
 
+# Matches a TOML number, which allows underscores for readability
+number_with_underscores = re.compile('([0-9])(_([0-9]))*')
+
 def load_line(line, currentlevel, multikey, multibackslash):
     i = 1
     pair = line.split('=', i)
-    if re.match(r'^[0-9]', pair[-1]):
-        pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
+    if number_with_underscores.match(pair[-1]):
+        pair[-1] = pair[-1].replace('_', '')
     while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
             pair[-1][0] != "'" and pair[-1][0] != '"' and \
             pair[-1][0] != '[' and pair[-1] != 'true' and \
@@ -325,8 +330,6 @@ def load_line(line, currentlevel, multikey, multibackslash):
         i += 1
         prev_val = pair[-1]
         pair = line.split('=', i)
-        if re.match(r'^[0-9]', pair[-1]):
-            pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
         if prev_val == pair[-1]:
             raise TomlDecodeError("Invalid date or number")
     pair = ['='.join(pair[:-1]).strip(), pair[-1].strip()]
@@ -412,6 +415,26 @@ def load_unicode_escapes(v, hexbytes, prefix):
         v += unicode(hx[len(hxb):])
     return v
 
+# Unescape TOML string values.
+escapes = ['0', 'b', 'f', 'n', 'r', 't', '"'] # content after the \
+escapedchars = ['\0', '\b', '\f', '\n', '\r', '\t', '\"'] # What it should be replaced by
+escape_to_escapedchars = dict(zip(escapes, escapedchars)) # Used for substitution
+
+# Regexp that matches escaped value, checking the parity of the number
+# of backslashes
+escapes_re = re.compile("""
+        (?P<prefix>([^\\\\](\\\\\\\\)*)) # Parity of the number of backslashs
+        \\\\                             # The actual backslash before the escape
+        (?P<escape>[%s])                 # The escape
+        """ % ''.join(escapes),
+        re.VERBOSE)
+
+def unescape(v):
+    """Unescape characters in a TOML string."""
+    v = escapes_re.sub(lambda match: match.group('prefix') + escape_to_escapedchars[match.group('escape')], v)
+    v = v.replace("\\\\", "\\")
+    return v
+
 def load_value(v):
     if v == 'true':
         return (True, "bool")
@@ -441,8 +464,6 @@ def load_value(v):
                         raise TomlDecodeError("Stuff after closed string. WTF?")
                     else:
                         closed = True
-        escapes = ['0', 'b', 'f', 'n', 'r', 't', '"', '\\']
-        escapedchars = ['\0', '\b', '\f', '\n', '\r', '\t', '\"', '\\']
         escapeseqs = v.split('\\')[1:]
         backslash = False
         for i in escapeseqs:
@@ -458,11 +479,7 @@ def load_value(v):
             if prefix in v:
                 hexbytes = v.split(prefix)
                 v = load_unicode_escapes(hexbytes[0], hexbytes[1:], prefix)
-        for i in range(len(escapes)):
-            if escapes[i] == '\\':
-                v = v.replace("\\"+escapes[i], escapedchars[i])
-            else:
-                v = re.sub("([^\\\\](\\\\\\\\)*)\\\\"+escapes[i], "\\1"+escapedchars[i], v)
+        v = unescape(v)
         if v[1] == '"':
             v = v[2:-2]
         return (v[1:-1], "str")
@@ -481,7 +498,6 @@ def load_value(v):
         if parsed_date is not None:
             return (parsed_date, "date")
         itype = "int"
-        digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         neg = False
         if v[0] == '-':
             neg = True
