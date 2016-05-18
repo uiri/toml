@@ -690,16 +690,3 @@ def dump_value(v):
     if isinstance(v, float):
         return str(v)
     return v
-
-def toml_merge_dict(a, b):
-    for k in a:
-        if isinstance(a[k], dict):
-            try:
-                b[k]
-            except KeyError:
-                continue
-            if not isinstance(b[k], dict):
-                raise Exception("Can't merge dict and nondict in toml object")
-            b[k] = toml_merge_dict(a[k], b[k])
-    a.update(b)
-    return a
