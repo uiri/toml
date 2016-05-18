@@ -2,6 +2,9 @@
 
 import datetime, decimal, re
 
+class TomlDecodeError(Exception):
+    pass
+
 class TomlTz(datetime.tzinfo):
 
     def __init__(self, toml_offset):
@@ -37,7 +40,7 @@ def load(f, _dict=dict):
     elif isinstance(f, list):
         for l in f:
             if not isinstance(l, basestring):
-                raise Exception("Load expects a list to contain filenames only")
+                raise TypeError("Load expects a list to contain filenames only")
         d = _dict()
         for l in f:
             d.update(load(l))
@@ -45,7 +48,7 @@ def load(f, _dict=dict):
     elif f.read:
         return loads(f.read(), _dict)
     else:
-        raise Exception("You can only load a file descriptor, filename or list")
+        raise TypeError("You can only load a file descriptor, filename or list")
 
 def loads(s, _dict=dict):
     """Returns a dictionary containing s, a string, parsed as toml."""
@@ -53,7 +56,7 @@ def loads(s, _dict=dict):
     retval = _dict()
     currentlevel = retval
     if not isinstance(s, basestring):
-        raise Exception("What exactly are you trying to pull?")
+        raise TypeError("What exactly are you trying to pull?")
     try:
         s = s.decode('utf8')
     except AttributeError:
@@ -74,7 +77,7 @@ def loads(s, _dict=dict):
             continue
         if keyname:
             if sl[i] == '\n':
-                raise Exception("Key name found without value. Reached end of line.")
+                raise TomlDecodeError("Key name found without value. Reached end of line.")
             if openstring:
                 if sl[i] == openstrchar:
                     keyname = 2
@@ -92,7 +95,7 @@ def loads(s, _dict=dict):
             if sl[i] == '=':
                 keyname = 0
             else:
-                raise Exception("Found invalid character in key name: '"+sl[i]+"'. Try quoting the key name.")
+                raise TomlDecodeError("Found invalid character in key name: '"+sl[i]+"'. Try quoting the key name.")
         if sl[i] == "'" and openstrchar != '"':
             k = 1
             try:
@@ -166,7 +169,7 @@ def loads(s, _dict=dict):
         if sl[i] == '\n':
             if openstring or multilinestr:
                 if not multilinestr:
-                    raise Exception("Unbalanced quotes")
+                    raise TomlDecodeError("Unbalanced quotes")
                 if sl[i-1] == "'" or sl[i-1] == '"':
                     sl.insert(i, sl[i-1])
                     sl.pop(i+1)
@@ -180,7 +183,7 @@ def loads(s, _dict=dict):
             beginline = False
             if not keygroup and not arrayoftables:
                 if sl[i] == '=':
-                    raise Exception("Found empty keyname. ")
+                    raise TomlDecodeError("Found empty keyname. ")
                 keyname = 1
     s = ''.join(sl)
     s = s.split('\n')
@@ -224,7 +227,7 @@ def loads(s, _dict=dict):
             else:
                 line = line[1:].split(']', 1)
             if line[1].strip() != "":
-                raise Exception("Key group not on a line by itself.")
+                raise TomlDecodeError("Key group not on a line by itself.")
             groups = line[0].split('.')
             i = 0
             while i < len(groups):
@@ -242,24 +245,24 @@ def loads(s, _dict=dict):
                         j -= 1
                 else:
                     if not re.match(r'^[A-Za-z0-9_-]+$', groups[i]):
-                        raise Exception("Invalid group name '"+groups[i]+"'. Try quoting it.")
+                        raise TomlDecodeError("Invalid group name '"+groups[i]+"'. Try quoting it.")
                 i += 1
             currentlevel = retval
             for i in range(len(groups)):
                 group = groups[i]
                 if group == "":
-                    raise Exception("Can't have a keygroup with an empty name")
+                    raise TomlDecodeError("Can't have a keygroup with an empty name")
                 try:
                     currentlevel[group]
                     if i == len(groups) - 1:
                         if group in implicitgroups:
                             implicitgroups.remove(group)
                             if arrayoftables:
-                                raise Exception("An implicitly defined table can't be an array")
+                                raise TomlDecodeError("An implicitly defined table can't be an array")
                         elif arrayoftables:
                             currentlevel[group].append(_dict())
                         else:
-                            raise Exception("What? "+group+" already exists?"+str(currentlevel))
+                            raise TomlDecodeError("What? "+group+" already exists?"+str(currentlevel))
                 except TypeError:
                     if i != len(groups) - 1:
                         implicitgroups.append(group)
@@ -284,7 +287,7 @@ def loads(s, _dict=dict):
                         pass
         elif line[0] == "{":
             if line[-1] != "}":
-                raise Exception("Line breaks are not allowed in inline objects")
+                raise TomlDecodeError("Line breaks are not allowed in inline objects")
             load_inline_object(line, currentlevel, multikey, multibackslash)
         elif "=" in line:
             ret = load_line(line, currentlevel, multikey, multibackslash)
@@ -336,12 +339,8 @@ def load_line(line, currentlevel, multikey, multibackslash):
         if re.match(r'^[0-9]', pair[-1]):
             pair[-1] = re.sub(r'([0-9])_(?=[0-9])', r'\1', pair[-1])
         if prev_val == pair[-1]:
-            raise Exception("Invalid date or number")
-    newpair = []
-    newpair.append('='.join(pair[:-1]))
-    newpair.append(pair[-1])
-    pair = newpair
-    pair[0] = pair[0].strip()
+            raise TomlDecodeError("Invalid date or number")
+    pair = ['='.join(pair[:-1]).strip(), pair[-1].strip()]
     if (pair[0][0] == '"' or pair[0][0] == "'") and \
             (pair[0][-1] == '"' or pair[0][-1] == "'"):
         pair[0] = pair[0][1:-1]
@@ -364,7 +363,7 @@ def load_line(line, currentlevel, multikey, multibackslash):
         value, vtype = load_value(pair[1])
     try:
         currentlevel[pair[0]]
-        raise Exception("Duplicate keys!")
+        raise TomlDecodeError("Duplicate keys!")
     except KeyError:
         if multikey:
             return multikey, multilinestr, multibackslash
@@ -418,7 +417,7 @@ def load_unicode_escapes(v, hexbytes, prefix):
                 if not hx[i].lower() in hexchars:
                     raise IndexError("This is a hack")
             except IndexError:
-                raise Exception("Invalid escape sequence")
+                raise TomlDecodeError("Invalid escape sequence")
             hxb += hx[i].lower()
             i += 1
         v += unichr(int(hxb, 16))
@@ -451,7 +450,7 @@ def load_value(v):
                     pass
                 if not oddbackslash:
                     if closed:
-                        raise Exception("Stuff after closed string. WTF?")
+                        raise TomlDecodeError("Stuff after closed string. WTF?")
                     else:
                         closed = True
         escapes = ['0', 'b', 'f', 'n', 'r', 't', '"', '\\']
@@ -464,7 +463,7 @@ def load_value(v):
             else:
                 if i[0] not in escapes and i[0] != 'u' and i[0] != 'U' and \
                         not backslash:
-                    raise Exception("Reserved escape sequence used")
+                    raise TomlDecodeError("Reserved escape sequence used")
                 if backslash:
                     backslash = False
         for prefix in ["\\u", "\\U"]:
@@ -501,9 +500,9 @@ def load_value(v):
             v = v[1:]
         if '.' in v or 'e' in v:
             if v.split('.', 1)[1] == '':
-                raise Exception("This float is missing digits after the point")
+                raise TomlDecodeError("This float is missing digits after the point")
             if v[0] not in digits:
-                raise Exception("This float doesn't have a leading digit")
+                raise TomlDecodeError("This float doesn't have a leading digit")
             v = float(v)
             itype = "float"
         else:
@@ -575,7 +574,7 @@ def load_array(a):
             nval, ntype = load_value(a[i])
             if atype:
                 if ntype != atype:
-                    raise Exception("Not a homogeneous array")
+                    raise TomlDecodeError("Not a homogeneous array")
             else:
                 atype = ntype
             retval.append(nval)
@@ -584,7 +583,7 @@ def load_array(a):
 def dump(o, f):
     """Writes out to f the toml corresponding to o. Returns said toml."""
     if not f.write:
-        raise Exception("You can only dump an object to a file descriptor")
+        raise TypeError("You can only dump an object to a file descriptor")
     d = dumps(o)
     f.write(d)
     return d
