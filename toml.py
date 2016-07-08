@@ -295,7 +295,7 @@ def load_inline_object(line, currentlevel, multikey=False, multibackslash=False)
         _, value = candidate_group.split('=', 1)
         value = value.strip()
         if (value[0] == value[-1] and value[0] in ('"', "'")) or \
-                value.isnumeric() or \
+                value[0].isdigit() or \
                 value in ('true', 'false') or \
                 value[0] == "[" and value[-1] == "]":
             groups.append(candidate_group)
