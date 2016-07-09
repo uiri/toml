@@ -295,7 +295,7 @@ def load_inline_object(line, currentlevel, multikey=False, multibackslash=False)
         _, value = candidate_group.split('=', 1)
         value = value.strip()
         if (value[0] == value[-1] and value[0] in ('"', "'")) or \
-                value[0].isdigit() or \
+                value[0] in '0123456789' or \
                 value in ('true', 'false') or \
                 value[0] == "[" and value[-1] == "]":
             groups.append(candidate_group)
@@ -504,7 +504,7 @@ def load_value(v):
         if '.' in v or 'e' in v:
             if v.split('.', 1)[1] == '':
                 raise TomlDecodeError("This float is missing digits after the point")
-            if v[0] not in digits:
+            if v[0] not in '0123456789':
                 raise TomlDecodeError("This float doesn't have a leading digit")
             v = float(v)
             itype = "float"
