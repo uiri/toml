@@ -300,8 +300,7 @@ def load_inline_object(line, currentlevel, multikey=False, multibackslash=False)
                 value[0] == "[" and value[-1] == "]":
             groups.append(candidate_group)
         else:
-            candidate = candidate_group[1:] + ',' + candidate_group[0]
-            candidate_groups[0] = candidate
+            candidate_groups[0] = candidate_group + "," + candidate_groups[0]
     for group in groups:
         status = load_line(group, currentlevel, multikey, multibackslash)
         if status is not None:
