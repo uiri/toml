@@ -73,7 +73,7 @@ def loads(s, _dict=dict):
     beginline = True
     keygroup = False
     keyname = 0
-    for i in range(len(sl)):
+    for i in _range(len(sl)):
         if sl[i] == '\r' and sl[i+1] == '\n':
             sl[i] = ' '
             continue
@@ -241,7 +241,7 @@ def loads(s, _dict=dict):
                         raise TomlDecodeError("Invalid group name '"+groups[i]+"'. Try quoting it.")
                 i += 1
             currentlevel = retval
-            for i in range(len(groups)):
+            for i in _range(len(groups)):
                 group = groups[i]
                 if group == "":
                     raise TomlDecodeError("Can't have a keygroup with an empty name")
@@ -562,7 +562,7 @@ def _load_array(a):
         a = []
         openarr = 0
         j = 0
-        for i in range(len(al)):
+        for i in _range(len(al)):
             if al[i] == '[':
                 openarr += 1
             elif al[i] == ']':
@@ -571,7 +571,7 @@ def _load_array(a):
                 a.append(''.join(al[j:i]))
                 j = i+1
         a.append(''.join(al[j:]))
-    for i in range(len(a)):
+    for i in _range(len(a)):
         a[i] = a[i].strip()
         if a[i] != '':
             nval, ntype = _load_value(a[i])
