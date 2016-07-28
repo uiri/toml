@@ -3,7 +3,7 @@ from distutils.core import setup
 with open("README.rst") as readmefile:
     readme = readmefile.read()
 setup(name='toml',
-      version='0.9.1',
+      version='0.9.2',
       description="Python Library for Tom's Obvious, Minimal Language",
       author="Uiri Noyb",
       author_email="uiri@xqz.ca",
