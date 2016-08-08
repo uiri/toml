@@ -501,15 +501,17 @@ def _load_value(v):
         if v[0] == '-':
             neg = True
             v = v[1:]
-        if '.' in v or 'e' in v:
-            if v.split('.', 1)[1] == '':
+        elif v[0] == '+':
+            v = v[1:]
+        v = v.replace('_', '')
+        if '.' in v or 'e' in v or 'E' in v:
+            if '.' in v and v.split('.', 1)[1] == '':
                 raise TomlDecodeError("This float is missing digits after the point")
             if v[0] not in '0123456789':
                 raise TomlDecodeError("This float doesn't have a leading digit")
             v = float(v)
             itype = "float"
         else:
-            v = v.replace('_', '')
             v = int(v)
         if neg:
             return (0 - v, itype)
