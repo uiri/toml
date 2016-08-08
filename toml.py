@@ -509,6 +509,7 @@ def _load_value(v):
             v = float(v)
             itype = "float"
         else:
+            v = v.replace('_', '')
             v = int(v)
         if neg:
             return (0 - v, itype)
