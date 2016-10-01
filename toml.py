@@ -534,21 +534,21 @@ def _load_array(a):
             start_group_index = 1
             end_group_index = 2
             in_str = False
-            while end_group_index < len(a[1:-1]):
+            while end_group_index < len(a[1:]):
                 if a[end_group_index] == '"' or a[end_group_index] == "'":
                     in_str = not in_str
-                if a[end_group_index] == '}' and not in_str:
-                    # Increase end_group_index by 1 to get the closing bracket
+                if in_str or a[end_group_index] != '}':
                     end_group_index += 1
-                    new_a.append(a[start_group_index:end_group_index])
-                    # The next start index is at least after the closing bracket, a closing bracket
-                    # can be followed by a comma since we are in an array.
-                    start_group_index = end_group_index + 1
-                    while a[start_group_index] != '{' and start_group_index < len(a[1:-1]):
-                        start_group_index += 1
-                    end_group_index = start_group_index + 1
-                else:
-                    end_group_index += 1
+                    continue
+                # Increase end_group_index by 1 to get the closing bracket
+                end_group_index += 1
+                new_a.append(a[start_group_index:end_group_index])
+                # The next start index is at least after the closing bracket, a closing bracket
+                # can be followed by a comma since we are in an array.
+                start_group_index = end_group_index + 1
+                while start_group_index < len(a[1:]) and a[start_group_index] != '{':
+                    start_group_index += 1
+                end_group_index = start_group_index + 1
             a = new_a
         b = 0
         if strarray:
