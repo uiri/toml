@@ -5,10 +5,10 @@ import json
 import sys
 import toml
 
-try:
+if sys.version_info < (3,):
     _range = xrange
     iteritems = dict.iteritems
-except NameError:
+else:
     unicode = str
     _range = range
     basestring = str
