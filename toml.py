@@ -419,19 +419,25 @@ _escapes = ['0', 'b', 'f', 'n', 'r', 't', '"'] # content after the \
 _escapedchars = ['\0', '\b', '\f', '\n', '\r', '\t', '\"'] # What it should be replaced by
 _escape_to_escapedchars = dict(zip(_escapes, _escapedchars)) # Used for substitution
 
-# Regexp that matches escaped value, checking the parity of the number
-# of backslashes
-_escapes_re = re.compile("""
-        (?P<prefix>([^\\\\](\\\\\\\\)*)) # Parity of the number of backslashs
-        \\\\                             # The actual backslash before the escape
-        (?P<escape>[%s])                 # The escape
-        """ % ''.join(_escapes),
-        re.VERBOSE)
-
 def _unescape(v):
     """Unescape characters in a TOML string."""
-    v = _escapes_re.sub(lambda match: match.group('prefix') + _escape_to_escapedchars[match.group('escape')], v)
-    v = v.replace("\\\\", "\\")
+    i = 0
+    backslash = False
+    while i < len(v):
+        if backslash:
+            backslash = False
+            if v[i] in _escapes:
+                v = v[:i-1] + _escape_to_escapedchars[v[i]] + v[i+1:]
+            elif v[i] == '\\':
+                v = v[:i-1] + v[i:]
+            elif v[i] == 'u' or v[i] == 'U':
+                i += 1
+            else:
+                raise TomlDecodeError("Reserved escape sequence used")
+            continue
+        elif v[i] == '\\':
+            backslash = True
+        i += 1
     return v
 
 def _load_value(v):
