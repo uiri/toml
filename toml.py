@@ -59,7 +59,7 @@ def loads(s, _dict=dict):
     retval = _dict()
     currentlevel = retval
     if not isinstance(s, basestring):
-        raise TypeError("What exactly are you trying to pull?")
+        raise TypeError("Expecting something like a string")
     try:
         s = s.decode('utf8')
     except AttributeError:
