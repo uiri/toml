@@ -310,9 +310,30 @@ def _load_inline_object(line, currentlevel, multikey=False, multibackslash=False
 # Matches a TOML number, which allows underscores for readability
 _number_with_underscores = re.compile('([0-9])(_([0-9]))*')
 
+def _strictly_valid_num(n):
+    n = n.strip()
+    if n[0] == '_':
+        return False
+    if n[-1] == '_':
+        return False
+    if "_." in n or "._" in n:
+        return False
+    if len(n) == 1:
+        return True
+    if n[0] == '0' and n[1] != '.':
+        return False
+    if n[0] == '+' or n[0] == '-':
+        n = n[1:]
+        if n[0] == '0' and n[1] != '.':
+            return False
+    if '__' in n:
+        return False
+    return True
+
 def _load_line(line, currentlevel, multikey, multibackslash):
     i = 1
     pair = line.split('=', i)
+    strictly_valid = _strictly_valid_num(pair[-1])
     if _number_with_underscores.match(pair[-1]):
         pair[-1] = pair[-1].replace('_', '')
     while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
@@ -331,6 +352,8 @@ def _load_line(line, currentlevel, multikey, multibackslash):
         pair = line.split('=', i)
         if prev_val == pair[-1]:
             raise TomlDecodeError("Invalid date or number")
+        if strictly_valid:
+            strictly_valid = _strictly_valid_num(pair[-1])
     pair = ['='.join(pair[:-1]).strip(), pair[-1].strip()]
     if (pair[0][0] == '"' or pair[0][0] == "'") and \
             (pair[0][-1] == '"' or pair[0][-1] == "'"):
@@ -350,7 +373,7 @@ def _load_line(line, currentlevel, multikey, multibackslash):
             multilinestr = pair[1] + "\n"
         multikey = pair[0]
     else:
-        value, vtype = _load_value(pair[1])
+        value, vtype = _load_value(pair[1], strictly_valid)
     try:
         currentlevel[pair[0]]
         raise TomlDecodeError("Duplicate keys!")
@@ -440,7 +463,7 @@ def _unescape(v):
         i += 1
     return v
 
-def _load_value(v):
+def _load_value(v, strictly_valid=True):
     if v == 'true':
         return (True, "bool")
     elif v == 'false':
@@ -502,6 +525,9 @@ def _load_value(v):
         parsed_date = _load_date(v)
         if parsed_date is not None:
             return (parsed_date, "date")
+        if not strictly_valid:
+            raise TomlDecodeError("Weirdness with leading zeroes or underscores "
+                                  "in your number.")
         itype = "int"
         neg = False
         if v[0] == '-':
