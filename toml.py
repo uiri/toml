@@ -558,7 +558,7 @@ def _load_array(a):
         tmpa = a[1:-1].strip()
         if tmpa != '' and tmpa[0] == '"':
             strarray = True
-        if '{' not in a[1:-1]:
+        if not a[1:-1].strip().startswith('{'):
             a = a[1:-1].split(',')
         else:
             # a is an inline object, we must find the matching parenthesis to difine groups
