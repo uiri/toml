@@ -636,6 +636,8 @@ def dumps(o):
         for section in sections:
             addtoretval, addtosections = _dump_sections(sections[section], section)
             if addtoretval:
+                if retval and retval[-2:] != "\n\n":
+                    retval += "\n"
                 retval += "["+section+"]\n"
                 retval += addtoretval
             for s in addtosections:
@@ -664,7 +666,7 @@ def _dump_sections(o, sup):
                         arrayoftables = True
             if arrayoftables:
                 for a in o[section]:
-                    arraytabstr = ""
+                    arraytabstr = "\n"
                     arraystr += "[["+sup+qsection+"]]\n"
                     s, d = _dump_sections(a, sup+qsection)
                     if s:
