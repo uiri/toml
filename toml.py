@@ -382,6 +382,8 @@ def _load_line(line, currentlevel, multikey, multibackslash):
             return multikey, multilinestr, multibackslash
         else:
             currentlevel[pair[0]] = value
+    except:
+        raise TomlDecodeError("Duplicate keys!")
 
 def _load_date(val):
     microsecond = 0
