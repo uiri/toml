@@ -190,7 +190,8 @@ def loads(s, _dict=dict):
     multilinestr = ""
     multibackslash = False
     for line in s:
-        line = line.strip()
+        if not multilinestr:
+            line = line.strip()
         if line == "":
             continue
         if multikey:
