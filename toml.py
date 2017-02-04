@@ -668,11 +668,13 @@ def dump(o, f):
     f.write(d)
     return d
 
-def dumps(o):
+def dumps(o, preserve=False):
     """Stringifies input dict as toml
 
     Args:
         o: Object to dump into toml
+
+        preserve: Boolean parameter. If true, preserve inline tables.
 
     Returns:
         String containing the toml corresponding to dict
@@ -684,7 +686,8 @@ def dumps(o):
     while sections != {}:
         newsections = {}
         for section in sections:
-            addtoretval, addtosections = _dump_sections(sections[section], section)
+            addtoretval, addtosections = _dump_sections(sections[section],
+                                                        section, preserve)
             if addtoretval:
                 if retval and retval[-2:] != "\n\n":
                     retval += "\n"
@@ -695,7 +698,7 @@ def dumps(o):
         sections = newsections
     return retval
 
-def _dump_sections(o, sup):
+def _dump_sections(o, sup, preserve=False):
     retstr = ""
     if sup != "" and sup[-1] != ".":
         sup += '.'
@@ -739,10 +742,33 @@ def _dump_sections(o, sup):
                 if o[section] is not None:
                     retstr += (qsection + " = " +
                                str(_dump_value(o[section])) + '\n')
+        elif preserve:
+            retstr += (section + " = " + _dump_inline_table(o[section]))
         else:
             retdict[qsection] = o[section]
     retstr += arraystr
     return (retstr, retdict)
+
+def _dump_inline_table(section):
+    """Preserve inline table in its compact syntax instead of expanding
+    into subsection.
+
+    https://github.com/toml-lang/toml#user-content-inline-table
+    """
+    retval = ""
+    if isinstance(section, dict):
+        val_list = []
+        for k, v in section.items():
+            val = _dump_inline_table(v)
+            val_list.append(k + " = " + val)
+        retval += "{" + ", ".join(val_list) + "}\n"
+        return retval
+    elif isinstance(section, list):
+        val_list = [_dump_inline_table(i) for i in section]
+        retval += "[" + ", ".join(val_list) + "]"
+        return retval
+    else:
+        return "\"" + section + "\""
 
 def _dump_value(v):
     if isinstance(v, list):
