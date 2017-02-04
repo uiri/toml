@@ -711,14 +711,10 @@ def _dump_inline_table(section):
         for k, v in section.items():
             val = _dump_inline_table(v)
             val_list.append(k + " = " + val)
-        retval += "{" + ", ".join(val_list) + "}\n"
-        return retval
-    elif isinstance(section, list):
-        val_list = [_dump_inline_table(i) for i in section]
-        retval += "[" + ", ".join(val_list) + "]"
+        retval += "{ " + ", ".join(val_list) + " }\n"
         return retval
     else:
-        return "\"" + section + "\""
+        return str(_dump_value(section))
 
 def _dump_value(v):
     if isinstance(v, list):
