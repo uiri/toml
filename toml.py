@@ -34,7 +34,22 @@ except NameError:
     unichr = chr
 
 def load(f, _dict=dict):
-    """Returns a dictionary containing the named file parsed as toml."""
+    """Parses named file or files as toml and returns a dictionary
+
+    Args:
+        f: Path to the file to open, array of files to read into single dict
+           or a file descriptor
+        _dict: Optional dictionary that will be merged with parsed toml
+
+    Returns:
+        Parsed toml file represented as a dictionary
+
+    Raises:
+        TypeError -- When array of non-strings is passed
+        TypeError -- When f is invalid type
+        TomlDecodeError: Error while decoding toml
+    """
+
     if isinstance(f, basestring):
         with open(f) as ffile:
             return loads(ffile.read(), _dict)
@@ -54,7 +69,20 @@ def load(f, _dict=dict):
 _groupname_re = re.compile(r'^[A-Za-z0-9_-]+$')
 
 def loads(s, _dict=dict):
-    """Returns a dictionary containing s, a string, parsed as toml."""
+    """Parses string as toml
+
+    Args:
+        s: String to be parsed
+        _dict: Optional dictionary that will be merged with parsed toml
+
+    Returns:
+        Parsed toml file represented as a dictionary
+
+    Raises:
+        TypeError: When a non-string is passed
+        TomlDecodeError: Error while decoding toml
+    """
+
     implicitgroups = []
     retval = _dict()
     currentlevel = retval
@@ -621,7 +649,19 @@ def _load_array(a):
     return retval
 
 def dump(o, f):
-    """Writes out to f the toml corresponding to o. Returns said toml."""
+    """Writes out dict as toml to file
+
+    Args:
+        o: Object to dump into toml
+        f: File descriptor where the toml should be stored
+
+    Returns:
+        String containing the toml corresponding to dictionary
+
+    Raises:
+        TypeError: When anything other than file descriptor is passed
+    """
+
     if not f.write:
         raise TypeError("You can only dump an object to a file descriptor")
     d = dumps(o)
@@ -629,7 +669,15 @@ def dump(o, f):
     return d
 
 def dumps(o):
-    """Returns a string containing the toml corresponding to o, a dictionary"""
+    """Stringifies input dict as toml
+
+    Arguments:
+        o: Object to dump into toml
+
+    Returns:
+        String containing the toml corresponding to dict
+    """
+
     retval = ""
     addtoretval, sections = _dump_sections(o, "")
     retval += addtoretval
