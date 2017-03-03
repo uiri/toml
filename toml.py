@@ -25,6 +25,10 @@ class TomlTz(datetime.tzinfo):
     def dst(self, dt):
         return datetime.timedelta(0)
 
+class InlineTableDict(dict):
+    def __init__(self, *args):
+        dict.__init__(self, args)
+
 try:
     _range = xrange
 except NameError:
@@ -548,7 +552,7 @@ def _load_value(v, strictly_valid=True):
     elif v[0] == '[':
         return (_load_array(v), "array")
     elif v[0] == '{':
-        inline_object = {}
+        inline_object = InlineTableDict()
         _load_inline_object(v, inline_object)
         return (inline_object, "inline_object")
     else:
@@ -742,7 +746,7 @@ def _dump_sections(o, sup, preserve=False):
                 if o[section] is not None:
                     retstr += (qsection + " = " +
                                str(_dump_value(o[section])) + '\n')
-        elif preserve:
+        elif preserve and isinstance(o[section], InlineTableDict):
             retstr += (section + " = " + _dump_inline_table(o[section]))
         else:
             retdict[qsection] = o[section]
