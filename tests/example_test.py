@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Decodes toml and outputs it as JSON"""
 
 import toml_test
 import toml
