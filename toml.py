@@ -25,6 +25,10 @@ class TomlTz(datetime.tzinfo):
     def dst(self, dt):
         return datetime.timedelta(0)
 
+class InlineTableDict(dict):
+    def __init__(self, *args):
+        dict.__init__(self, args)
+
 try:
     _range = xrange
 except NameError:
@@ -520,7 +524,7 @@ def _load_value(v, strictly_valid=True):
     elif v[0] == '[':
         return (_load_array(v), "array")
     elif v[0] == '{':
-        inline_object = {}
+        inline_object = InlineTableDict()
         _load_inline_object(v, inline_object)
         return (inline_object, "inline_object")
     else:
@@ -628,7 +632,7 @@ def dump(o, f):
     f.write(d)
     return d
 
-def dumps(o):
+def dumps(o, preserve=False):
     """Returns a string containing the toml corresponding to o, a dictionary"""
     retval = ""
     addtoretval, sections = _dump_sections(o, "")
@@ -636,7 +640,8 @@ def dumps(o):
     while sections != {}:
         newsections = {}
         for section in sections:
-            addtoretval, addtosections = _dump_sections(sections[section], section)
+            addtoretval, addtosections = _dump_sections(sections[section],
+                                                        section, preserve)
             if addtoretval:
                 if retval and retval[-2:] != "\n\n":
                     retval += "\n"
@@ -647,7 +652,7 @@ def dumps(o):
         sections = newsections
     return retval
 
-def _dump_sections(o, sup):
+def _dump_sections(o, sup, preserve=False):
     retstr = ""
     if sup != "" and sup[-1] != ".":
         sup += '.'
@@ -691,10 +696,29 @@ def _dump_sections(o, sup):
                 if o[section] is not None:
                     retstr += (qsection + " = " +
                                str(_dump_value(o[section])) + '\n')
+        elif preserve and isinstance(o[section], InlineTableDict):
+            retstr += (section + " = " + _dump_inline_table(o[section]))
         else:
             retdict[qsection] = o[section]
     retstr += arraystr
     return (retstr, retdict)
+
+def _dump_inline_table(section):
+    """Preserve inline table in its compact syntax instead of expanding
+    into subsection.
+
+    https://github.com/toml-lang/toml#user-content-inline-table
+    """
+    retval = ""
+    if isinstance(section, dict):
+        val_list = []
+        for k, v in section.items():
+            val = _dump_inline_table(v)
+            val_list.append(k + " = " + val)
+        retval += "{ " + ", ".join(val_list) + " }\n"
+        return retval
+    else:
+        return str(_dump_value(section))
 
 def _dump_value(v):
     if isinstance(v, list):
