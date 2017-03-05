@@ -87,7 +87,7 @@ API Reference
 
 ``toml.dumps(o)`` **Stringifies input dict as toml**
 
-:Arguments:
+:Args:
     o: Object to dump into toml
 
 :Returns:

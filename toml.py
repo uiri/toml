@@ -649,7 +649,7 @@ def _load_array(a):
     return retval
 
 def dump(o, f):
-    """Writes out dict as toml to file
+    """Writes out dict as toml to a file
 
     Args:
         o: Object to dump into toml
@@ -671,7 +671,7 @@ def dump(o, f):
 def dumps(o):
     """Stringifies input dict as toml
 
-    Arguments:
+    Args:
         o: Object to dump into toml
 
     Returns:
