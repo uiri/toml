@@ -27,10 +27,74 @@ toml.loads --- takes a string to be parsed as toml and returns the corresponding
 
 toml.dumps --- takes a dictionary and returns a string which is the contents of the corresponding toml file.
 
-
 There are other functions which I use to dump and load various fragments of toml but dumps and loads will cover most usage.
 
-Example usage:
+API Reference
+-------------
+
+|
+
+``toml.load(f, _dict=dict)`` - **Parses named file or files as toml and returns a dictionary**
+
+:Args:
+    f: Path to the file to open, array of files to read into single dict or a file descriptor
+       
+    _dict: (optional) Specifies the class of the returned toml dictionary
+
+:Returns:
+    Parsed toml file represented as a dictionary
+
+:Raises:
+    TypeError -- When array of non-strings is passed
+    
+    TypeError -- When f is invalid type
+    
+    TomlDecodeError: Error while decoding toml
+    
+|
+
+``toml.loads(s, _dict=dict):`` - **Parses string as toml**
+
+:Args:
+    s: String to be parsed
+
+    _dict: (optional) Specifies the class of the returned toml dictionary
+
+:Returns:
+    Parsed toml file represented as a dictionary
+
+:Raises:
+    TypeError: When a non-string is passed
+    
+    TomlDecodeError: Error while decoding toml
+   
+|
+
+``toml.dump(o, f)`` **Writes out dict as toml to a file**
+
+:Args:
+    o: Object to dump into toml
+    
+    f: File descriptor where the toml should be stored
+
+:Returns:
+    String containing the toml corresponding to dictionary
+
+:Raises:
+    TypeError: When anything other than file descriptor is passed
+
+|
+
+``toml.dumps(o)`` **Stringifies input dict as toml**
+
+:Arguments:
+    o: Object to dump into toml
+
+:Returns:
+    String containing the toml corresponding to dict
+
+Example usage
+-------------
 
 .. code:: python
 
