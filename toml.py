@@ -39,7 +39,7 @@ def load(f, _dict=dict):
     Args:
         f: Path to the file to open, array of files to read into single dict
            or a file descriptor
-        _dict: Optional dictionary that will be merged with parsed toml
+        _dict: (optional) Specifies the class of the returned toml dictionary
 
     Returns:
         Parsed toml file represented as a dictionary
@@ -73,7 +73,7 @@ def loads(s, _dict=dict):
 
     Args:
         s: String to be parsed
-        _dict: Optional dictionary that will be merged with parsed toml
+        _dict: (optional) Specifies the class of the returned toml dictionary
 
     Returns:
         Parsed toml file represented as a dictionary
