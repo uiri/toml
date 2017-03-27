@@ -13,14 +13,15 @@ class TomlTz(datetime.tzinfo):
             self._raw_offset = "+00:00"
         else:
             self._raw_offset = toml_offset
-        self._hours = int(self._raw_offset[:3])
+        self._sign = -1 if self._raw_offset[0] == '-' else
+        self._hours = int(self._raw_offset[1:3])
         self._minutes = int(self._raw_offset[4:6])
 
     def tzname(self, dt):
         return "UTC"+self._raw_offset
 
     def utcoffset(self, dt):
-        return datetime.timedelta(hours=self._hours, minutes=self._minutes)
+        return self._sign * datetime.timedelta(hours=self._hours, minutes=self._minutes)
 
     def dst(self, dt):
         return datetime.timedelta(0)
