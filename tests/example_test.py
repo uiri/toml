@@ -7,6 +7,6 @@ import sys
 import json
 
 if __name__ == '__main__':
-    tdata = toml.loads(sys.stdin.read())
+    tdata = toml.loads(sys.stdin.detach().read().decode('utf-8'))
     tagged = toml_test.tag(tdata)
     print(json.dumps(tagged))
