@@ -2,6 +2,7 @@
 
 import re
 import datetime
+import io
 
 class TomlDecodeError(Exception):
     pass
@@ -36,7 +37,7 @@ except NameError:
 def load(f, _dict=dict):
     """Returns a dictionary containing the named file parsed as toml."""
     if isinstance(f, basestring):
-        with open(f) as ffile:
+        with io.open(f, encoding='utf-8') as ffile:
             return loads(ffile.read(), _dict)
     elif isinstance(f, list):
         for l in f:
@@ -60,10 +61,10 @@ def loads(s, _dict=dict):
     currentlevel = retval
     if not isinstance(s, basestring):
         raise TypeError("Expecting something like a string")
-    try:
+
+    if not isinstance(s, unicode):
         s = s.decode('utf8')
-    except AttributeError:
-        pass
+
     sl = list(s)
     openarr = 0
     openstring = False
