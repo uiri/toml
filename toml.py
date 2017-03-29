@@ -115,32 +115,32 @@ def loads(s, _dict=dict):
     beginline = True
     keygroup = False
     keyname = 0
-    for i in _range(len(sl)):
-        if sl[i] == '\r' and sl[i+1] == '\n':
+    for i, item in enumerate(sl):
+        if item == '\r' and sl[i+1] == '\n':
             sl[i] = ' '
             continue
         if keyname:
-            if sl[i] == '\n':
+            if item == '\n':
                 raise TomlDecodeError("Key name found without value. Reached end of line.")
             if openstring:
-                if sl[i] == openstrchar:
+                if item == openstrchar:
                     keyname = 2
                     openstring = False
                     openstrchar = ""
                 continue
             elif keyname == 1:
-                if sl[i].isspace():
+                if item.isspace():
                     keyname = 2
                     continue
-                elif sl[i].isalnum() or sl[i] == '_' or sl[i] == '-':
+                elif item.isalnum() or item == '_' or item == '-':
                     continue
-            elif keyname == 2 and sl[i].isspace():
+            elif keyname == 2 and item.isspace():
                 continue
-            if sl[i] == '=':
+            if item == '=':
                 keyname = 0
             else:
-                raise TomlDecodeError("Found invalid character in key name: '"+sl[i]+"'. Try quoting the key name.")
-        if sl[i] == "'" and openstrchar != '"':
+                raise TomlDecodeError("Found invalid character in key name: '"+item+"'. Try quoting the key name.")
+        if item == "'" and openstrchar != '"':
             k = 1
             try:
                 while sl[i-k] == "'":
@@ -158,7 +158,7 @@ def loads(s, _dict=dict):
                 openstrchar = "'"
             else:
                 openstrchar = ""
-        if sl[i] == '"' and openstrchar != "'":
+        if item == '"' and openstrchar != "'":
             oddbackslash = False
             k = 1
             tripquote = False
@@ -183,7 +183,7 @@ def loads(s, _dict=dict):
                 openstrchar = '"'
             else:
                 openstrchar = ""
-        if sl[i] == '#' and not openstring and not keygroup and \
+        if item == '#' and not openstring and not keygroup and \
                 not arrayoftables:
             j = i
             try:
@@ -192,7 +192,7 @@ def loads(s, _dict=dict):
                     j += 1
             except IndexError:
                 break
-        if sl[i] == '[' and not openstring and not keygroup and \
+        if item == '[' and not openstring and not keygroup and \
                 not arrayoftables:
             if beginline:
                 if sl[i+1] == '[':
@@ -201,7 +201,7 @@ def loads(s, _dict=dict):
                     keygroup = True
             else:
                 openarr += 1
-        if sl[i] == ']' and not openstring:
+        if item == ']' and not openstring:
             if keygroup:
                 keygroup = False
             elif arrayoftables:
@@ -209,7 +209,7 @@ def loads(s, _dict=dict):
                     arrayoftables = False
             else:
                 openarr -= 1
-        if sl[i] == '\n':
+        if item == '\n':
             if openstring or multilinestr:
                 if not multilinestr:
                     raise TomlDecodeError("Unbalanced quotes")
