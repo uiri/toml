@@ -781,37 +781,43 @@ def _dump_inline_table(section):
         return str(_dump_value(section))
 
 def _dump_value(v):
-    if isinstance(v, list):
-        t = []
-        retval = "["
-        for u in v:
-            t.append(_dump_value(u))
-        while t != []:
-            s = []
-            for u in t:
-                if isinstance(u, list):
-                    for r in u:
-                        s.append(r)
-                else:
-                    retval += " " + str(u) + ","
-            t = s
-        retval += "]"
-        return retval
-    if isinstance(v, (str, unicode)):
-        v = "%r" % v
-        if v[0] == 'u':
-            v = v[1:]
-        singlequote = v[0] == "'"
-        v = v[1:-1]
-        if singlequote:
-            v = v.replace("\\'", "'")
-            v = v.replace('"', '\\"')
-        v = v.replace("\\x", "\\u00")
-        return str('"'+v+'"')
-    if isinstance(v, bool):
-        return str(v).lower()
-    if isinstance(v, datetime.datetime):
-        return v.isoformat()[:19]+'Z'
-    if isinstance(v, float):
-        return str(v)
-    return v
+    dump_value = {
+        str: _dump_str(v),
+        unicode: _dump_str(v),
+        list: _dump_list(v),
+        bool: lambda: str(v).lower(),
+        float: lambda: str(v),
+        datetime.datetime: lambda: v.isoformat()[:19]+'Z',
+    }
+    return dump_value.get(type(v), v)
+
+
+def _dump_str(v):
+    v = "%r" % v
+    if v[0] == 'u':
+        v = v[1:]
+    singlequote = v.startswith("'")
+    v = v[1:-1]
+    if singlequote:
+        v = v.replace("\\'", "'")
+        v = v.replace('"', '\\"')
+    v = v.replace("\\x", "\\u00")
+    return str('"'+v+'"')
+
+
+def _dump_list(v):
+    t = []
+    retval = "["
+    for u in v:
+        t.append(_dump_value(u))
+    while t != []:
+        s = []
+        for u in t:
+            if isinstance(u, list):
+                for r in u:
+                    s.append(r)
+            else:
+                retval += " " + str(u) + ","
+        t = s
+    retval += "]"
+    return retval
