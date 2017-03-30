@@ -13,7 +13,7 @@ class TomlTz(datetime.tzinfo):
             self._raw_offset = "+00:00"
         else:
             self._raw_offset = toml_offset
-        self._sign = -1 if self._raw_offset[0] == '-' else
+        self._sign = -1 if self._raw_offset[0] == '-' else 1
         self._hours = int(self._raw_offset[1:3])
         self._minutes = int(self._raw_offset[4:6])
 
