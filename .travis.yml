@@ -1,8 +1,16 @@
 language: python
 python:
-  - "2.7"
-  - "3.5"
+ - "2.7"
+ - "3.6"
+addons:
+  apt:
+    packages:
+    - golang
+before_install:
+ - export GOPATH=~/go
+ - go get github.com/uiri/toml-test
 install:
  - python setup.py install
+ - chmod +x ./tests/*.sh
 script:
- - python toml_test.py < examples/example-v0.4.0.toml
+ - ~/go/bin/toml-test ./tests/decoding_test.sh

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+"""Decodes toml and outputs it as tagged JSON""" 
 
 import datetime
 import json

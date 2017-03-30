@@ -26,6 +26,10 @@ class TomlTz(datetime.tzinfo):
     def dst(self, dt):
         return datetime.timedelta(0)
 
+class InlineTableDict(dict):
+    def __init__(self, *args):
+        dict.__init__(self, args)
+
 try:
     _range = xrange
 except NameError:
@@ -35,7 +39,22 @@ except NameError:
     unichr = chr
 
 def load(f, _dict=dict):
-    """Returns a dictionary containing the named file parsed as toml."""
+    """Parses named file or files as toml and returns a dictionary
+
+    Args:
+        f: Path to the file to open, array of files to read into single dict
+           or a file descriptor
+        _dict: (optional) Specifies the class of the returned toml dictionary
+
+    Returns:
+        Parsed toml file represented as a dictionary
+
+    Raises:
+        TypeError -- When array of non-strings is passed
+        TypeError -- When f is invalid type
+        TomlDecodeError: Error while decoding toml
+    """
+
     if isinstance(f, basestring):
         with open(f) as ffile:
             return loads(ffile.read(), _dict)
@@ -55,7 +74,20 @@ def load(f, _dict=dict):
 _groupname_re = re.compile(r'^[A-Za-z0-9_-]+$')
 
 def loads(s, _dict=dict):
-    """Returns a dictionary containing s, a string, parsed as toml."""
+    """Parses string as toml
+
+    Args:
+        s: String to be parsed
+        _dict: (optional) Specifies the class of the returned toml dictionary
+
+    Returns:
+        Parsed toml file represented as a dictionary
+
+    Raises:
+        TypeError: When a non-string is passed
+        TomlDecodeError: Error while decoding toml
+    """
+
     implicitgroups = []
     retval = _dict()
     currentlevel = retval
@@ -521,7 +553,7 @@ def _load_value(v, strictly_valid=True):
     elif v[0] == '[':
         return (_load_array(v), "array")
     elif v[0] == '{':
-        inline_object = {}
+        inline_object = InlineTableDict()
         _load_inline_object(v, inline_object)
         return (inline_object, "inline_object")
     else:
@@ -622,22 +654,45 @@ def _load_array(a):
     return retval
 
 def dump(o, f):
-    """Writes out to f the toml corresponding to o. Returns said toml."""
+    """Writes out dict as toml to a file
+
+    Args:
+        o: Object to dump into toml
+        f: File descriptor where the toml should be stored
+
+    Returns:
+        String containing the toml corresponding to dictionary
+
+    Raises:
+        TypeError: When anything other than file descriptor is passed
+    """
+
     if not f.write:
         raise TypeError("You can only dump an object to a file descriptor")
     d = dumps(o)
     f.write(d)
     return d
 
-def dumps(o):
-    """Returns a string containing the toml corresponding to o, a dictionary"""
+def dumps(o, preserve=False):
+    """Stringifies input dict as toml
+
+    Args:
+        o: Object to dump into toml
+
+        preserve: Boolean parameter. If true, preserve inline tables.
+
+    Returns:
+        String containing the toml corresponding to dict
+    """
+
     retval = ""
     addtoretval, sections = _dump_sections(o, "")
     retval += addtoretval
     while sections != {}:
         newsections = {}
         for section in sections:
-            addtoretval, addtosections = _dump_sections(sections[section], section)
+            addtoretval, addtosections = _dump_sections(sections[section],
+                                                        section, preserve)
             if addtoretval:
                 if retval and retval[-2:] != "\n\n":
                     retval += "\n"
@@ -648,7 +703,7 @@ def dumps(o):
         sections = newsections
     return retval
 
-def _dump_sections(o, sup):
+def _dump_sections(o, sup, preserve=False):
     retstr = ""
     if sup != "" and sup[-1] != ".":
         sup += '.'
@@ -692,10 +747,29 @@ def _dump_sections(o, sup):
                 if o[section] is not None:
                     retstr += (qsection + " = " +
                                str(_dump_value(o[section])) + '\n')
+        elif preserve and isinstance(o[section], InlineTableDict):
+            retstr += (section + " = " + _dump_inline_table(o[section]))
         else:
             retdict[qsection] = o[section]
     retstr += arraystr
     return (retstr, retdict)
+
+def _dump_inline_table(section):
+    """Preserve inline table in its compact syntax instead of expanding
+    into subsection.
+
+    https://github.com/toml-lang/toml#user-content-inline-table
+    """
+    retval = ""
+    if isinstance(section, dict):
+        val_list = []
+        for k, v in section.items():
+            val = _dump_inline_table(v)
+            val_list.append(k + " = " + val)
+        retval += "{ " + ", ".join(val_list) + " }\n"
+        return retval
+    else:
+        return str(_dump_value(section))
 
 def _dump_value(v):
     if isinstance(v, list):
