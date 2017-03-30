@@ -9,9 +9,13 @@ Python module which parses and emits TOML.
 
 Released under the MIT license.
 
-Passes https://github.com/avakar/toml-test (fork of https://github.com/BurntSushi/toml-test )
+.. image:: https://badge.fury.io/py/toml.svg
+    :target: https://badge.fury.io/py/toml
 
-See http://j.xqz.ca/toml-status for up to date test results.
+.. image:: https://travis-ci.org/uiri/toml.svg?branch=master
+    :target: https://travis-ci.org/uiri/toml
+
+Passes https://github.com/uiri/toml-test (fork of https://github.com/BurntSushi/toml-test )
 
 Current Version of the Specification
 ------------------------------------
