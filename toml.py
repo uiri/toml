@@ -27,8 +27,17 @@ class TomlTz(datetime.tzinfo):
     def dst(self, dt):
         return datetime.timedelta(0)
 
-class InlineTableDict(dict):
+class InlineTableDict(object):
     """Sentinel subclass of dict for inline tables."""
+
+def _get_empty_inline_table(_dict):
+    class DynamicInlineTableDict(_dict, InlineTableDict):
+        """Concrete sentinel subclass for inline tables.
+        It is a subclass of _dict which is passed in dynamically at load time
+        It is also a subclass of InlineTableDict
+        """
+
+    return DynamicInlineTableDict()
 
 try:
     _range = xrange
@@ -234,7 +243,7 @@ def loads(s, _dict=dict):
             multibackslash = False
             if len(line) > 2 and line[-1] == multilinestr[0] and \
                     line[-2] == multilinestr[0] and line[-3] == multilinestr[0]:
-                value, vtype = _load_value(multilinestr)
+                value, vtype = _load_value(multilinestr, _dict)
                 currentlevel[multikey] = value
                 multikey = None
                 multilinestr = ""
@@ -314,14 +323,14 @@ def loads(s, _dict=dict):
         elif line[0] == "{":
             if line[-1] != "}":
                 raise TomlDecodeError("Line breaks are not allowed in inline objects")
-            _load_inline_object(line, currentlevel, multikey, multibackslash)
+            _load_inline_object(line, currentlevel, _dict, multikey, multibackslash)
         elif "=" in line:
-            ret = _load_line(line, currentlevel, multikey, multibackslash)
+            ret = _load_line(line, currentlevel, _dict, multikey, multibackslash)
             if ret is not None:
                 multikey, multilinestr, multibackslash = ret
     return retval
 
-def _load_inline_object(line, currentlevel, multikey=False, multibackslash=False):
+def _load_inline_object(line, currentlevel, _dict, multikey=False, multibackslash=False):
     candidate_groups = line[1:-1].split(",")
     groups = []
     while len(candidate_groups) > 0:
@@ -336,7 +345,7 @@ def _load_inline_object(line, currentlevel, multikey=False, multibackslash=False
         else:
             candidate_groups[0] = candidate_group + "," + candidate_groups[0]
     for group in groups:
-        status = _load_line(group, currentlevel, multikey, multibackslash)
+        status = _load_line(group, currentlevel, _dict, multikey, multibackslash)
         if status is not None:
             break
 
@@ -363,7 +372,7 @@ def _strictly_valid_num(n):
         return False
     return True
 
-def _load_line(line, currentlevel, multikey, multibackslash):
+def _load_line(line, currentlevel, _dict, multikey, multibackslash):
     i = 1
     pair = line.split('=', i)
     strictly_valid = _strictly_valid_num(pair[-1])
@@ -406,7 +415,7 @@ def _load_line(line, currentlevel, multikey, multibackslash):
             multilinestr = pair[1] + "\n"
         multikey = pair[0]
     else:
-        value, vtype = _load_value(pair[1], strictly_valid)
+        value, vtype = _load_value(pair[1], _dict, strictly_valid)
     try:
         currentlevel[pair[0]]
         raise TomlDecodeError("Duplicate keys!")
@@ -498,7 +507,7 @@ def _unescape(v):
         i += 1
     return v
 
-def _load_value(v, strictly_valid=True):
+def _load_value(v, _dict, strictly_valid=True):
     if v == 'true':
         return (True, "bool")
     elif v == 'false':
@@ -551,10 +560,10 @@ def _load_value(v, strictly_valid=True):
             v = v[2:-2]
         return (v[1:-1], "str")
     elif v[0] == '[':
-        return (_load_array(v), "array")
+        return (_load_array(v, _dict), "array")
     elif v[0] == '{':
-        inline_object = InlineTableDict()
-        _load_inline_object(v, inline_object)
+        inline_object = _get_empty_inline_table(_dict)
+        _load_inline_object(v, inline_object, _dict)
         return (inline_object, "inline_object")
     else:
         parsed_date = _load_date(v)
@@ -584,7 +593,7 @@ def _load_value(v, strictly_valid=True):
             return (0 - v, itype)
         return (v, itype)
 
-def _load_array(a):
+def _load_array(a, _dict):
     atype = None
     retval = []
     a = a.strip()
@@ -644,7 +653,7 @@ def _load_array(a):
     for i in _range(len(a)):
         a[i] = a[i].strip()
         if a[i] != '':
-            nval, ntype = _load_value(a[i])
+            nval, ntype = _load_value(a[i], _dict)
             if atype:
                 if ntype != atype:
                     raise TomlDecodeError("Not a homogeneous array")
