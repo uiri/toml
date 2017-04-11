@@ -28,8 +28,7 @@ class TomlTz(datetime.tzinfo):
         return datetime.timedelta(0)
 
 class InlineTableDict(dict):
-    def __init__(self, *args):
-        dict.__init__(self, args)
+    """Sentinel subclass of dict for inline tables."""
 
 try:
     _range = xrange
