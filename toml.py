@@ -3,6 +3,7 @@
 import re
 import datetime
 import io
+from collections import OrderedDict
 
 class TomlDecodeError(Exception):
     pass
@@ -27,9 +28,8 @@ class TomlTz(datetime.tzinfo):
     def dst(self, dt):
         return datetime.timedelta(0)
 
-class InlineTableDict(dict):
-    def __init__(self, *args):
-        dict.__init__(self, args)
+class InlineTableDict(OrderedDict):
+    """Sentinel subclass of dict for inline tables."""
 
 try:
     _range = xrange
