@@ -781,15 +781,20 @@ def _dump_inline_table(section):
         return str(_dump_value(section))
 
 def _dump_value(v):
-    dump_value = {
-        str: _dump_str(v),
-        unicode: _dump_str(v),
-        list: _dump_list(v),
+    dump_funcs = {
+        str: lambda: _dump_str(v),
+        unicode: lambda: _dump_str(v),
+        list: lambda: _dump_list(v),
         bool: lambda: str(v).lower(),
         float: lambda: str(v),
         datetime.datetime: lambda: v.isoformat()[:19]+'Z',
     }
-    return dump_value.get(type(v), v)
+    # Lookup function corresponding to v's type
+    dump_fn = dump_funcs.get(type(v))
+    # Evaluate function (if it exists) else return v
+    return dump_fn() if dump_fn is not None else v
+
+
 
 
 def _dump_str(v):
