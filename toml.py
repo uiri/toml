@@ -233,7 +233,7 @@ def loads(s, _dict=dict):
     multibackslash = False
     for line in s:
         line = line.strip()
-        if line == "":
+        if line == "" or line == "#":
             continue
         if multikey:
             if multibackslash:
