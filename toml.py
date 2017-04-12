@@ -232,9 +232,9 @@ def loads(s, _dict=dict):
     multilinestr = ""
     multibackslash = False
     for line in s:
-        if not multilinestr:
+        if not multilinestr or multibackslash or '\n' not in multilinestr:
             line = line.strip()
-        if line == "":
+        if line == "" and (not multikey or multibackslash):
             continue
         if multikey:
             if multibackslash:
