@@ -786,16 +786,13 @@ def _dump_value(v):
         unicode: lambda: _dump_str(v),
         list: lambda: _dump_list(v),
         bool: lambda: str(v).lower(),
-        float: lambda: str(v),
+        float: lambda: _dump_float(v),
         datetime.datetime: lambda: v.isoformat()[:19]+'Z',
     }
     # Lookup function corresponding to v's type
     dump_fn = dump_funcs.get(type(v))
     # Evaluate function (if it exists) else return v
     return dump_fn() if dump_fn is not None else v
-
-
-
 
 def _dump_str(v):
     v = "%r" % v
@@ -808,7 +805,6 @@ def _dump_str(v):
         v = v.replace('"', '\\"')
     v = v.replace("\\x", "\\u00")
     return str('"'+v+'"')
-
 
 def _dump_list(v):
     t = []
@@ -826,3 +822,6 @@ def _dump_list(v):
         t = s
     retval += "]"
     return retval
+
+def _dump_float(v):
+    return "{0:.16g}".format(v).replace("e+0", "e+").replace("e-0", "e-")
