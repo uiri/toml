@@ -704,11 +704,12 @@ def dumps(o, preserve=False):
         for section in sections:
             addtoretval, addtosections = _dump_sections(sections[section],
                                                         section, preserve)
-            if retval and retval[-2:] != "\n\n":
-                retval += "\n"
-            retval += "["+section+"]\n"
-            if addtoretval:
-                retval += addtoretval
+            if addtoretval or (not addtoretval and not addtosections):
+                if retval and retval[-2:] != "\n\n":
+                    retval += "\n"
+                retval += "["+section+"]\n"
+                if addtoretval:
+                    retval += addtoretval
             for s in addtosections:
                 newsections[section+"."+s] = addtosections[s]
         sections = newsections
