@@ -382,8 +382,8 @@ def _load_line(line, currentlevel, _dict, multikey, multibackslash):
         pair[-1] = pair[-1].replace('_', '')
     while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
             pair[-1][0] != "'" and pair[-1][0] != '"' and \
-            pair[-1][0] != '[' and pair[-1] != 'true' and \
-            pair[-1] != 'false':
+            pair[-1][0] != '[' and pair[-1][0] != '{' and \
+            pair[-1] != 'true' and pair[-1] != 'false':
         try:
             float(pair[-1])
             break
