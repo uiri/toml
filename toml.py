@@ -602,7 +602,7 @@ def _load_array(a, _dict):
     if '[' not in a[1:-1]:
         strarray = False
         tmpa = a[1:-1].strip()
-        if tmpa != '' and tmpa[0] == '"':
+        if tmpa != '' and (tmpa[0] == '"' or tmpa[0] == "'"):
             strarray = True
         if not a[1:-1].strip().startswith('{'):
             a = a[1:-1].split(',')
@@ -631,8 +631,11 @@ def _load_array(a, _dict):
         b = 0
         if strarray:
             while b < len(a) - 1:
-                while a[b].strip()[-1] != '"' and a[b+1].strip()[0] != '"':
+                ab = a[b].strip()
+                while ab[-1] != ab[0] or (ab[0] == ab[1] == ab[2] and
+                                          ab[-2] != ab[0] and ab[-3] != ab[0]):
                     a[b] = a[b] + ',' + a[b+1]
+                    ab = a[b].strip()
                     if b < len(a) - 2:
                         a = a[:b+1] + a[b+2:]
                     else:
