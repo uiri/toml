@@ -356,6 +356,8 @@ _number_with_underscores = re.compile('([0-9])(_([0-9]))*')
 
 def _strictly_valid_num(n):
     n = n.strip()
+    if not n:
+        return False
     if n[0] == '_':
         return False
     if n[-1] == '_':
@@ -380,7 +382,7 @@ def _load_line(line, currentlevel, _dict, multikey, multibackslash):
     strictly_valid = _strictly_valid_num(pair[-1])
     if _number_with_underscores.match(pair[-1]):
         pair[-1] = pair[-1].replace('_', '')
-    while pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
+    while len(pair[-1]) and pair[-1][0] != ' ' and pair[-1][0] != '\t' and \
             pair[-1][0] != "'" and pair[-1][0] != '"' and \
             pair[-1][0] != '[' and pair[-1][0] != '{' and \
             pair[-1] != 'true' and pair[-1] != 'false':
@@ -510,6 +512,8 @@ def _unescape(v):
     return v
 
 def _load_value(v, _dict, strictly_valid=True):
+    if not v:
+        raise TomlDecodeError("Empty value is invalid")
     if v == 'true':
         return (True, "bool")
     elif v == 'false':
