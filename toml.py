@@ -4,6 +4,8 @@ import re
 import datetime
 import io
 
+__version__ = "0.9.2"
+
 class TomlDecodeError(Exception):
     pass
 
