@@ -68,9 +68,17 @@ def load(f, _dict=dict):
         with io.open(f, encoding='utf-8') as ffile:
             return loads(ffile.read(), _dict)
     elif isinstance(f, list):
-        for l in f:
-            if not isinstance(l, basestring):
-                raise TypeError("Load expects a list to contain filenames only")
+        from os import path as op
+        # Should we remove erroneous entries?
+        #   Say, permit non-existing files?
+        # Then comment in below line:
+        # f = [path for path in f if op.exist(path)]
+        if not any(op.exist(l) for l in f):
+            from os import linesep
+            error_msg = "Load expects a list to contain filenames only."
+            error_msg += linesep
+            error_msg += "The list needs to contain the path of at least one existing file."
+            raise TypeError(error_msg)
         d = _dict()
         for l in f:
             d.update(load(l))
