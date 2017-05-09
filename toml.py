@@ -5,6 +5,7 @@ import datetime
 import io
 
 __version__ = "0.9.2"
+__spec__ = "0.4.0"
 
 class TomlDecodeError(Exception):
     pass
