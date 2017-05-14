@@ -4,6 +4,9 @@ import re
 import datetime
 import io
 
+__version__ = "0.9.2"
+__spec__ = "0.4.0"
+
 class TomlDecodeError(Exception):
     pass
 
@@ -343,9 +346,14 @@ def loads(s, _dict=dict):
 def _load_inline_object(line, currentlevel, _dict, multikey=False, multibackslash=False):
     candidate_groups = line[1:-1].split(",")
     groups = []
+    if len(candidate_groups) == 1 and not candidate_groups[0].strip():
+        candidate_groups.pop()
     while len(candidate_groups) > 0:
         candidate_group = candidate_groups.pop(0)
-        _, value = candidate_group.split('=', 1)
+        try:
+            _, value = candidate_group.split('=', 1)
+        except ValueError:
+            raise TomlDecodeError("Invalid inline table encountered")
         value = value.strip()
         if (value[0] == value[-1] and value[0] in ('"', "'")) or \
                 value[0] in '-0123456789' or \
