@@ -3,8 +3,9 @@
 Released under the MIT license.
 """
 import re
-import datetime
 import io
+import datetime
+from os import linesep
 
 __version__ = "0.9.2"
 __spec__ = "0.4.0"
@@ -119,6 +120,15 @@ def loads(s, _dict=dict):
     if not isinstance(s, unicode):
         s = s.decode('utf8')
 
+    if '\r\n' in s:
+        # If input string has windows-style eol's.
+        #   convert to unix-style eol's:
+        s = s.replace("\r\n", '\n')
+    if linesep == '\r\n':
+        # If we're on windows,
+        #   convert back to windows-style eol's:
+        s = s.replace("\n", linesep)
+
     sl = list(s)
     openarr = 0
     openstring = False
@@ -129,11 +139,8 @@ def loads(s, _dict=dict):
     keygroup = False
     keyname = 0
     for i, item in enumerate(sl):
-        if item == '\r' and sl[i + 1] == '\n':
-            sl[i] = ' '
-            continue
         if keyname:
-            if item == '\n':
+            if item == linesep:
                 raise TomlDecodeError("Key name found without value. Reached end of line.")
             if openstring:
                 if item == openstrchar:
@@ -200,7 +207,7 @@ def loads(s, _dict=dict):
                 not arrayoftables:
             j = i
             try:
-                while sl[j] != '\n':
+                while sl[j] != linesep:
                     sl[j] = ' '
                     j += 1
             except IndexError:
@@ -222,7 +229,7 @@ def loads(s, _dict=dict):
                     arrayoftables = False
             else:
                 openarr -= 1
-        if item == '\n':
+        if item == linesep:
             if openstring or multilinestr:
                 if not multilinestr:
                     raise TomlDecodeError("Unbalanced quotes")
@@ -241,12 +248,12 @@ def loads(s, _dict=dict):
                     raise TomlDecodeError("Found empty keyname. ")
                 keyname = 1
     s = ''.join(sl)
-    s = s.split('\n')
+    s = s.split(linesep)
     multikey = None
     multilinestr = ""
     multibackslash = False
     for line in s:
-        if not multilinestr or multibackslash or '\n' not in multilinestr:
+        if not multilinestr or multibackslash or linesep not in multilinestr:
             line = line.strip()
         if line == "" and (not multikey or multibackslash):
             continue
@@ -270,7 +277,7 @@ def loads(s, _dict=dict):
                 if multibackslash:
                     multilinestr = multilinestr[:-1]
                 else:
-                    multilinestr += "\n"
+                    multilinestr += linesep
             continue
         if line[0] == '[':
             arrayoftables = False
@@ -438,7 +445,7 @@ def _load_line(line, currentlevel, _dict, multikey, multibackslash):
         if multibackslash:
             multilinestr = pair[1][:-1]
         else:
-            multilinestr = pair[1] + "\n"
+            multilinestr = pair[1] + linesep
         multikey = pair[0]
     else:
         value, vtype = _load_value(pair[1], _dict, strictly_valid)
