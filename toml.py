@@ -1,8 +1,10 @@
 # This software is released under the MIT license
 
 import re
-import datetime
 import io
+import datetime
+from os import linesep
+
 
 __version__ = "0.9.2"
 __spec__ = "0.4.0"
@@ -62,7 +64,7 @@ def load(f, _dict=dict):
         Parsed toml file represented as a dictionary
 
     Raises:
-        TypeError -- When array of non-strings is passed
+        FileNotFoundError -- When array with no existing file path(s) is passed
         TypeError -- When f is invalid type
         TomlDecodeError: Error while decoding toml
     """
@@ -72,16 +74,12 @@ def load(f, _dict=dict):
             return loads(ffile.read(), _dict)
     elif isinstance(f, list):
         from os import path as op
-        # Should we remove erroneous entries?
-        #   Say, permit non-existing files?
-        # Then comment in below line:
-        # f = [path for path in f if op.exist(path)]
-        if not any(op.exist(l) for l in f):
-            from os import linesep
+        f = [path for path in f if op.exists(path)]
+        if not f:
             error_msg = "Load expects a list to contain filenames only."
             error_msg += linesep
             error_msg += "The list needs to contain the path of at least one existing file."
-            raise TypeError(error_msg)
+            raise FileNotFoundError(error_msg)
         d = _dict()
         for l in f:
             d.update(load(l))
