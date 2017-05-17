@@ -16,3 +16,4 @@ There's also two Python test-files in the `./tests` directory
 * and `decoding_test.py`.
 
 Both of which require the `toml` library to be importable (aka `import toml` to work).
+Both also require Python 3 (due to using `print()`).
