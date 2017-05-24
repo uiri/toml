@@ -4,36 +4,14 @@ exclude =
     .git,
     # Do not track virtualenv dir
     venv,
+    # Ignore folders in gitignore
+    dist,
+    build,
     # Do not track pycache dirs
     __pycache__,
 
-# A nested complexity of more than 5 is a sign that we should perhaps
-#  flatten out the code's cyclomatic complexity...
-max-complexity = 5
-
-# All modern monitors should at least handle 120 chars in a row without wrapping
-max-line-length = 120
-
-# Default errors ++: http://pep8.readthedocs.io/en/release-1.7.x/intro.html
-#   (Contains E/W error codes, at least some)
-#  DXYZ error codes listed here: http://pep257.readthedocs.io/en/latest/error_codes.html
-ignore =
-    D204,   # Not Default
-    E121,
-    E126,
-    E133,
-    E226,
-    W503,
-
-# Which errors to enable (display)
-#select-errors =
-    E,
-    F,
-    W,
-    C
-
-# Ignore '#noqa' pragmas
-disable-noqa = True
+max-line-length = 80
+ignore = 
 
 # Output config:
 show-source = True
