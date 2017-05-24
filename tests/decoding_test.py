@@ -1,4 +1,4 @@
-"""Decodes toml and outputs it as tagged JSON""" 
+"""Decodes toml and outputs it as tagged JSON"""
 
 import datetime
 import json
@@ -6,7 +6,7 @@ import sys
 import toml
 
 if sys.version_info < (3,):
-    _range = xrange
+    _range = xrange  # noqa: F821
     iteritems = dict.iteritems
 else:
     unicode = str
@@ -16,9 +16,10 @@ else:
     iteritems = dict.items
     long = int
 
+
 def tag(value):
     if isinstance(value, dict):
-        d = { }
+        d = {}
         for k, v in iteritems(value):
             d[k] = tag(v)
         return d
@@ -53,4 +54,3 @@ if __name__ == '__main__':
     tdata = toml.loads(sys.stdin.read())
     tagged = tag(tdata)
     print(json.dumps(tagged))
-

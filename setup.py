@@ -12,4 +12,4 @@ setup(name='toml',
       py_modules=['toml'],
       license="License :: OSI Approved :: MIT License",
       long_description=readme,
-)
+      )
