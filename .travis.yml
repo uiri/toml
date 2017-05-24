@@ -16,8 +16,10 @@ addons:
 before_install:
  - export GOPATH=~/go
  - go get github.com/uiri/toml-test
+ - pip install flake8
 install:
  - python setup.py install
  - chmod +x ./tests/*.sh
 script:
  - ~/go/bin/toml-test ./tests/decoding_test.sh
+ - python -m flake8
