@@ -64,9 +64,10 @@ def load(f, _dict=dict):
         Parsed toml file represented as a dictionary
 
     Raises:
-        FileNotFoundError -- When array with no existing file path(s) is passed
         TypeError -- When f is invalid type
         TomlDecodeError: Error while decoding toml
+        IOError -- When array with zero valid (existing) file paths is passed (Python 2)
+        FileNotFoundError -- When array with zero valid (existing) file paths is passed (Python 3)
     """
 
     if isinstance(f, basestring):
@@ -79,7 +80,11 @@ def load(f, _dict=dict):
             error_msg = "Load expects a list to contain filenames only."
             error_msg += linesep
             error_msg += "The list needs to contain the path of at least one existing file."
-            raise FileNotFoundError(error_msg)
+            try:
+                raise FileNotFoundError(error_msg)
+            except NameError:
+                # Program executed with Python 2, not Python 3:
+                raise IOError(error_msg)
         d = _dict()
         for l in f:
             d.update(load(l))
