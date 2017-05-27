@@ -49,7 +49,7 @@ try:
 except NameError:
     unicode = str
     _range = range
-    basestring = str
+    basestring = (str, bytes)
     unichr = chr
 
 def load(f, _dict=dict):
