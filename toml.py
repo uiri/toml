@@ -7,7 +7,6 @@ import io
 import datetime
 from os import linesep
 
-
 __version__ = "0.9.2"
 __spec__ = "0.4.0"
 
@@ -60,6 +59,11 @@ except NameError:
     basestring = str
     unichr = chr
 
+try:
+    FNFError = FileNotFoundError
+except NameError:
+    FNFError = IOError
+
 
 def load(f, _dict=dict):
     """Parses named file or files as toml and returns a dictionary
@@ -75,10 +79,8 @@ def load(f, _dict=dict):
     Raises:
         TypeError -- When f is invalid type
         TomlDecodeError: Error while decoding toml
-        IOError -- When array with zero valid (existing) file paths is
-                   passed (Python 2)
-        FileNotFoundError -- When array with zero valid (existing) file paths
-                             is passed (Python 3)
+        IOError / FileNotFoundError -- When an array with no valid (existing)
+        (Python 2 / Python 3)          file paths is passed
     """
 
     if isinstance(f, basestring):
@@ -92,19 +94,17 @@ def load(f, _dict=dict):
             error_msg += linesep
             error_msg += ("The list needs to contain the path of at least one "
                           "existing file.")
-            try:
-                raise FileNotFoundError(error_msg)
-            except NameError:
-                # Program executed with Python 2, not Python 3:
-                raise IOError(error_msg)
+            raise FNFError(error_msg)
         d = _dict()
         for l in f:
             d.update(load(l))
         return d
-    elif f.read:
-        return loads(f.read(), _dict)
     else:
-        raise TypeError("You can only load a file descriptor, filename or list")
+        try:
+            return loads(f.read(), _dict)
+        except AttributeError:
+            raise TypeError("You can only load a file descriptor, filename or "
+                            "list")
 
 
 _groupname_re = re.compile(r'^[A-Za-z0-9_-]+$')

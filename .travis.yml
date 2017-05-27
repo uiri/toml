@@ -22,4 +22,5 @@ install:
  - chmod +x ./tests/*.sh
 script:
  - ~/go/bin/toml-test ./tests/decoding_test.sh
+ - python ./tests/api_test.py
  - ./tests/flake8.sh
