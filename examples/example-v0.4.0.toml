@@ -176,6 +176,15 @@ key3 = 1979-05-27T00:32:00.999999-07:00
 
 
 ################################################################################
+## Time
+
+# Time is only the time portion of an RFC 3339 date.
+
+lt1 = 07:32:00
+lt2 = 00:32:00.999999
+
+
+################################################################################
 ## Array
 
 # Arrays are square brackets with other primitives inside. Whitespace is

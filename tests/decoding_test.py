@@ -1,4 +1,4 @@
-"""Decodes toml and outputs it as tagged JSON""" 
+"""Decodes toml and outputs it as tagged JSON"""
 
 import datetime
 import json
@@ -46,6 +46,8 @@ def tag(value):
     elif isinstance(value, datetime.datetime):
         sdate = value.strftime('%Y-%m-%dT%H:%M:%SZ')
         return {'type': 'datetime', 'value': sdate}
+    elif isinstance(value, datetime.time):
+        return {'type': 'time', 'value': value.strftime('%H:%M:%S.%f')}
     assert False, 'Unknown type: %s' % type(value)
 
 

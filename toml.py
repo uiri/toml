@@ -9,6 +9,8 @@ from os import linesep
 __version__ = "0.9.2"
 __spec__ = "0.4.0"
 
+TIME_RE = re.compile("(\d{2}):(\d{2}):(\d{2})(\.(\d{3,6}))?", re.ASCII)
+
 class TomlDecodeError(Exception):
     pass
 
@@ -590,6 +592,10 @@ def _load_value(v, _dict, strictly_valid=True):
         inline_object = _get_empty_inline_table(_dict)
         _load_inline_object(v, inline_object, _dict)
         return (inline_object, "inline_object")
+    elif TIME_RE.match(v):
+        h, m, s, _, ms = TIME_RE.match(v).groups()
+        time = datetime.time(int(h), int(m), int(s), int(ms) if ms else 0)
+        return (time, "time")
     else:
         parsed_date = _load_date(v)
         if parsed_date is not None:
@@ -817,6 +823,7 @@ def _dump_value(v):
         bool: lambda: str(v).lower(),
         float: lambda: _dump_float(v),
         datetime.datetime: lambda: v.isoformat()[:19]+'Z',
+        datetime.time: lambda: _dump_time(v),
     }
     # Lookup function corresponding to v's type
     dump_fn = dump_funcs.get(type(v))
@@ -854,3 +861,10 @@ def _dump_list(v):
 
 def _dump_float(v):
     return "{0:.16g}".format(v).replace("e+0", "e+").replace("e-0", "e-")
+
+def _dump_time(v):
+    utcoffset = v.utcoffset()
+    if utcoffset is None:
+        return v.isoformat()
+    # The TOML norm specifies that it's local time thus we drop the offset
+    return v.isoformat()[:-6]
