@@ -9,7 +9,7 @@ from os import linesep
 __version__ = "0.9.2"
 __spec__ = "0.4.0"
 
-TIME_RE = re.compile("(\d{2}):(\d{2}):(\d{2})(\.(\d{3,6}))?", re.ASCII)
+TIME_RE = re.compile("([0-9]{2}):([0-9]{2}):([0-9]{2})(\.([0-9]{3,6}))?")
 
 class TomlDecodeError(Exception):
     pass
