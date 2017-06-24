@@ -670,7 +670,7 @@ def _load_array(a, _dict):
     atype = None
     retval = []
     a = a.strip()
-    if '[' not in a[1:-1]:
+    if '[' not in a[1:-1] or "" != a[1:-1].split('[')[0].strip():
         strarray = False
         tmpa = a[1:-1].strip()
         if tmpa != '' and (tmpa[0] == '"' or tmpa[0] == "'"):
