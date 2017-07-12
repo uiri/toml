@@ -794,8 +794,9 @@ def dumps(o, preserve=False, _dict=dict):
                     retval += addtoretval
             for s in addtosections:
                 newsections[section + "." + s] = addtosections[s]
+            retval += '\n'
         sections = newsections
-    return retval
+    return retval[:-1]
 
 
 def _dump_sections(o, sup, preserve=False, _dict=dict):
