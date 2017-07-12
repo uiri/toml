@@ -744,7 +744,7 @@ def _load_array(a, _dict):
     return retval
 
 
-def dump(o, f):
+def dump(o, f, _dict=dict):
     """Writes out dict as toml to a file
 
     Args:
@@ -760,12 +760,12 @@ def dump(o, f):
 
     if not f.write:
         raise TypeError("You can only dump an object to a file descriptor")
-    d = dumps(o)
+    d = dumps(o, _dict)
     f.write(d)
     return d
 
 
-def dumps(o, preserve=False):
+def dumps(o, preserve=False, _dict=dict):
     """Stringifies input dict as toml
 
     Args:
@@ -784,7 +784,8 @@ def dumps(o, preserve=False):
         newsections = {}
         for section in sections:
             addtoretval, addtosections = _dump_sections(sections[section],
-                                                        section, preserve)
+                                                        section, preserve,
+                                                        _dict)
             if addtoretval or (not addtoretval and not addtosections):
                 if retval and retval[-2:] != "\n\n":
                     retval += "\n"
@@ -797,11 +798,11 @@ def dumps(o, preserve=False):
     return retval
 
 
-def _dump_sections(o, sup, preserve=False):
+def _dump_sections(o, sup, preserve=False, _dict=dict):
     retstr = ""
     if sup != "" and sup[-1] != ".":
         sup += '.'
-    retdict = {}
+    retdict = _dict()
     arraystr = ""
     for section in o:
         qsection = section
