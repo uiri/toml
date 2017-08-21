@@ -804,6 +804,7 @@ def _dump_sections(o, sup, preserve=False):
     retdict = {}
     arraystr = ""
     for section in o:
+        section = str(section)
         qsection = section
         if not re.match(r'^[A-Za-z0-9_-]+$', section):
             if '"' in section:
