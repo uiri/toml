@@ -338,8 +338,6 @@ def loads(s, _dict=dict):
                                                   " already exists?" +
                                                   str(currentlevel))
                 except TypeError:
-                    if i != len(groups) - 1:
-                        implicitgroups.append(group)
                     currentlevel = currentlevel[-1]
                     try:
                         currentlevel[group]
