@@ -1,4 +1,12 @@
+# Filetypes
 *~
-*pyc
-dist/*
+*.html
+*.pyc
+
+# Distutils/Setuptools
 build/
+dist/
+*.egg-info
+
+# Flake8 Stuff
+.flake8.log

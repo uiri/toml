@@ -1,13 +1,6 @@
+****
 TOML
-====
-
-Original repository: https://github.com/uiri/toml
-
-See also https://github.com/mojombo/toml
-
-Python module which parses and emits TOML.
-
-Released under the MIT license.
+****
 
 .. image:: https://badge.fury.io/py/toml.svg
     :target: https://badge.fury.io/py/toml
@@ -15,96 +8,168 @@ Released under the MIT license.
 .. image:: https://travis-ci.org/uiri/toml.svg?branch=master
     :target: https://travis-ci.org/uiri/toml
 
-Passes https://github.com/uiri/toml-test (fork of https://github.com/BurntSushi/toml-test )
 
-Current Version of the Specification
-------------------------------------
+A Python library for parsing and creating `TOML <https://en.wikipedia.org/wiki/TOML>`_.
 
-https://github.com/mojombo/toml/blob/v0.4.0/README.md
+The module passes `the TOML test suite <https://github.com/uiri/toml-test>`_
+which is a fork of `BurntSushi's TOML test suite <https://github.com/BurntSushi/toml-test>`_.
 
-QUICK GUIDE
------------
+See also:
 
-``pip install toml``
+* `The TOML Standard <https://github.com/toml-lang/toml>`_
+* `The current TOML specification <https://github.com/toml-lang/toml/blob/v0.4.0/README.md>`_
 
-toml.loads --- takes a string to be parsed as toml and returns the corresponding dictionary
+Installation
+============
 
-toml.dumps --- takes a dictionary and returns a string which is the contents of the corresponding toml file.
+To install the latest release on `PyPi <https://pypi.python.org/pypi/toml/0.9.2>`_,
+simply run:
 
-There are other functions which I use to dump and load various fragments of toml but dumps and loads will cover most usage.
+::
+
+  pip install toml
+
+Or to install the latest developement version, run:
+
+::
+
+  git clone https://github.com/uiri/toml.git
+  cd toml
+  python setup.py install
+
+Quick Tutorial
+==============
+
+*toml.loads* takes in a string containing standard TOML-formatted data and
+returns a dictionary containing the parsed data.
+
+.. code:: pycon
+
+  >>> import toml
+  >>> toml_string = """
+  ... # This is a TOML document.
+  ...
+  ... title = "TOML Example"
+  ...
+  ... [owner]
+  ... name = "Tom Preston-Werner"
+  ... dob = 1979-05-27T07:32:00-08:00 # First class dates
+  ...
+  ... [database]
+  ... server = "192.168.1.1"
+  ... ports = [ 8001, 8001, 8002 ]
+  ... connection_max = 5000
+  ... enabled = true
+  ...
+  ... [servers]
+  ...
+  ...   # Indentation (tabs and/or spaces) is allowed but not required
+  ...   [servers.alpha]
+  ...   ip = "10.0.0.1"
+  ...   dc = "eqdc10"
+  ...
+  ...   [servers.beta]
+  ...   ip = "10.0.0.2"
+  ...   dc = "eqdc10"
+  ...
+  ... [clients]
+  ... data = [ ["gamma", "delta"], [1, 2] ]
+  ...
+  ... # Line breaks are OK when inside arrays
+  ... hosts = [
+  ...   "alpha",
+  ...   "omega"
+  ... ]
+  ... """
+  >>> parsed_toml = toml.loads(toml_string)
+
+
+*toml.dumps* takes a dictionary and returns a string containing the
+corresponding TOML-formatted data.
+
+.. code:: pycon
+
+  >>> new_toml_string = toml.dumps(parsed_toml)
+  >>> print(new_toml_string)
+  title = "TOML Example"
+  [owner]
+  name = "Tom Preston-Werner"
+  dob = 1979-05-27T07:32:00Z
+  [database]
+  server = "192.168.1.1"
+  ports = [ 8001, 8001, 8002,]
+  connection_max = 5000
+  enabled = true
+  [clients]
+  data = [ [ "gamma", "delta",], [ 1, 2,],]
+  hosts = [ "alpha", "omega",]
+  [servers.alpha]
+  ip = "10.0.0.1"
+  dc = "eqdc10"
+  [servers.beta]
+  ip = "10.0.0.2"
+  dc = "eqdc10"
+
+For more functions, view the API Reference below.
 
 API Reference
--------------
+=============
 
-|
+``toml.load(f, _dict=dict)``
+  Parse a file or a list of files as TOML and return a dictionary.
 
-``toml.load(f, _dict=dict)`` - **Parses named file or files as toml and returns a dictionary**
+  :Args:
+    * ``f``: A path to a file, list of filepaths (to be read into single
+      object) or a file descriptor
+    * ``_dict``: The class of the dictionary object to be returned
 
-:Args:
-    f: Path to the file to open, array of files to read into single dict or a file descriptor
-       
-    _dict: (optional) Specifies the class of the returned toml dictionary
+  :Returns:
+    A dictionary (or object ``_dict``) containing parsed TOML data
 
-:Returns:
-    Parsed toml file represented as a dictionary
+  :Raises:
+    * ``TypeError``: When ``f`` is an invalid type or is a list containing
+      invalid types
+    * ``TomlDecodeError``: When an error occurs while decoding the file(s)
 
-:Raises:
-    TypeError -- When array of non-strings is passed
-    
-    TypeError -- When f is invalid type
-    
-    TomlDecodeError: Error while decoding toml
-    
-|
+``toml.loads(s, _dict=dict)``
+  Parse a TOML-formatted string to a dictionary.
 
-``toml.loads(s, _dict=dict):`` - **Parses string as toml**
+  :Args:
+    * ``s``: The TOML-formatted string to be parsed
+    * ``_dict``: Specifies the class of the returned toml dictionary
 
-:Args:
-    s: String to be parsed
+  :Returns:
+    A dictionary (or object ``_dict``) containing parsed TOML data
 
-    _dict: (optional) Specifies the class of the returned toml dictionary
+  :Raises:
+    * ``TypeError``: When a non-string object is passed
+    * ``TomlDecodeError``: When an error occurs while decoding the
+      TOML-formatted string
 
-:Returns:
-    Parsed toml file represented as a dictionary
+``toml.dump(o, f)``
+  Write a dictionary to a file containing TOML-formatted data
 
-:Raises:
-    TypeError: When a non-string is passed
-    
-    TomlDecodeError: Error while decoding toml
-   
-|
+  :Args:
+    * ``o``: An object to be converted into TOML
+    * ``f``: A File descriptor where the TOML-formatted output should be stored
 
-``toml.dump(o, f)`` **Writes out dict as toml to a file**
+  :Returns:
+    A string containing the TOML-formatted data corresponding to object ``o``
 
-:Args:
-    o: Object to dump into toml
-    
-    f: File descriptor where the toml should be stored
+  :Raises:
+    * ``TypeError``: When anything other than file descriptor is passed
 
-:Returns:
-    String containing the toml corresponding to dictionary
+``toml.dumps(o)``
+  Create a TOML-formatted string from an input object
 
-:Raises:
-    TypeError: When anything other than file descriptor is passed
+  :Args:
+    * ``o``: An object to be converted into TOML
 
-|
+  :Returns:
+    A string containing the TOML-formatted data corresponding to object ``o``
 
-``toml.dumps(o)`` **Stringifies input dict as toml**
+Licensing
+=========
 
-:Args:
-    o: Object to dump into toml
-
-:Returns:
-    String containing the toml corresponding to dict
-
-Example usage
--------------
-
-.. code:: python
-
-  import toml
-
-  with open("conf.toml") as conffile:
-      config = toml.loads(conffile.read())
-  # do stuff with config here
-  . . .
+This project is released under the terms of the MIT Open Source License. View
+*LICENSE.txt* for more information.
