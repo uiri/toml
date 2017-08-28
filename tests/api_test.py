@@ -4,6 +4,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from toml import TomlDecodeError  # noqa: E402
 import toml  # noqa: E402
+import warnings  # noqa: E402
 
 
 class TestDict(dict):
@@ -59,6 +60,13 @@ try:
     assert(False)
 except FNFError:
     pass
+
+toml.load(["test.toml"])
+
+with warnings.catch_warnings(record=True) as w:
+    toml.load(["test.toml", "nonexist.toml"])
+    # Expect 1 warning for the non existent toml file
+    assert(len(w) == 1)
 
 s = toml.dumps(TEST_DICT)
 assert(s == toml.dumps(toml.loads(s)))

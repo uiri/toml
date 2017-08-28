@@ -88,8 +88,8 @@ def load(f, _dict=dict):
             return loads(ffile.read(), _dict)
     elif isinstance(f, list):
         from os import path as op
-        f = [path for path in f if op.exists(path)]
-        if not f:
+        from warnings import warn
+        if not [path for path in f if op.exists(path)]:
             error_msg = "Load expects a list to contain filenames only."
             error_msg += linesep
             error_msg += ("The list needs to contain the path of at least one "
@@ -97,7 +97,11 @@ def load(f, _dict=dict):
             raise FNFError(error_msg)
         d = _dict()
         for l in f:
-            d.update(load(l))
+            if op.exists(l):
+                d.update(load(l))
+            else:
+                warn("Non-existent filename in list with at least one valid "
+                     "filename")
         return d
     else:
         try:
