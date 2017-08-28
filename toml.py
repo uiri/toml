@@ -198,9 +198,10 @@ def loads(s, _dict=dict):
                     if k == 3:
                         tripquote = True
                         break
-                while sl[i - k] == '\\':
-                    oddbackslash = not oddbackslash
-                    k += 1
+                if k == 1 or (k == 3 and tripquote):
+                    while sl[i - k] == '\\':
+                        oddbackslash = not oddbackslash
+                        k += 1
             except IndexError:
                 pass
             if not oddbackslash:
@@ -621,11 +622,11 @@ def _load_value(v, _dict, strictly_valid=True):
                 hexbytes = v.split(prefix)
                 v = _load_unicode_escapes(hexbytes[0], hexbytes[1:], prefix)
         v = _unescape(v)
-        if v[1] == '"':
+        if v[1] == '"' and (len(v) < 3 or v[1] == v[2]):
             v = v[2:-2]
         return (v[1:-1], "str")
     elif v[0] == "'":
-        if v[1] == "'":
+        if v[1] == "'" and (len(v) < 3 or v[1] == v[2]):
             v = v[2:-2]
         return (v[1:-1], "str")
     elif v[0] == '[':
