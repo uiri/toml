@@ -29,7 +29,7 @@ simply run:
 
   pip install toml
 
-Or to install the latest developement version, run:
+Or to install the latest development version, run:
 
 ::
 
