@@ -804,7 +804,7 @@ def _dump_sections(o, sup, preserve=False):
     retstr = ""
     if sup != "" and sup[-1] != ".":
         sup += '.'
-    retdict = {}
+    retdict = o.__class__()
     arraystr = ""
     for section in o:
         section = str(section)
