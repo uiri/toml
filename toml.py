@@ -807,7 +807,7 @@ def _dump_sections(o, sup, preserve=False):
     retdict = o.__class__()
     arraystr = ""
     for section in o:
-        section = str(section)
+        section = unicode(section)
         qsection = section
         if not re.match(r'^[A-Za-z0-9_-]+$', section):
             if '"' in section:
@@ -846,7 +846,7 @@ def _dump_sections(o, sup, preserve=False):
             else:
                 if o[section] is not None:
                     retstr += (qsection + " = " +
-                               str(_dump_value(o[section])) + '\n')
+                               unicode(_dump_value(o[section])) + '\n')
         elif preserve and isinstance(o[section], InlineTableDict):
             retstr += (section + " = " + _dump_inline_table(o[section]))
         else:
@@ -870,7 +870,7 @@ def _dump_inline_table(section):
         retval += "{ " + ", ".join(val_list) + " }\n"
         return retval
     else:
-        return str(_dump_value(section))
+        return unicode(_dump_value(section))
 
 
 def _dump_value(v):
@@ -878,7 +878,7 @@ def _dump_value(v):
         str: lambda: _dump_str(v),
         unicode: lambda: _dump_str(v),
         list: lambda: _dump_list(v),
-        bool: lambda: str(v).lower(),
+        bool: lambda: unicode(v).lower(),
         float: lambda: _dump_float(v),
         datetime.datetime: lambda: v.isoformat(),
     }
@@ -898,7 +898,7 @@ def _dump_str(v):
         v = v.replace("\\'", "'")
         v = v.replace('"', '\\"')
     v = v.replace("\\x", "\\u00")
-    return str('"' + v + '"')
+    return unicode('"' + v + '"')
 
 
 def _dump_list(v):
@@ -913,7 +913,7 @@ def _dump_list(v):
                 for r in u:
                     s.append(r)
             else:
-                retval += " " + str(u) + ","
+                retval += " " + unicode(u) + ","
         t = s
     retval += "]"
     return retval
