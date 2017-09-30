@@ -920,4 +920,4 @@ def _dump_list(v):
 
 
 def _dump_float(v):
-    return "{0:.16g}".format(v).replace("e+0", "e+").replace("e-0", "e-")
+    return "{0:.16}".format(v).replace("e+0", "e+").replace("e-0", "e-")
