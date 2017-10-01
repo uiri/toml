@@ -8,6 +8,9 @@ TOML
 .. image:: https://travis-ci.org/uiri/toml.svg?branch=master
     :target: https://travis-ci.org/uiri/toml
 
+.. image:: https://img.shields.io/pypi/pyversions/toml.svg
+    :target: https://pypi.python.org/pypi/toml
+
 
 A Python library for parsing and creating `TOML <https://en.wikipedia.org/wiki/TOML>`_.
 
