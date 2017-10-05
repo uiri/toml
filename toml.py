@@ -848,7 +848,7 @@ def _dump_sections(o, sup, preserve=False):
                     retstr += (qsection + " = " +
                                unicode(_dump_value(o[section])) + '\n')
         elif preserve and isinstance(o[section], InlineTableDict):
-            retstr += (section + " = " + _dump_inline_table(o[section]))
+            retstr += (qsection + " = " + _dump_inline_table(o[section]))
         else:
             retdict[qsection] = o[section]
     retstr += arraystr
