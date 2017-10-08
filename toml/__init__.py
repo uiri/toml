@@ -12,8 +12,9 @@ __spec__ = "0.4.0"
 load = decoder.load
 loads = decoder.loads
 TomlDecoder = decoder.TomlDecoder
+TomlDecodeError = decoder.TomlDecodeError
 
 dump = encoder.dump
 dumps = encoder.dumps
-
-TomlDecodeError = decoder.TomlDecodeError
+TomlEncoder = encoder.TomlEncoder
+TomlArraySeparatorEncoder = encoder.TomlArraySeparatorEncoder
