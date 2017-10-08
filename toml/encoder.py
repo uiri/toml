@@ -43,11 +43,11 @@ def dumps(o, encoder=None):
 
     retval = ""
     if encoder is None:
-        encoder = TomlEncoder()
+        encoder = TomlEncoder(o.__class__)
     addtoretval, sections = encoder._dump_sections(o, "")
     retval += addtoretval
-    while sections != {}:
-        newsections = {}
+    while sections:
+        newsections = encoder.get_empty_table()
         for section in sections:
             addtoretval, addtosections = encoder._dump_sections(
                 sections[section], section)
@@ -66,14 +66,18 @@ def dumps(o, encoder=None):
 
 class TomlEncoder(object):
 
-    def __init__(self, preserve=False):
+    def __init__(self, _dict=dict, preserve=False):
+        self._dict = _dict
         self.preserve = preserve
+
+    def get_empty_table(self):
+        return self._dict()
 
     def _dump_sections(self, o, sup):
         retstr = ""
         if sup != "" and sup[-1] != ".":
             sup += '.'
-        retdict = o.__class__()
+        retdict = self._dict()
         arraystr = ""
         for section in o:
             section = unicode(section)
@@ -99,8 +103,8 @@ class TomlEncoder(object):
                                 arraytabstr += s
                             else:
                                 arraystr += s
-                        while d != {}:
-                            newd = {}
+                        while d:
+                            newd = self._dict()
                             for dsec in d:
                                 s1, d1 = self._dump_sections(d[dsec], sup +
                                                              qsection + "." +
