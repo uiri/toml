@@ -97,7 +97,7 @@ def load(f, decoder=None):
         d = decoder.get_empty_table()
         for l in f:
             if op.exists(l):
-                d.update(load(l))
+                d.update(load(l, decoder))
             else:
                 warn("Non-existent filename in list with at least one valid "
                      "filename")
