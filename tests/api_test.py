@@ -2,7 +2,7 @@ if __name__ == "__main__" and __package__ is None:
     from os import sys, path
     sys.path.insert(0, path.dirname(path.dirname(__file__)))
 
-from toml import TomlDecodeError  # noqa: E402
+from toml import TomlDecoder, TomlDecodeError  # noqa: E402
 import toml  # noqa: E402
 import warnings  # noqa: E402
 
@@ -30,8 +30,9 @@ strings-and-ints = ["hi", 42]
 TEST_DICT = {"a": {"b": 1, "c": 2}}
 
 o = toml.loads(TEST_STR)
+test_dict_decoder = TomlDecoder(TestDict)
 assert(o == toml.loads(toml.dumps(o)))
-assert(isinstance(toml.loads(TEST_STR, _dict=TestDict), TestDict))
+assert(isinstance(toml.loads(TEST_STR, decoder=test_dict_decoder), TestDict))
 
 try:
     toml.loads(2)
