@@ -15,7 +15,7 @@ setup(
     author="Uiri Noyb",
     author_email="uiri@xqz.ca",
     url="https://github.com/uiri/toml",
-    py_modules=['toml'],
+    packages=['toml'],
     license="License :: OSI Approved :: MIT License",
     long_description=readme_string,
     classifiers=[

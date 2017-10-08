@@ -1,4 +1,7 @@
-include toml.py
+include toml/__init__.py
+include toml/decoder.py
+include toml/encoder.py
+include toml/tz.py
 include setup.py
 include README.rst
 include LICENSE
