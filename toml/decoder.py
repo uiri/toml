@@ -289,7 +289,7 @@ def loads(s, decoder=None):
                                   line[-2] == multilinestr[0] and
                                   line[-3] == multilinestr[0]):
                 try:
-                    value, vtype = decoder._load_value(multilinestr)
+                    value, vtype = decoder.load_value(multilinestr)
                 except ValueError as err:
                     raise TomlDecodeError(str(err), original, pos)
                 currentlevel[multikey] = value
@@ -385,14 +385,14 @@ def loads(s, decoder=None):
                 raise TomlDecodeError("Line breaks are not allowed in inline"
                                       "objects", original, pos)
             try:
-                decoder._load_inline_object(line, currentlevel, multikey,
-                                            multibackslash)
+                decoder.load_inline_object(line, currentlevel, multikey,
+                                           multibackslash)
             except ValueError as err:
                 raise TomlDecodeError(str(err), original, pos)
         elif "=" in line:
             try:
-                ret = decoder._load_line(line, currentlevel, multikey,
-                                         multibackslash)
+                ret = decoder.load_line(line, currentlevel, multikey,
+                                        multibackslash)
             except ValueError as err:
                 raise TomlDecodeError(str(err), original, pos)
             if ret is not None:
@@ -509,8 +509,8 @@ class TomlDecoder(object):
 
         return DynamicInlineTableDict()
 
-    def _load_inline_object(self, line, currentlevel, multikey=False,
-                            multibackslash=False):
+    def load_inline_object(self, line, currentlevel, multikey=False,
+                           multibackslash=False):
         candidate_groups = line[1:-1].split(",")
         groups = []
         if len(candidate_groups) == 1 and not candidate_groups[0].strip():
@@ -534,12 +534,12 @@ class TomlDecoder(object):
             else:
                 raise ValueError("Invalid inline table value encountered")
         for group in groups:
-            status = self._load_line(group, currentlevel, multikey,
-                                     multibackslash)
+            status = self.load_line(group, currentlevel, multikey,
+                                    multibackslash)
             if status is not None:
                 break
 
-    def _load_line(self, line, currentlevel, multikey, multibackslash):
+    def load_line(self, line, currentlevel, multikey, multibackslash):
         i = 1
         pair = line.split('=', i)
         strictly_valid = _strictly_valid_num(pair[-1])
@@ -584,7 +584,7 @@ class TomlDecoder(object):
                 multilinestr = pair[1] + "\n"
             multikey = pair[0]
         else:
-            value, vtype = self._load_value(pair[1], strictly_valid)
+            value, vtype = self.load_value(pair[1], strictly_valid)
         try:
             currentlevel[pair[0]]
             raise ValueError("Duplicate keys!")
@@ -594,7 +594,7 @@ class TomlDecoder(object):
             else:
                 currentlevel[pair[0]] = value
 
-    def _load_value(self, v, strictly_valid=True):
+    def load_value(self, v, strictly_valid=True):
         if not v:
             raise ValueError("Empty value is invalid")
         if v == 'true':
@@ -649,10 +649,10 @@ class TomlDecoder(object):
                 v = v[2:-2]
             return (v[1:-1], "str")
         elif v[0] == '[':
-            return (self._load_array(v), "array")
+            return (self.load_array(v), "array")
         elif v[0] == '{':
             inline_object = self.get_empty_inline_table()
-            self._load_inline_object(v, inline_object)
+            self.load_inline_object(v, inline_object)
             return (inline_object, "inline_object")
         else:
             parsed_date = _load_date(v)
@@ -684,7 +684,7 @@ class TomlDecoder(object):
                 return (0 - v, itype)
             return (v, itype)
 
-    def _load_array(self, a):
+    def load_array(self, a):
         atype = None
         retval = []
         a = a.strip()
@@ -755,7 +755,7 @@ class TomlDecoder(object):
         for i in _range(len(a)):
             a[i] = a[i].strip()
             if a[i] != '':
-                nval, ntype = self._load_value(a[i])
+                nval, ntype = self.load_value(a[i])
                 if atype:
                     if ntype != atype:
                         raise ValueError("Not a homogeneous array")
