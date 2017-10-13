@@ -711,7 +711,8 @@ def _load_array(a, _dict):
         if strarray:
             while b < len(a) - 1:
                 ab = a[b].strip()
-                while ab[-1] != ab[0] or (ab[0] == ab[1] == ab[2] and
+                while ab[-1] != ab[0] or (len(ab) > 2 and
+                                          ab[0] == ab[1] == ab[2] and
                                           ab[-2] != ab[0] and ab[-3] != ab[0]):
                     a[b] = a[b] + ',' + a[b + 1]
                     ab = a[b].strip()
