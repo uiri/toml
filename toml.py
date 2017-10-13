@@ -748,7 +748,7 @@ def _load_array(a, _dict):
     return retval
 
 
-def dump(o, f):
+def dump(o, f, *args, **kwargs):
     """Writes out dict as toml to a file
 
     Args:
@@ -764,7 +764,7 @@ def dump(o, f):
 
     if not f.write:
         raise TypeError("You can only dump an object to a file descriptor")
-    d = dumps(o)
+    d = dumps(o, *args, **kwargs)
     f.write(d)
     return d
 
