@@ -13,3 +13,5 @@ load = decoder.load
 loads = decoder.loads
 dump = encoder.dump
 dumps = encoder.dumps
+
+TomlDecodeError = decoder.TomlDecodeError
