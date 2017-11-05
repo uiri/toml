@@ -9,9 +9,10 @@ exclude =
     build,
     # Do not track pycache dirs
     __pycache__,
+    .tox,
 
 max-line-length = 80
-ignore = 
+ignore =
 
 # Output config:
 show-source = True
