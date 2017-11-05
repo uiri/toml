@@ -563,8 +563,6 @@ class TomlDecoder(object):
                 return multikey, multilinestr, multibackslash
             else:
                 currentlevel[pair[0]] = value
-        except:
-            raise TomlDecodeError("Duplicate keys!")
 
     def _load_value(self, v, strictly_valid=True):
         if not v:
