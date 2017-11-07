@@ -15,6 +15,25 @@ latest release.
 Testing
 =======
 
+### Unit tests
+Unit tests can be run using [tox](https://tox.readthedocs.io/en/latest/).
+Simply `pip install tox` and you are ready to go. Tox creates requried
+virual eniroments and installs necessary packages.
+
+    tox
+
+This is not very practical for day to day use. To easily run tests
+in the current Python simply run.
+
+    tox -e py
+
+We are using [pytest](https://docs.pytest.org/en/latest/) testing framework.
+You can pass parameters to it like this:
+
+    tox -e py -- -vsx
+
+
+### Decoding tests
 There is a ``decoding_test.py`` script in the *tests/* directory
 which acts as a harness in order to allow ``toml`` to be used with
 the toml test suite, written (unfortunately) in Go.
