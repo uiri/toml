@@ -42,16 +42,18 @@ def test_exceptions():
     try:
         FileNotFoundError
     except NameError:
-        #py2
+        # py2
         FileNotFoundError = IOError
 
     with pytest.raises(FileNotFoundError):
         toml.load([])
 
+
 def test_warnings():
     # Expect 1 warning for the non existent toml file
     with pytest.warns(UserWarning):
         toml.load(["test.toml", "nonexist.toml"])
+
 
 def test_commutativity():
     string = toml.dumps(TEST_DICT)
