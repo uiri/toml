@@ -7,7 +7,7 @@ import io
 import datetime
 from os import linesep
 
-__version__ = "0.9.3"
+__version__ = "0.9.4"
 __spec__ = "0.4.0"
 
 
