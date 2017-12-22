@@ -26,6 +26,14 @@ def test_valid_tests():
         toml.dumps(toml.load(open(os.path.join(valid_dir, f))))
 
 
+def test__dict():
+    class TestDict(dict):
+        pass
+
+    assert isinstance(toml.loads(
+        TEST_STR, _dict=TestDict), TestDict)
+
+
 def test_dict_decoder():
     class TestDict(dict):
         pass

@@ -62,7 +62,7 @@ def _strictly_valid_num(n):
     return True
 
 
-def load(f, decoder=None):
+def load(f, _dict=dict, decoder=None):
     """Parses named file or files as toml and returns a dictionary
 
     Args:
@@ -82,7 +82,7 @@ def load(f, decoder=None):
 
     if isinstance(f, basestring):
         with io.open(f, encoding='utf-8') as ffile:
-            return loads(ffile.read(), decoder)
+            return loads(ffile.read(), _dict, decoder)
     elif isinstance(f, list):
         from os import path as op
         from warnings import warn
@@ -97,14 +97,14 @@ def load(f, decoder=None):
         d = decoder.get_empty_table()
         for l in f:
             if op.exists(l):
-                d.update(load(l, decoder))
+                d.update(load(l, _dict, decoder))
             else:
                 warn("Non-existent filename in list with at least one valid "
                      "filename")
         return d
     else:
         try:
-            return loads(f.read(), decoder)
+            return loads(f.read(), _dict, decoder)
         except AttributeError:
             raise TypeError("You can only load a file descriptor, filename or "
                             "list")
@@ -113,7 +113,7 @@ def load(f, decoder=None):
 _groupname_re = re.compile(r'^[A-Za-z0-9_-]+$')
 
 
-def loads(s, decoder=None):
+def loads(s, _dict=dict, decoder=None):
     """Parses string as toml
 
     Args:
@@ -130,7 +130,7 @@ def loads(s, decoder=None):
 
     implicitgroups = []
     if decoder is None:
-        decoder = TomlDecoder()
+        decoder = TomlDecoder(_dict)
     retval = decoder.get_empty_table()
     currentlevel = retval
     if not isinstance(s, basestring):
