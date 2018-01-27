@@ -872,7 +872,7 @@ def _dump_value(v):
         list: lambda: _dump_list(v),
         bool: lambda: unicode(v).lower(),
         float: lambda: _dump_float(v),
-        datetime.datetime: lambda: v.isoformat(),
+        datetime.datetime: lambda: v.isoformat().replace('+00:00', 'Z'),
     }
     # Lookup function corresponding to v's type
     dump_fn = dump_funcs.get(type(v))
