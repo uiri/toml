@@ -11,6 +11,7 @@ notifications:
 addons:
   apt:
     packages:
+    - git
     - golang
 before_install:
  - export GOPATH=~/go

@@ -1,5 +1,6 @@
 import toml
 import pytest
+import os
 
 
 TEST_STR = """
@@ -8,16 +9,15 @@ b = 1
 c = 2
 """
 
-INVALID_TOML = """
-strings-and-ints = ["hi", 42]
-"""
-
 TEST_DICT = {"a": {"b": 1, "c": 2}}
 
 
-def test_simple_str():
-    o = toml.loads(TEST_STR)
-    assert o == toml.loads(toml.dumps(o))
+def test_valid_tests():
+    valid_dir = "toml-test/tests/valid/"
+    for f in os.listdir(valid_dir):
+        if not f.endswith("toml"):
+            continue
+        toml.dumps(toml.load(open(os.path.join(valid_dir, f))))
 
 
 def test_dict_decoder():
@@ -29,15 +29,21 @@ def test_dict_decoder():
         TEST_STR, decoder=test_dict_decoder), TestDict)
 
 
+def test_invalid_tests():
+    invalid_dir = "toml-test/tests/invalid/"
+    for f in os.listdir(invalid_dir):
+        if not f.endswith("toml"):
+            continue
+        with pytest.raises(toml.TomlDecodeError):
+            toml.load(open(os.path.join(invalid_dir, f)))
+
+
 def test_exceptions():
     with pytest.raises(TypeError):
         toml.loads(2)
 
     with pytest.raises(TypeError):
         toml.load(2)
-
-    with pytest.raises(toml.TomlDecodeError):
-        toml.loads(toml.loads(INVALID_TOML))
 
     try:
         FileNotFoundError
@@ -56,5 +62,5 @@ def test_warnings():
 
 
 def test_commutativity():
-    string = toml.dumps(TEST_DICT)
-    assert string == toml.dumps(toml.loads(string))
+    o = toml.loads(toml.dumps(TEST_DICT))
+    assert o == toml.loads(toml.dumps(o))
