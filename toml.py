@@ -230,7 +230,7 @@ def loads(s, _dict=dict):
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
             if beginline:
-                if sl[i + 1] == '[':
+                if len(sl) > i + 1 and sl[i + 1] == '[':
                     arrayoftables = True
                 else:
                     keygroup = True
@@ -298,18 +298,22 @@ def loads(s, _dict=dict):
             continue
         if line[0] == '[':
             arrayoftables = False
+            if len(line) == 1:
+                raise TomlDecodeError("Opening key group bracket on line by "
+                                      "itself.")
             if line[1] == '[':
                 arrayoftables = True
                 line = line[2:].split(']]', 1)
             else:
                 line = line[1:].split(']', 1)
-            if line[1].strip() != "":
+            if len(line) < 2 or line[1].strip() != "":
                 raise TomlDecodeError("Key group not on a line by itself.")
             groups = line[0].split('.')
             i = 0
             while i < len(groups):
                 groups[i] = groups[i].strip()
-                if groups[i][0] == '"' or groups[i][0] == "'":
+                if len(groups[i]) > 0 and (groups[i][0] == '"' or
+                                           groups[i][0] == "'"):
                     groupstr = groups[i]
                     j = i + 1
                     while not groupstr[0] == groupstr[-1]:
