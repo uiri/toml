@@ -420,8 +420,6 @@ def _load_date(val):
 
 
 def _load_unicode_escapes(v, hexbytes, prefix):
-    hexchars = ['0', '1', '2', '3', '4', '5', '6', '7',
-                '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
     skip = False
     i = len(v) - 1
     while i > -1 and v[i] == '\\':
@@ -442,14 +440,9 @@ def _load_unicode_escapes(v, hexbytes, prefix):
         hxblen = 4
         if prefix == "\\U":
             hxblen = 8
-        while i < hxblen:
-            try:
-                if not hx[i].lower() in hexchars:
-                    raise ValueError("Invalid hex character")
-            except IndexError:
-                raise ValueError("Invalid escape sequence")
-            hxb += hx[i].lower()
-            i += 1
+        hxb = ''.join(hx[i:i + hxblen]).lower()
+        if hxb.strip('0123456789abcdef'):
+            raise ValueError("Invalid escape sequence: " + hxb)
         v += unichr(int(hxb, 16))
         v += unicode(hx[len(hxb):])
     return v
