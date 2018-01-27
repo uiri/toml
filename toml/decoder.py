@@ -445,8 +445,8 @@ def _load_unicode_escapes(v, hexbytes, prefix):
         while i < hxblen:
             try:
                 if not hx[i].lower() in hexchars:
-                    raise ValueError()
-            except (IndexError, ValueError):
+                    raise ValueError("Invalid hex character")
+            except IndexError:
                 raise ValueError("Invalid escape sequence")
             hxb += hx[i].lower()
             i += 1
