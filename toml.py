@@ -898,19 +898,9 @@ def _dump_str(v):
 
 
 def _dump_list(v):
-    t = []
     retval = "["
     for u in v:
-        t.append(_dump_value(u))
-    while t != []:
-        s = []
-        for u in t:
-            if isinstance(u, list):
-                for r in u:
-                    s.append(r)
-            else:
-                retval += " " + unicode(u) + ","
-        t = s
+        retval += " " + unicode(_dump_value(u)) + ","
     retval += "]"
     return retval
 
