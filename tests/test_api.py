@@ -12,6 +12,12 @@ c = 2
 TEST_DICT = {"a": {"b": 1, "c": 2}}
 
 
+def test_bug_148():
+    assert 'a = "\\u0064"\n' == toml.dumps({'a': '\\x64'})
+    assert 'a = "\\\\x64"\n' == toml.dumps({'a': '\\\\x64'})
+    assert 'a = "\\\\\\u0064"\n' == toml.dumps({'a': '\\\\\\x64'})
+
+
 def test_valid_tests():
     valid_dir = "toml-test/tests/valid/"
     for f in os.listdir(valid_dir):

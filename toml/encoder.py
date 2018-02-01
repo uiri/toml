@@ -167,8 +167,23 @@ def _dump_str(v):
     if singlequote:
         v = v.replace("\\'", "'")
         v = v.replace('"', '\\"')
-    v = v.replace("\\x", "\\u00")
-    return unicode('"' + v + '"')
+    v = v.split("\\x")
+    while len(v) > 1:
+        i = -1
+        if not v[0]:
+            v = v[1:]
+        v[0] = v[0].replace("\\\\", "\\")
+        # No, I don't know why != works and == breaks
+        joinx = v[0][i] != "\\"
+        while v[0][:i] and v[0][i] == "\\":
+            joinx = not joinx
+            i -= 1
+        if joinx:
+            joiner = "x"
+        else:
+            joiner = "u00"
+        v = [v[0] + joiner + v[1]] + v[2:]
+    return unicode('"' + v[0] + '"')
 
 
 def _dump_list(v):
