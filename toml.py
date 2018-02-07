@@ -503,6 +503,8 @@ def _load_date(val):
                 tz = TomlTz(val[19:25])
     except ValueError:
         tz = None
+    if "-" not in val[1:]:
+        return None
     try:
         d = datetime.datetime(
             int(val[:4]), int(val[5:7]),
