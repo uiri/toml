@@ -328,7 +328,7 @@ def loads(s, decoder=None):
                     j = i + 1
                     while not groupstr[0] == groupstr[-1]:
                         j += 1
-                        groupstr = '.'.join(groups[i:j])
+                        groupstr = '.'.join(groups[i:j]).strip()
                     groups[i] = groupstr[1:-1]
                     groups[i + 1:j] = []
                 else:
