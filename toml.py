@@ -282,7 +282,10 @@ def loads(s, _dict=dict):
             if len(line) > 2 and (line[-1] == multilinestr[0] and
                                   line[-2] == multilinestr[0] and
                                   line[-3] == multilinestr[0]):
-                value, vtype = _load_value(multilinestr, _dict)
+                try:
+                    value, vtype = _load_value(multilinestr, _dict)
+                except ValueError as err:
+                    raise TomlDecodeError(str(err))
                 currentlevel[multikey] = value
                 multikey = None
                 multilinestr = ""
@@ -370,11 +373,17 @@ def loads(s, _dict=dict):
             if line[-1] != "}":
                 raise TomlDecodeError("Line breaks are not allowed in inline"
                                       "objects")
-            _load_inline_object(line, currentlevel, _dict, multikey,
-                                multibackslash)
+            try:
+                _load_inline_object(line, currentlevel, _dict, multikey,
+                                    multibackslash)
+            except ValueError as err:
+                raise TomlDecodeError(str(err))
         elif "=" in line:
-            ret = _load_line(line, currentlevel, _dict, multikey,
-                             multibackslash)
+            try:
+                ret = _load_line(line, currentlevel, _dict, multikey,
+                                 multibackslash)
+            except ValueError as err:
+                raise TomlDecodeError(str(err))
             if ret is not None:
                 multikey, multilinestr, multibackslash = ret
     return retval
@@ -391,7 +400,7 @@ def _load_inline_object(line, currentlevel, _dict, multikey=False,
         try:
             _, value = candidate_group.split('=', 1)
         except ValueError:
-            raise TomlDecodeError("Invalid inline table encountered")
+            raise ValueError("Invalid inline table encountered")
         value = value.strip()
         if ((value[0] == value[-1] and value[0] in ('"', "'")) or (
                 value[0] in '-0123456789' or
@@ -455,7 +464,7 @@ def _load_line(line, currentlevel, _dict, multikey, multibackslash):
         prev_val = pair[-1]
         pair = line.split('=', i)
         if prev_val == pair[-1]:
-            raise TomlDecodeError("Invalid date or number")
+            raise ValueError("Invalid date or number")
         if strictly_valid:
             strictly_valid = _strictly_valid_num(pair[-1])
     pair = ['='.join(pair[:-1]).strip(), pair[-1].strip()]
@@ -482,7 +491,7 @@ def _load_line(line, currentlevel, _dict, multikey, multibackslash):
         value, vtype = _load_value(pair[1], _dict, strictly_valid)
     try:
         currentlevel[pair[0]]
-        raise TomlDecodeError("Duplicate keys!")
+        raise ValueError("Duplicate keys!")
     except KeyError:
         if multikey:
             return multikey, multilinestr, multibackslash
@@ -568,7 +577,7 @@ def _unescape(v):
             elif v[i] == 'u' or v[i] == 'U':
                 i += 1
             else:
-                raise TomlDecodeError("Reserved escape sequence used")
+                raise ValueError("Reserved escape sequence used")
             continue
         elif v[i] == '\\':
             backslash = True
@@ -578,7 +587,7 @@ def _unescape(v):
 
 def _load_value(v, _dict, strictly_valid=True):
     if not v:
-        raise TomlDecodeError("Empty value is invalid")
+        raise ValueError("Empty value is invalid")
     if v == 'true':
         return (True, "bool")
     elif v == 'false':
@@ -604,7 +613,7 @@ def _load_value(v, _dict, strictly_valid=True):
                     pass
                 if not oddbackslash:
                     if closed:
-                        raise TomlDecodeError("Stuff after closed string. WTF?")
+                        raise ValueError("Stuff after closed string. WTF?")
                     else:
                         closed = True
         escapeseqs = v.split('\\')[1:]
@@ -615,7 +624,7 @@ def _load_value(v, _dict, strictly_valid=True):
             else:
                 if i[0] not in _escapes and (i[0] != 'u' and i[0] != 'U' and
                                              not backslash):
-                    raise TomlDecodeError("Reserved escape sequence used")
+                    raise ValueError("Reserved escape sequence used")
                 if backslash:
                     backslash = False
         for prefix in ["\\u", "\\U"]:
@@ -641,8 +650,8 @@ def _load_value(v, _dict, strictly_valid=True):
         if parsed_date is not None:
             return (parsed_date, "date")
         if not strictly_valid:
-            raise TomlDecodeError("Weirdness with leading zeroes or underscores"
-                                  " in your number.")
+            raise ValueError("Weirdness with leading zeroes or "
+                             "underscores in your number.")
         itype = "int"
         neg = False
         if v[0] == '-':
@@ -653,10 +662,10 @@ def _load_value(v, _dict, strictly_valid=True):
         v = v.replace('_', '')
         if '.' in v or 'e' in v or 'E' in v:
             if '.' in v and v.split('.', 1)[1] == '':
-                raise TomlDecodeError("This float is missing digits after "
-                                      "the point")
+                raise ValueError("This float is missing digits after "
+                                 "the point")
             if v[0] not in '0123456789':
-                raise TomlDecodeError("This float doesn't have a leading digit")
+                raise ValueError("This float doesn't have a leading digit")
             v = float(v)
             itype = "float"
         else:
@@ -738,7 +747,7 @@ def _load_array(a, _dict):
             nval, ntype = _load_value(a[i], _dict)
             if atype:
                 if ntype != atype:
-                    raise TomlDecodeError("Not a homogeneous array")
+                    raise ValueError("Not a homogeneous array")
             else:
                 atype = ntype
             retval.append(nval)
