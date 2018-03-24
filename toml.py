@@ -405,10 +405,13 @@ def _load_inline_object(line, currentlevel, _dict, multikey=False,
         if ((value[0] == value[-1] and value[0] in ('"', "'")) or (
                 value[0] in '-0123456789' or
                 value in ('true', 'false') or
-                (value[0] == "[" and value[-1] == "]"))):
+                (value[0] == "[" and value[-1] == "]") or
+                (value[0] == '{' and value[-1] == '}'))):
             groups.append(candidate_group)
-        else:
+        elif len(candidate_groups) > 0:
             candidate_groups[0] = candidate_group + "," + candidate_groups[0]
+        else:
+            raise ValueError("Invalid inline table value encountered")
     for group in groups:
         status = _load_line(group, currentlevel, _dict, multikey,
                             multibackslash)
