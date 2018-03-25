@@ -597,12 +597,18 @@ def _load_value(v, _dict, strictly_valid=True):
         return (False, "bool")
     elif v[0] == '"':
         testv = v[1:].split('"')
+        triplequote = False
+        triplequotecount = 0
         if testv[0] == '' and testv[1] == '':
-            testv = testv[2:-2]
+            testv = testv[2:]
+            triplequote = True
         closed = False
         for tv in testv:
             if tv == '':
-                closed = True
+                if triplequote:
+                    triplequotecount += 1
+                else:
+                    closed = True
             else:
                 oddbackslash = False
                 try:
@@ -618,7 +624,10 @@ def _load_value(v, _dict, strictly_valid=True):
                     if closed:
                         raise ValueError("Stuff after closed string. WTF?")
                     else:
-                        closed = True
+                        if not triplequote or triplequotecount > 1:
+                            closed = True
+                        else:
+                            triplequotecount = 0
         escapeseqs = v.split('\\')[1:]
         backslash = False
         for i in escapeseqs:
