@@ -613,7 +613,7 @@ class TomlDecoder(object):
                 if tv == '':
                     if triplequote:
                         triplequotecount += 1
-                    if not triplequote:
+                    else:
                         closed = True
                 else:
                     oddbackslash = False
