@@ -3,5 +3,6 @@ include toml/decoder.py
 include toml/encoder.py
 include toml/tz.py
 include setup.py
+include toml.pyi
 include README.rst
 include LICENSE
