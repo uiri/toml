@@ -14,6 +14,30 @@ else:
     basestring = str
     unichr = chr
 
+
+def _detect_pathlib_path(p):
+    if (3, 4) <= sys.version_info:
+        import pathlib
+        if isinstance(p, pathlib.PurePath):
+            return True
+    return False
+
+
+def _ispath(p):
+    if isinstance(p, basestring):
+        return True
+    return _detect_pathlib_path(p)
+
+
+def _getpath(p):
+    if (3, 6) <= sys.version_info:
+        import os
+        return os.fspath(p)
+    if _detect_pathlib_path(p):
+        return str(p)
+    return p
+
+
 try:
     FNFError = FileNotFoundError
 except NameError:
@@ -80,8 +104,8 @@ def load(f, _dict=dict, decoder=None):
         (Python 2 / Python 3)          file paths is passed
     """
 
-    if isinstance(f, basestring):
-        with io.open(f, encoding='utf-8') as ffile:
+    if _ispath(f):
+        with io.open(_getpath(f), encoding='utf-8') as ffile:
             return loads(ffile.read(), _dict, decoder)
     elif isinstance(f, list):
         from os import path as op

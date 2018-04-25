@@ -69,6 +69,15 @@ def test_exceptions():
         toml.load([])
 
 
+def test_paths():
+    toml.load("test.toml")
+    import sys
+    if (3, 4) <= sys.version_info:
+        import pathlib
+        p = pathlib.Path("test.toml")
+        toml.load(p)
+
+
 def test_warnings():
     # Expect 1 warning for the non existent toml file
     with pytest.warns(UserWarning):
