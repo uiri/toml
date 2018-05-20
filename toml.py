@@ -8,7 +8,7 @@ import datetime
 from os import linesep
 
 __version__ = "0.9.4"
-__spec__ = "0.4.0"
+_spec_ = "0.4.0"
 
 
 class TomlDecodeError(Exception):
