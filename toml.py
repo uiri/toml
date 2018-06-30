@@ -900,17 +900,20 @@ def _dump_inline_table(section):
 
 def _dump_value(v):
     dump_funcs = {
-        str: lambda: _dump_str(v),
-        unicode: lambda: _dump_str(v),
-        list: lambda: _dump_list(v),
-        bool: lambda: unicode(v).lower(),
-        float: lambda: _dump_float(v),
-        datetime.datetime: lambda: v.isoformat().replace('+00:00', 'Z'),
+        str: _dump_str,
+        unicode: _dump_str,
+        list: _dump_list,
+        int: lambda v: v,
+        bool: lambda v: unicode(v).lower(),
+        float: _dump_float,
+        datetime.datetime: lambda v: v.isoformat().replace('+00:00', 'Z'),
     }
     # Lookup function corresponding to v's type
     dump_fn = dump_funcs.get(type(v))
+    if dump_fn is None and hasattr(v, '__iter__'):
+        dump_fn = dump_funcs[list]
     # Evaluate function (if it exists) else return v
-    return dump_fn() if dump_fn is not None else v
+    return dump_fn(v) if dump_fn is not None else dump_funcs[str](v)
 
 
 def _dump_str(v):
