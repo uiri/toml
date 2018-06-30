@@ -65,6 +65,8 @@ def dumps(o, encoder=None):
 
 
 def _dump_str(v):
+    if sys.version_info < (3,) and hasattr(v, 'decode') and isinstance(v, str):
+        v = v.decode('utf-8')
     v = "%r" % v
     if v[0] == 'u':
         v = v[1:]
