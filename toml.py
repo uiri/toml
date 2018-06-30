@@ -6,6 +6,7 @@ import re
 import io
 import datetime
 from os import linesep
+import sys
 
 __version__ = "0.9.4"
 _spec_ = "0.4.0"
@@ -917,6 +918,8 @@ def _dump_value(v):
 
 
 def _dump_str(v):
+    if sys.version_info < (3,) and hasattr(v, 'decode') and isinstance(v, str):
+        v = v.decode('utf-8')
     v = "%r" % v
     if v[0] == 'u':
         v = v[1:]
