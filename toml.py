@@ -707,6 +707,12 @@ def _load_array(a, _dict):
             in_str = False
             while end_group_index < len(a[1:]):
                 if a[end_group_index] == '"' or a[end_group_index] == "'":
+                    if in_str:
+                        backslash_index = end_group_index - 1
+                        while (backslash_index > -1 and
+                               a[backslash_index] == '\\'):
+                            in_str = not in_str
+                            backslash_index -= 1
                     in_str = not in_str
                 if in_str or a[end_group_index] != '}':
                     end_group_index += 1
