@@ -106,6 +106,7 @@ class TomlEncoder(object):
             unicode: _dump_str,
             list: self.dump_list,
             bool: lambda v: unicode(v).lower(),
+            int: lambda v: v,
             float: _dump_float,
             datetime.datetime: lambda v: v.isoformat().replace('+00:00', 'Z'),
         }
@@ -140,8 +141,10 @@ class TomlEncoder(object):
     def dump_value(self, v):
         # Lookup function corresponding to v's type
         dump_fn = self.dump_funcs.get(type(v))
+        if dump_fn is None and hasattr(v, '__iter__'):
+            dump_fn = self.dump_funcs[list]
         # Evaluate function (if it exists) else return v
-        return dump_fn(v) if dump_fn is not None else v
+        return dump_fn(v) if dump_fn is not None else self.dump_funcs[str](v)
 
     def dump_sections(self, o, sup):
         retstr = ""
