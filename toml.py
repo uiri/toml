@@ -942,7 +942,8 @@ def _dump_str(v):
     if v[0] == 'u':
         v = v[1:]
     singlequote = v.startswith("'")
-    v = v[1:-1]
+    if singlequote or v.startswith('"'):
+        v = v[1:-1]
     if singlequote:
         v = v.replace("\\'", "'")
         v = v.replace('"', '\\"')
