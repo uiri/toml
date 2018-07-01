@@ -1,12 +1,15 @@
 import toml
+import copy
 import pytest
 import os
 import sys
 
+from toml.decoder import InlineTableDict
+
 
 TEST_STR = """
-[a]
-b = 1
+[a]\r
+b = 1\r
 c = 2
 """
 
@@ -56,6 +59,40 @@ def test_dict_decoder():
         TEST_STR, decoder=test_dict_decoder), TestDict)
 
 
+def test_inline_dict():
+    class TestDict(dict, InlineTableDict):
+        pass
+
+    encoder = toml.TomlPreserveInlineDictEncoder()
+    t = copy.deepcopy(TEST_DICT)
+    t['d'] = TestDict()
+    t['d']['x'] = "abc"
+    o = toml.loads(toml.dumps(t, encoder=encoder))
+    assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+
+def test_array_sep():
+    encoder = toml.TomlArraySeparatorEncoder(separator=",\t")
+    d = {"a": [1, 2, 3]}
+    o = toml.loads(toml.dumps(d, encoder=encoder))
+    assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+
+def test_ordered():
+    from toml import ordered as toml_ordered
+    encoder = toml_ordered.TomlOrderedEncoder()
+    decoder = toml_ordered.TomlOrderedDecoder()
+    o = toml.loads(toml.dumps(TEST_DICT, encoder=encoder), decoder=decoder)
+    assert o == toml.loads(toml.dumps(TEST_DICT, encoder=encoder),
+                           decoder=decoder)
+
+
+def test_tuple():
+    d = {"a": (3, 4)}
+    o = toml.loads(toml.dumps(d))
+    assert o == toml.loads(toml.dumps(o))
+
+
 def test_invalid_tests():
     invalid_dir = "toml-test/tests/invalid/"
     for f in os.listdir(invalid_dir):
@@ -80,6 +117,27 @@ def test_exceptions():
 
     with pytest.raises(FileNotFoundError):
         toml.load([])
+
+
+class FakeFile(object):
+
+    def __init__(self):
+        self.written = ""
+
+    def write(self, s):
+        self.written += s
+        return None
+
+    def read(self):
+        return self.written
+
+
+def test_dump():
+    f = FakeFile()
+    g = FakeFile()
+    toml.dump(TEST_DICT, f)
+    toml.dump(toml.load(f), g)
+    assert g.written == f.written
 
 
 def test_paths():
