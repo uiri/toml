@@ -717,6 +717,21 @@ class TomlDecoder(object):
                 return (0 - v, itype)
             return (v, itype)
 
+    def bounded_string(self, s):
+        if len(s) == 0:
+            return True
+        if s[-1] != s[0]:
+            return False
+        i = -2
+        backslash = False
+        while len(s) + i > 0:
+            if s[i] == "\\":
+                backslash = not backslash
+                i -= 1
+            else:
+                break
+        return not backslash
+
     def load_array(self, a):
         atype = None
         retval = []
@@ -766,10 +781,11 @@ class TomlDecoder(object):
             if strarray:
                 while b < len(a) - 1:
                     ab = a[b].strip()
-                    while ab[-1] != ab[0] or (len(ab) > 2 and
-                                              ab[0] == ab[1] == ab[2] and
-                                              ab[-2] != ab[0] and
-                                              ab[-3] != ab[0]):
+                    while (not self.bounded_string(ab) or
+                           (len(ab) > 2 and
+                            ab[0] == ab[1] == ab[2] and
+                            ab[-2] != ab[0] and
+                            ab[-3] != ab[0])):
                         a[b] = a[b] + ',' + a[b + 1]
                         ab = a[b].strip()
                         if b < len(a) - 2:
