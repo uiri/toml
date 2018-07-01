@@ -135,9 +135,11 @@ class FakeFile(object):
 def test_dump():
     f = FakeFile()
     g = FakeFile()
+    h = FakeFile()
     toml.dump(TEST_DICT, f)
     toml.dump(toml.load(f), g)
-    assert g.written == f.written
+    toml.dump(toml.load(g), h)
+    assert g.written == h.written
 
 
 def test_paths():
