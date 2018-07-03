@@ -6,7 +6,7 @@ if [ "${version/Python 3.3}" != "$version" ]; then
     exit 0
 fi
 
-git clone https://github.com/uiri/toml-test
+git clone https://github.com/BurntSushi/toml-test
 tox
 r=$?
 
