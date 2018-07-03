@@ -42,7 +42,7 @@ Directions
 ----------
 
 1. Install `Go <https://golang.org/>`_ (AKA golang)
-2. Get the toml-test suite from `here <https://github.com/uiri/toml-test>`_
+2. Get the toml-test suite from `here <https://github.com/BurntSushi/toml-test>`_
    and follow the instructions under the **Try it out** section of the README.
 3. Test your changes for both versions of Python:
 
