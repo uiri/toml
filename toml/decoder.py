@@ -78,9 +78,8 @@ def _strictly_valid_num(n):
         return False
     if len(n) == 1:
         return True
-    if n[0] == '0':
-        if n[1] not in ['.', 'o', 'b', 'x']:
-            return False
+    if n[0] == '0' and n[1] not in ['.', 'o', 'b', 'x']:
+        return False
     if n[0] == '+' or n[0] == '-':
         n = n[1:]
         if len(n) > 1 and n[0] == '0' and n[1] != '.':
@@ -715,16 +714,19 @@ class TomlDecoder(object):
             elif v[0] == '+':
                 v = v[1:]
             v = v.replace('_', '')
-            if 'x' not in v:
-                if '.' in v or 'e' in v or 'E' in v:
-                    if '.' in v and v.split('.', 1)[1] == '':
-                        raise ValueError("This float is missing digits after "
-                                         "the point")
-                    if v[0] not in '0123456789':
-                        raise ValueError("This float doesn't have a leading "
-                                         "digit")
-                    v = float(v)
-                    itype = "float"
+            lowerv = v.lower()
+            if '.' in v or ('x' not in v and ('e' in v or 'E' in v)):
+                if '.' in v and v.split('.', 1)[1] == '':
+                    raise ValueError("This float is missing digits after "
+                                     "the point")
+                if v[0] not in '0123456789':
+                    raise ValueError("This float doesn't have a leading "
+                                     "digit")
+                v = float(v)
+                itype = "float"
+            elif len(lowerv) == 3 and (lowerv == 'inf' or lowerv == 'nan'):
+                v = float(v)
+                itype = "float"
             if itype == "int":
                 v = int(v, 0)
             if neg:
