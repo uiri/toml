@@ -44,6 +44,9 @@ except NameError:
     FNFError = IOError
 
 
+TIME_RE = re.compile("([0-9]{2}):([0-9]{2}):([0-9]{2})(\.([0-9]{3,6}))?")
+
+
 class TomlDecodeError(ValueError):
     """Base toml Exception / Error."""
 
@@ -687,6 +690,10 @@ class TomlDecoder(object):
             inline_object = self.get_empty_inline_table()
             self.load_inline_object(v, inline_object)
             return (inline_object, "inline_object")
+        elif TIME_RE.match(v):
+            h, m, s, _, ms = TIME_RE.match(v).groups()
+            time = datetime.time(int(h), int(m), int(s), int(ms) if ms else 0)
+            return (time, "time")
         else:
             parsed_date = _load_date(v)
             if parsed_date is not None:

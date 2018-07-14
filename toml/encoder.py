@@ -99,6 +99,14 @@ def _dump_float(v):
     return "{0:.16}".format(v).replace("e+0", "e+").replace("e-0", "e-")
 
 
+def _dump_time(v):
+    utcoffset = v.utcoffset()
+    if utcoffset is None:
+        return v.isoformat()
+    # The TOML norm specifies that it's local time thus we drop the offset
+    return v.isoformat()[:-6]
+
+
 class TomlEncoder(object):
 
     def __init__(self, _dict=dict, preserve=False):
@@ -112,6 +120,7 @@ class TomlEncoder(object):
             int: lambda v: v,
             float: _dump_float,
             datetime.datetime: lambda v: v.isoformat().replace('+00:00', 'Z'),
+            datetime.time: _dump_time,
         }
 
     def get_empty_table(self):
