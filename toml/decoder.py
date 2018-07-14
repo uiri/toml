@@ -703,7 +703,7 @@ class TomlDecoder(object):
             elif v[0] == '+':
                 v = v[1:]
             v = v.replace('_', '')
-            if v[1] not in ['x', 'o', 'b']:
+            if 'x' not in v:
                 if '.' in v or 'e' in v or 'E' in v:
                     if '.' in v and v.split('.', 1)[1] == '':
                         raise ValueError("This float is missing digits after "
@@ -713,7 +713,7 @@ class TomlDecoder(object):
                                          "digit")
                     v = float(v)
                     itype = "float"
-            else:
+            if itype == "int":
                 v = int(v, 0)
             if neg:
                 return (0 - v, itype)
