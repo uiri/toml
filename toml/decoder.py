@@ -75,8 +75,12 @@ def _strictly_valid_num(n):
         return False
     if len(n) == 1:
         return True
-    if n[0] == '0' and n[1] != '.':
-        return False
+    if n[0] == '0':
+        if n[1] in ['o','b','x']:
+            n = int(n, 0)
+            return True
+        if n[1] != '.':
+            return False
     if n[0] == '+' or n[0] == '-':
         n = n[1:]
         if n[0] == '0' and n[1] != '.':
@@ -712,7 +716,7 @@ class TomlDecoder(object):
                 v = float(v)
                 itype = "float"
             else:
-                v = int(v)
+                v = int(v, 0)
             if neg:
                 return (0 - v, itype)
             return (v, itype)
