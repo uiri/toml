@@ -121,6 +121,7 @@ class TomlEncoder(object):
             float: _dump_float,
             datetime.datetime: lambda v: v.isoformat().replace('+00:00', 'Z'),
             datetime.time: _dump_time,
+            datetime.date: lambda v: v.isoformat()
         }
 
     def get_empty_table(self):

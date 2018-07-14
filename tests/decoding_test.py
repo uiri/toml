@@ -47,6 +47,8 @@ def tag(value):
     elif isinstance(value, datetime.datetime):
         return {'type': 'datetime', 'value': value.isoformat()
                 .replace('+00:00', 'Z')}
+    elif isinstance(value, datetime.date):
+        return {'type': 'date', 'value': value.isoformat()}
     elif isinstance(value, datetime.time):
         return {'type': 'time', 'value': value.strftime('%H:%M:%S.%f')}
     assert False, 'Unknown type: %s' % type(value)
