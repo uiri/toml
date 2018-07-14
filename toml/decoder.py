@@ -83,7 +83,7 @@ def _strictly_valid_num(n):
             return False
     if n[0] == '+' or n[0] == '-':
         n = n[1:]
-        if n[0] == '0' and n[1] != '.':
+        if len(n) > 1 and n[0] == '0' and n[1] != '.':
             return False
     if '__' in n:
         return False
