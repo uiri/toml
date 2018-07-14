@@ -443,10 +443,15 @@ def _load_date(val):
     if "-" not in val[1:]:
         return None
     try:
-        d = datetime.datetime(
-            int(val[:4]), int(val[5:7]),
-            int(val[8:10]), int(val[11:13]),
-            int(val[14:16]), int(val[17:19]), microsecond, tz)
+        if len(val) == 10:
+            d = datetime.date(
+                int(val[:4]), int(val[5:7]),
+                int(val[8:10]))
+        else:
+            d = datetime.datetime(
+                int(val[:4]), int(val[5:7]),
+                int(val[8:10]), int(val[11:13]),
+                int(val[14:16]), int(val[17:19]), microsecond, tz)
     except ValueError:
         return None
     return d
