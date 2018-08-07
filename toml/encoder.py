@@ -116,6 +116,7 @@ class TomlEncoder(object):
             str: _dump_str,
             unicode: _dump_str,
             list: self.dump_list,
+            tuple: self.dump_list,
             bool: lambda v: unicode(v).lower(),
             int: lambda v: v,
             float: _dump_float,
