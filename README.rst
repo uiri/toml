@@ -9,7 +9,7 @@ TOML
     :target: https://travis-ci.org/uiri/toml
 
 .. image:: https://img.shields.io/pypi/pyversions/toml.svg
-    :target: https://pypi.python.org/pypi/toml
+    :target: https://pypi.org/project/toml/
 
 
 A Python library for parsing and creating `TOML <https://en.wikipedia.org/wiki/TOML>`_.
@@ -24,7 +24,7 @@ See also:
 Installation
 ============
 
-To install the latest release on `PyPi <https://pypi.python.org/pypi/toml/0.9.2>`_,
+To install the latest release on `PyPi <https://pypi.org/project/toml/>`_,
 simply run:
 
 ::
