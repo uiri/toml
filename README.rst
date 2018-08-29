@@ -24,7 +24,7 @@ See also:
 Installation
 ============
 
-To install the latest release on `PyPi <https://pypi.org/project/toml/>`_,
+To install the latest release on `PyPI <https://pypi.org/project/toml/>`_,
 simply run:
 
 ::
