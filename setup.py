@@ -18,6 +18,7 @@ setup(
     packages=['toml'],
     license="MIT",
     long_description=readme_string,
+    python_requires=">=2.6, !=3.0.*, !=3.1.*, !=3.2.*",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
