@@ -29,6 +29,7 @@ install:
  - chmod +x ./tests/*.sh
 script:
  - ~/go/bin/toml-test ./tests/decoding_test.sh
- - ./tests/tox.sh
+ - tox
+ - tox -e check
 after_success:
  - tox -e codecov
