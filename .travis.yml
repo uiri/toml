@@ -23,6 +23,7 @@ addons:
 before_install:
  - export GOPATH=~/go
  - go get github.com/BurntSushi/toml-test
+ - git clone https://github.com/BurntSushi/toml-test
 install:
  - pip install tox-travis
  - python setup.py install
