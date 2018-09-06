@@ -160,3 +160,11 @@ def test_warnings():
 def test_commutativity():
     o = toml.loads(toml.dumps(TEST_DICT))
     assert o == toml.loads(toml.dumps(o))
+
+
+def test_bug_190():
+    class String(str):
+        pass
+
+    o = toml.dumps({'test': String('test string')})
+    assert o == 'test = "test string"\n'
