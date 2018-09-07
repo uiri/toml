@@ -16,9 +16,10 @@ setup(
     author_email="uiri@xqz.ca",
     url="https://github.com/uiri/toml",
     packages=['toml'],
-    license="License :: OSI Approved :: MIT License",
+    license="MIT",
     long_description=readme_string,
     classifiers=[
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
