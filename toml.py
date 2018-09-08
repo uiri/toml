@@ -509,11 +509,24 @@ def _load_date(val):
     try:
         if len(val) > 19:
             if val[19] == '.':
-                microsecond = int(val[20:26])
-                if len(val) > 26:
-                    tz = TomlTz(val[26:32])
+                if val[-1].upper() == 'Z':
+                    subsecondval = val[20:-1]
+                    tzval = "Z"
+                else:
+                    subsecondvalandtz = val[20:]
+                    if '+' in subsecondvalandtz:
+                        splitpoint = subsecondvalandtz.index('+')
+                        subsecondval = subsecondvalandtz[:splitpoint]
+                        tzval = subsecondvalandtz[splitpoint:]
+                    elif '-' in subsecondvalandtz:
+                        splitpoint = subsecondvalandtz.index('-')
+                        subsecondval = subsecondvalandtz[:splitpoint]
+                        tzval = subsecondvalandtz[splitpoint:]
+                tz = TomlTz(tzval)
+                microsecond = int(int(subsecondval) *
+                                  (10 ** (6 - len(subsecondval))))
             else:
-                tz = TomlTz(val[19:25])
+                tz = TomlTz(val[19:])
     except ValueError:
         tz = None
     if "-" not in val[1:]:
