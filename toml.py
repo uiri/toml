@@ -565,6 +565,9 @@ def _load_unicode_escapes(v, hexbytes, prefix):
         hxb = ''.join(hx[i:i + hxblen]).lower()
         if hxb.strip('0123456789abcdef'):
             raise ValueError("Invalid escape sequence: " + hxb)
+        if hxb[0] == "d" and hxb[1].strip('01234567'):
+            raise ValueError("Invalid escape sequence: " + hxb +
+                             ". Only scalar unicode points are allowed.")
         v += unichr(int(hxb, 16))
         v += unicode(hx[len(hxb):])
     return v
