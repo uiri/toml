@@ -355,6 +355,10 @@ def loads(s, _dict=dict, decoder=None):
                     j = i + 1
                     while not groupstr[0] == groupstr[-1]:
                         j += 1
+                        if j > len(groups) + 2:
+                            raise TomlDecodeError("Invalid group name '" +
+                                                  groupstr + "' Something " +
+                                                  "went wrong.", original, pos)
                         groupstr = '.'.join(groups[i:j]).strip()
                     groups[i] = groupstr[1:-1]
                     groups[i + 1:j] = []
