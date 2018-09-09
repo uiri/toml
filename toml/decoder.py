@@ -610,6 +610,18 @@ class TomlDecoder(object):
             if status is not None:
                 break
 
+    def _get_split_on_quotes(self, line):
+        doublequotesplits = line.split('"')
+        quoted = False
+        quotesplits = []
+        for doublequotesplit in doublequotesplits:
+            if quoted:
+                quotesplits.append(doublequotesplit)
+            else:
+                quotesplits += doublequotesplit.split("'")
+                quoted = not quoted
+        return quotesplits
+
     def load_line(self, line, currentlevel, multikey, multibackslash):
         i = 1
         pair = line.split('=', i)
@@ -637,29 +649,21 @@ class TomlDecoder(object):
         pair = ['='.join(pair[:-1]).strip(), pair[-1].strip()]
         if '.' in pair[0]:
             if '"' in pair[0] or "'" in pair[0]:
-                doublequotesplits = pair[0].split('"')
-
-                quoted = False
-                quotesplits = []
-                for doublequotesplit in doublequotesplits:
-                    if quoted:
-                        quotesplits.append(doublequotesplit)
-                    else:
-                        quotesplits += doublequotesplit.split("'")
-                    quoted = not quoted
-
+                quotesplits = self._get_split_on_quotes(pair[0])
                 quoted = False
                 levels = []
                 for quotesplit in quotesplits:
                     if quoted:
                         levels.append(quotesplit)
                     else:
-                        levels += quotesplit.split('.')
+                        levels += [level.strip() for level in
+                                   quotesplit.split('.')]
                     quoted = not quoted
             else:
                 levels = pair[0].split('.')
+            while levels[-1] == "":
+                levels = levels[:-1]
             for level in levels[:-1]:
-                level = level.strip()
                 if level == "":
                     continue
                 if level not in currentlevel:
