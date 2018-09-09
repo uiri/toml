@@ -462,7 +462,7 @@ def _strictly_valid_num(n):
     return True
 
 
-def _get_split_on_quotes(self, line):
+def _get_split_on_quotes(line):
     doublequotesplits = line.split('"')
     quoted = False
     quotesplits = []
