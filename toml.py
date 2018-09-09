@@ -8,7 +8,7 @@ import datetime
 from os import linesep
 import sys
 
-__version__ = "0.9.4"
+__version__ = "0.9.5"
 _spec_ = "0.4.0"
 
 
