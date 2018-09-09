@@ -360,13 +360,24 @@ def loads(s, _dict=dict, decoder=None):
                                       "itself.", original, pos)
             if line[1] == '[':
                 arrayoftables = True
-                line = line[2:].split(']]', 1)
+                line = line[2:]
+                splitstr = ']]'
             else:
-                line = line[1:].split(']', 1)
-            if len(line) < 2 or line[1].strip() != "":
+                line = line[1:]
+                splitstr = ']'
+            i = 1
+            quotesplits = decoder._get_split_on_quotes(line)
+            quoted = False
+            for quotesplit in quotesplits:
+                if not quoted and splitstr in quotesplit:
+                    break
+                i += quotesplit.count(splitstr)
+                quoted = not quoted
+            line = line.split(splitstr, i)
+            if len(line) < i + 1 or line[-1].strip() != "":
                 raise TomlDecodeError("Key group not on a line by itself.",
                                       original, pos)
-            groups = line[0].split('.')
+            groups = splitstr.join(line[:-1]).split('.')
             i = 0
             while i < len(groups):
                 groups[i] = groups[i].strip()
@@ -614,6 +625,16 @@ class TomlDecoder(object):
         doublequotesplits = line.split('"')
         quoted = False
         quotesplits = []
+        if len(doublequotesplits) > 1 and "'" in doublequotesplits[0]:
+            singlequotesplits = doublequotesplits[0].split("'")
+            doublequotesplits = doublequotesplits[1:]
+            while len(singlequotesplits) % 2 == 0 and len(doublequotesplits):
+                singlequotesplits[-1] += '"' + doublequotesplits[0]
+                doublequotesplits = doublequotesplits[1:]
+                if "'" in singlequotesplits[-1]:
+                    singlequotesplits = (singlequotesplits[:-1] +
+                                         singlequotesplits[-1].split("'"))
+            quotesplits += singlequotesplits
         for doublequotesplit in doublequotesplits:
             if quoted:
                 quotesplits.append(doublequotesplit)
