@@ -624,6 +624,13 @@ class TomlDecoder(object):
 
     def load_line(self, line, currentlevel, multikey, multibackslash):
         i = 1
+        quotesplits = self._get_split_on_quotes(line)
+        quoted = False
+        for quotesplit in quotesplits:
+            if not quoted and '=' in quotesplit:
+                break
+            i += quotesplit.count('=')
+            quoted = not quoted
         pair = line.split('=', i)
         strictly_valid = _strictly_valid_num(pair[-1])
         if _number_with_underscores.match(pair[-1]):
