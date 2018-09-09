@@ -7,7 +7,7 @@ from toml import encoder
 from toml import decoder
 
 __version__ = "0.10.0"
-_spec_ = "0.4.0"
+_spec_ = "0.5.0"
 
 load = decoder.load
 loads = decoder.loads

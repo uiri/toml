@@ -19,7 +19,7 @@ The module passes `the TOML test suite <https://github.com/BurntSushi/toml-test>
 See also:
 
 * `The TOML Standard <https://github.com/toml-lang/toml>`_
-* `The current TOML specification <https://github.com/toml-lang/toml/blob/v0.4.0/README.md>`_
+* `The current TOML specification <https://github.com/toml-lang/toml/blob/v0.5.0/README.md>`_
 
 Installation
 ============
