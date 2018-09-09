@@ -175,6 +175,7 @@ def loads(s, _dict=dict, decoder=None):
     arrayoftables = False
     beginline = True
     keygroup = False
+    dottedkey = False
     keyname = 0
     for i, item in enumerate(sl):
         if item == '\r' and sl[i + 1] == '\n':
@@ -194,12 +195,32 @@ def loads(s, _dict=dict, decoder=None):
                 if item.isspace():
                     keyname = 2
                     continue
+                elif item == '.':
+                    dottedkey = True
+                    continue
                 elif item.isalnum() or item == '_' or item == '-':
                     continue
-            elif keyname == 2 and item.isspace():
-                continue
+                elif (dottedkey and sl[i - 1] == '.' and
+                      (item == '"' or item == "'")):
+                    openstring = True
+                    openstrchar = item
+                    continue
+            elif keyname == 2:
+                if item.isspace():
+                    if dottedkey:
+                        nextitem = sl[i + 1]
+                        if not nextitem.isspace() and nextitem != '.':
+                            keyname = 1
+                    continue
+                if item == '.':
+                    dottedkey = True
+                    nextitem = sl[i + 1]
+                    if not nextitem.isspace() and nextitem != '.':
+                        keyname = 1
+                    continue
             if item == '=':
                 keyname = 0
+                dottedkey = False
             else:
                 raise TomlDecodeError("Found invalid character in key name: '" +
                                       item + "'. Try quoting the key name.",
@@ -393,9 +414,7 @@ def loads(s, _dict=dict, decoder=None):
                                                   original, pos)
                 except TypeError:
                     currentlevel = currentlevel[-1]
-                    try:
-                        currentlevel[group]
-                    except KeyError:
+                    if group not in currentlevel:
                         currentlevel[group] = decoder.get_empty_table()
                         if i == len(groups) - 1 and arrayoftables:
                             currentlevel[group] = [decoder.get_empty_table()]
@@ -616,8 +635,39 @@ class TomlDecoder(object):
             if strictly_valid:
                 strictly_valid = _strictly_valid_num(pair[-1])
         pair = ['='.join(pair[:-1]).strip(), pair[-1].strip()]
-        if (pair[0][0] == '"' or pair[0][0] == "'") and \
-                (pair[0][-1] == '"' or pair[0][-1] == "'"):
+        if '.' in pair[0]:
+            if '"' in pair[0] or "'" in pair[0]:
+                doublequotesplits = pair[0].split('"')
+
+                quoted = False
+                quotesplits = []
+                for doublequotesplit in doublequotesplits:
+                    if quoted:
+                        quotesplits.append(doublequotesplit)
+                    else:
+                        quotesplits += doublequotesplit.split("'")
+                    quoted = not quoted
+
+                quoted = False
+                levels = []
+                for quotesplit in quotesplits:
+                    if quoted:
+                        levels.append(quotesplit)
+                    else:
+                        levels += quotesplit.split('.')
+                    quoted = not quoted
+            else:
+                levels = pair[0].split('.')
+            for level in levels[:-1]:
+                level = level.strip()
+                if level == "":
+                    continue
+                if level not in currentlevel:
+                    currentlevel[level] = self.get_empty_table()
+                currentlevel = currentlevel[level]
+            pair[0] = levels[-1].strip()
+        elif (pair[0][0] == '"' or pair[0][0] == "'") and \
+                (pair[0][-1] == pair[0][0]):
             pair[0] = pair[0][1:-1]
         if len(pair[1]) > 2 and ((pair[1][0] == '"' or pair[1][0] == "'") and
                                  pair[1][1] == pair[1][0] and
@@ -639,6 +689,8 @@ class TomlDecoder(object):
             value, vtype = self.load_value(pair[1], strictly_valid)
         try:
             currentlevel[pair[0]]
+            raise ValueError("Duplicate keys!")
+        except TypeError:
             raise ValueError("Duplicate keys!")
         except KeyError:
             if multikey:
