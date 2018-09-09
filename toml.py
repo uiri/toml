@@ -661,7 +661,7 @@ def _load_value(v, _dict, strictly_valid=True):
         testv = v[1:].split('"')
         triplequote = False
         triplequotecount = 0
-        if testv[0] == '' and testv[1] == '':
+        if len(testv) > 1 and testv[0] == '' and testv[1] == '':
             testv = testv[2:]
             triplequote = True
         closed = False
@@ -706,7 +706,7 @@ def _load_value(v, _dict, strictly_valid=True):
                 hexbytes = v.split(prefix)
                 v = _load_unicode_escapes(hexbytes[0], hexbytes[1:], prefix)
         v = _unescape(v)
-        if v[1] == '"' and (len(v) < 3 or v[1] == v[2]):
+        if len(v) > 1 and v[1] == '"' and (len(v) < 3 or v[1] == v[2]):
             v = v[2:-2]
         return (v[1:-1], "str")
     elif v[0] == "'":
