@@ -12,7 +12,7 @@ setup(
     name="toml",
     version=toml.__version__,
     description="Python Library for Tom's Obvious, Minimal Language",
-    author="Uiri Noyb",
+    author="William Pearson",
     author_email="uiri@xqz.ca",
     url="https://github.com/uiri/toml",
     packages=['toml'],
