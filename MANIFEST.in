@@ -1,8 +1,5 @@
-include toml/__init__.py
-include toml/decoder.py
-include toml/encoder.py
-include toml/tz.py
-include setup.py
-include toml.pyi
-include README.rst
 include LICENSE
+include README.rst
+include toml.pyi
+include tox.ini
+recursive-include tests *.py *.sh
