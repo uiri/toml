@@ -567,7 +567,11 @@ def _load_date(val):
                         splitpoint = subsecondvalandtz.index('-')
                         subsecondval = subsecondvalandtz[:splitpoint]
                         tzval = subsecondvalandtz[splitpoint:]
-                tz = TomlTz(tzval)
+                    else:
+                        tzval = None
+                        subsecondval = subsecondvalandtz
+                if tzval is not None:
+                    tz = TomlTz(tzval)
                 microsecond = int(int(subsecondval) *
                                   (10 ** (6 - len(subsecondval))))
             else:
