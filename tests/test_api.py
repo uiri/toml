@@ -3,6 +3,7 @@ import copy
 import pytest
 import os
 import sys
+from decimal import Decimal
 
 from toml.decoder import InlineTableDict
 
@@ -131,6 +132,15 @@ def test_tuple():
     d = {"a": (3, 4)}
     o = toml.loads(toml.dumps(d))
     assert o == toml.loads(toml.dumps(o))
+
+
+def test_decimal():
+    PLACES = Decimal(10) ** -4
+
+    d = {"a": Decimal("0.1")}
+    o = toml.loads(toml.dumps(d))
+    assert o == toml.loads(toml.dumps(o))
+    assert Decimal(o["a"]).quantize(PLACES) == d["a"].quantize(PLACES)
 
 
 def test_invalid_tests():
