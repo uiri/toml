@@ -1,6 +1,7 @@
 import datetime
 import re
 import sys
+from decimal import Decimal
 
 from toml.decoder import InlineTableDict
 
@@ -119,6 +120,7 @@ class TomlEncoder(object):
             bool: lambda v: unicode(v).lower(),
             int: lambda v: v,
             float: _dump_float,
+            Decimal: _dump_float,
             datetime.datetime: lambda v: v.isoformat().replace('+00:00', 'Z'),
             datetime.time: _dump_time,
             datetime.date: lambda v: v.isoformat()
