@@ -661,8 +661,9 @@ def _load_value(v, _dict, strictly_valid=True):
         return (True, "bool")
     elif v == 'false':
         return (False, "bool")
-    elif v[0] == '"':
-        testv = v[1:].split('"')
+    elif v[0] == '"' or v[0] == "'":
+        quotechar = v[0]
+        testv = v[1:].split(quotechar)
         triplequote = False
         triplequotecount = 0
         if len(testv) > 1 and testv[0] == '' and testv[1] == '':
@@ -694,27 +695,24 @@ def _load_value(v, _dict, strictly_valid=True):
                             closed = True
                         else:
                             triplequotecount = 0
-        escapeseqs = v.split('\\')[1:]
-        backslash = False
-        for i in escapeseqs:
-            if i == '':
-                backslash = not backslash
-            else:
-                if i[0] not in _escapes and (i[0] != 'u' and i[0] != 'U' and
-                                             not backslash):
-                    raise ValueError("Reserved escape sequence used")
-                if backslash:
-                    backslash = False
-        for prefix in ["\\u", "\\U"]:
-            if prefix in v:
-                hexbytes = v.split(prefix)
-                v = _load_unicode_escapes(hexbytes[0], hexbytes[1:], prefix)
-        v = _unescape(v)
-        if len(v) > 1 and v[1] == '"' and (len(v) < 3 or v[1] == v[2]):
-            v = v[2:-2]
-        return (v[1:-1], "str")
-    elif v[0] == "'":
-        if v[1] == "'" and (len(v) < 3 or v[1] == v[2]):
+        if quotechar == '"':
+            escapeseqs = v.split('\\')[1:]
+            backslash = False
+            for i in escapeseqs:
+                if i == '':
+                    backslash = not backslash
+                else:
+                    if i[0] not in _escapes and (i[0] != 'u' and i[0] != 'U' and
+                                                 not backslash):
+                        raise ValueError("Reserved escape sequence used")
+                    if backslash:
+                        backslash = False
+            for prefix in ["\\u", "\\U"]:
+                if prefix in v:
+                    hexbytes = v.split(prefix)
+                    v = _load_unicode_escapes(hexbytes[0], hexbytes[1:], prefix)
+            v = _unescape(v)
+        if len(v) > 1 and v[1] == quotechar and (len(v) < 3 or v[1] == v[2]):
             v = v[2:-2]
         return (v[1:-1], "str")
     elif v[0] == '[':
