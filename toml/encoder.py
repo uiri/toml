@@ -219,13 +219,13 @@ class TomlEncoder(object):
 class TomlPreserveInlineDictEncoder(TomlEncoder):
 
     def __init__(self, _dict=dict):
-        super(self.__class__, self).__init__(_dict, True)
+        super(TomlPreserveInlineDictEncoder, self).__init__(_dict, True)
 
 
 class TomlArraySeparatorEncoder(TomlEncoder):
 
     def __init__(self, _dict=dict, preserve=False, separator=","):
-        super(self.__class__, self).__init__(_dict, preserve)
+        super(TomlArraySeparatorEncoder, self).__init__(_dict, preserve)
         if separator.strip() == "":
             separator = "," + separator
         elif separator.strip(' \t\n\r,'):
