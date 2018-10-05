@@ -710,7 +710,7 @@ class TomlDecoder(object):
             pair[0] = levels[-1].strip()
         elif (pair[0][0] == '"' or pair[0][0] == "'") and \
                 (pair[0][-1] == pair[0][0]):
-            pair[0] = pair[0][1:-1]
+            pair[0] = _unescape(pair[0][1:-1])
         if len(pair[1]) > 2 and ((pair[1][0] == '"' or pair[1][0] == "'") and
                                  pair[1][1] == pair[1][0] and
                                  pair[1][2] == pair[1][0] and
