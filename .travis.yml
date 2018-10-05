@@ -6,6 +6,7 @@ python:
  - "3.5"
  - "3.6"
  - "pypy"
+ - "pypy3.5"
 
 matrix:
   include:
@@ -15,19 +16,12 @@ matrix:
 
 notifications:
   email: false
-addons:
-  apt:
-    packages:
-    - git
-    - golang
 before_install:
  - export GOPATH=~/go
  - go get github.com/BurntSushi/toml-test
- - git clone https://github.com/BurntSushi/toml-test
 install:
  - pip install tox-travis
  - python setup.py install
- - chmod +x ./tests/*.sh
 script:
  - ~/go/bin/toml-test ./tests/decoding_test.sh
  - tox

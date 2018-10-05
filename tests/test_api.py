@@ -7,13 +7,19 @@ import sys
 from toml.decoder import InlineTableDict
 
 
-TEST_STR = """
-[a]\r
-b = 1\r
-c = 2
-"""
+@pytest.fixture(scope='module')
+def test_str():
+    return (
+        "\n"
+        "[a]\r\n"
+        "b = 1\r\n"
+        "c = 2\n"
+    )
 
-TEST_DICT = {"a": {"b": 1, "c": 2}}
+
+@pytest.fixture(scope='module')
+def test_dict():
+    return {"a": {"b": 1, "c": 2}}
 
 
 def test_bug_148():
@@ -43,12 +49,11 @@ def test_bug_196():
     assert round_trip_bug_dict['x'] == bug_dict['x']
 
 
-def test_valid_tests():
-    valid_dir = "toml-test/tests/valid/"
-    for f in os.listdir(valid_dir):
-        if not f.endswith("toml"):
+def test_valid_tests(valid_dir):
+    for filename in os.listdir(valid_dir):
+        if not os.path.splitext(filename) == '.toml':
             continue
-        toml.dumps(toml.load(open(os.path.join(valid_dir, f))))
+        toml.dumps(toml.load(open(os.path.join(valid_dir, filename))))
 
 
 def test_circular_ref():
@@ -64,29 +69,29 @@ def test_circular_ref():
         toml.dumps(b)
 
 
-def test__dict():
+def test__dict(test_str):
     class TestDict(dict):
         pass
 
     assert isinstance(toml.loads(
-        TEST_STR, _dict=TestDict), TestDict)
+        test_str, _dict=TestDict), TestDict)
 
 
-def test_dict_decoder():
+def test_dict_decoder(test_str):
     class TestDict(dict):
         pass
 
     test_dict_decoder = toml.TomlDecoder(TestDict)
     assert isinstance(toml.loads(
-        TEST_STR, decoder=test_dict_decoder), TestDict)
+        test_str, decoder=test_dict_decoder), TestDict)
 
 
-def test_inline_dict():
+def test_inline_dict(test_dict):
     class TestDict(dict, InlineTableDict):
         pass
 
     encoder = toml.TomlPreserveInlineDictEncoder()
-    t = copy.deepcopy(TEST_DICT)
+    t = copy.deepcopy(test_dict)
     t['d'] = TestDict()
     t['d']['x'] = "abc"
     o = toml.loads(toml.dumps(t, encoder=encoder))
@@ -100,12 +105,12 @@ def test_array_sep():
     assert o == toml.loads(toml.dumps(o, encoder=encoder))
 
 
-def test_ordered():
+def test_ordered(test_dict):
     from toml import ordered as toml_ordered
     encoder = toml_ordered.TomlOrderedEncoder()
     decoder = toml_ordered.TomlOrderedDecoder()
-    o = toml.loads(toml.dumps(TEST_DICT, encoder=encoder), decoder=decoder)
-    assert o == toml.loads(toml.dumps(TEST_DICT, encoder=encoder),
+    o = toml.loads(toml.dumps(test_dict, encoder=encoder), decoder=decoder)
+    assert o == toml.loads(toml.dumps(test_dict, encoder=encoder),
                            decoder=decoder)
 
 
@@ -115,13 +120,12 @@ def test_tuple():
     assert o == toml.loads(toml.dumps(o))
 
 
-def test_invalid_tests():
-    invalid_dir = "toml-test/tests/invalid/"
-    for f in os.listdir(invalid_dir):
-        if not f.endswith("toml"):
+def test_invalid_tests(invalid_dir):
+    for filename in os.listdir(invalid_dir):
+        if not os.path.splitext(filename) == '.toml':
             continue
         with pytest.raises(toml.TomlDecodeError):
-            toml.load(open(os.path.join(invalid_dir, f)))
+            toml.load(open(os.path.join(invalid_dir, filename)))
 
 
 def test_exceptions():
@@ -154,11 +158,11 @@ class FakeFile(object):
         return self.written
 
 
-def test_dump():
+def test_dump(test_dict):
     f = FakeFile()
     g = FakeFile()
     h = FakeFile()
-    toml.dump(TEST_DICT, f)
+    toml.dump(test_dict, f)
     toml.dump(toml.load(f), g)
     toml.dump(toml.load(g), h)
     assert g.written == h.written
@@ -179,6 +183,6 @@ def test_warnings():
         toml.load(["test.toml", "nonexist.toml"])
 
 
-def test_commutativity():
-    o = toml.loads(toml.dumps(TEST_DICT))
+def test_commutativity(test_dict):
+    o = toml.loads(toml.dumps(test_dict))
     assert o == toml.loads(toml.dumps(o))
