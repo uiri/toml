@@ -187,9 +187,15 @@ def loads(s, _dict=dict, decoder=None):
                                       " Reached end of line.", original, i)
             if openstring:
                 if item == openstrchar:
-                    keyname = 2
-                    openstring = False
-                    openstrchar = ""
+                    oddbackslash = False
+                    k = 1
+                    while i >= k and sl[i - k] == '\\':
+                        oddbackslash = not oddbackslash
+                        k += 1
+                    if not oddbackslash:
+                        keyname = 2
+                        openstring = False
+                        openstrchar = ""
                 continue
             elif keyname == 1:
                 if item.isspace():
