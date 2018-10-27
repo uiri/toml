@@ -175,10 +175,7 @@ class TomlEncoder(object):
             section = unicode(section)
             qsection = section
             if not re.match(r'^[A-Za-z0-9_-]+$', section):
-                if '"' in section:
-                    qsection = "'" + section + "'"
-                else:
-                    qsection = '"' + section + '"'
+                qsection = _dump_str(section)
             if not isinstance(o[section], dict):
                 arrayoftables = False
                 if isinstance(o[section], list):
