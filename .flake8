@@ -12,7 +12,7 @@ exclude =
     .tox,
 
 max-line-length = 80
-ignore =
+ignore = W504
 
 # Output config:
 show-source = True
