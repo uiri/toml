@@ -51,6 +51,19 @@ def test_valid_tests():
         toml.dumps(toml.load(open(os.path.join(valid_dir, f))))
 
 
+def test_circular_ref():
+    a = {}
+    b = {}
+    b['c'] = 4
+    b['self'] = b
+    a['b'] = b
+    with pytest.raises(ValueError):
+        toml.dumps(a)
+
+    with pytest.raises(ValueError):
+        toml.dumps(b)
+
+
 def test__dict():
     class TestDict(dict):
         pass
