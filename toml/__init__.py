@@ -19,3 +19,4 @@ dumps = encoder.dumps
 TomlEncoder = encoder.TomlEncoder
 TomlArraySeparatorEncoder = encoder.TomlArraySeparatorEncoder
 TomlPreserveInlineDictEncoder = encoder.TomlPreserveInlineDictEncoder
+TomlNumpyEncoder = encoder.TomlNumpyEncoder

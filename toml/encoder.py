@@ -251,3 +251,13 @@ class TomlArraySeparatorEncoder(TomlEncoder):
             t = s
         retval += "]"
         return retval
+
+
+class TomlNumpyEncoder(TomlEncoder):
+
+    def __init__(self, _dict=dict, preserve=False):
+        import numpy as np
+        super(TomlNumpyEncoder, self).__init__(_dict, preserve)
+        self.dump_funcs[np.float16] = _dump_float
+        self.dump_funcs[np.float32] = _dump_float
+        self.dump_funcs[np.float64] = _dump_float
