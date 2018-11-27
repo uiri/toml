@@ -100,6 +100,23 @@ def test_array_sep():
     assert o == toml.loads(toml.dumps(o, encoder=encoder))
 
 
+def test_numpy_floats():
+    import numpy as np
+
+    encoder = toml.TomlNumpyEncoder()
+    d = {'a': np.array([1, .3], dtype=np.float64)}
+    o = toml.loads(toml.dumps(d, encoder=encoder))
+    assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+    d = {'a': np.array([1, .3], dtype=np.float32)}
+    o = toml.loads(toml.dumps(d, encoder=encoder))
+    assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+    d = {'a': np.array([1, .3], dtype=np.float16)}
+    o = toml.loads(toml.dumps(d, encoder=encoder))
+    assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+
 def test_ordered():
     from toml import ordered as toml_ordered
     encoder = toml_ordered.TomlOrderedEncoder()
