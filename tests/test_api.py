@@ -44,6 +44,17 @@ def test_bug_196():
     assert round_trip_bug_dict['x'] == bug_dict['x']
 
 
+def test_bug_black637():
+    expected = {'black': {'637': {'black': {
+        'allow_prereleases': True, 'python': '>3.6', 'version': '>=18.9b0'
+    }}}}
+
+    assert expected == toml.loads(r"""
+[black.637]
+black = { python=">3.6", version=">=18.9b0", allow_prereleases=true }
+""")
+
+
 def test_valid_tests():
     valid_dir = "toml-test/tests/valid/"
     for f in os.listdir(valid_dir):

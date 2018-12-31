@@ -669,7 +669,8 @@ class TomlDecoder(object):
         while len(pair[-1]) and (pair[-1][0] != ' ' and pair[-1][0] != '\t' and
                                  pair[-1][0] != "'" and pair[-1][0] != '"' and
                                  pair[-1][0] != '[' and pair[-1][0] != '{' and
-                                 pair[-1] != 'true' and pair[-1] != 'false'):
+                                 pair[-1].strip() != 'true' and
+                                 pair[-1].strip() != 'false'):
             try:
                 float(pair[-1])
                 break
