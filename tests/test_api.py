@@ -48,7 +48,8 @@ def test_valid_tests():
     for f in os.listdir(valid_dir):
         if not f.endswith("toml"):
             continue
-        toml.dumps(toml.load(open(os.path.join(valid_dir, f))))
+        with open(os.path.join(valid_dir, f)) as fh:
+            toml.dumps(toml.load(fh))
 
 
 def test_circular_ref():
@@ -138,7 +139,8 @@ def test_invalid_tests():
         if not f.endswith("toml"):
             continue
         with pytest.raises(toml.TomlDecodeError):
-            toml.load(open(os.path.join(invalid_dir, f)))
+            with open(os.path.join(invalid_dir, f)) as fh:
+                toml.load(fh)
 
 
 def test_exceptions():
