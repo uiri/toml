@@ -1,4 +1,5 @@
 import datetime
+import io
 import re
 import sys
 from decimal import Decimal
@@ -7,6 +8,9 @@ from toml.decoder import InlineTableDict
 
 if sys.version_info >= (3,):
     unicode = str
+    binary_type = bytes
+else:
+    binary_type = str
 
 
 def dump(o, f):
@@ -14,7 +18,7 @@ def dump(o, f):
 
     Args:
         o: Object to dump into toml
-        f: File descriptor where the toml should be stored
+        f: File descriptor or file path where the toml should be stored
 
     Returns:
         String containing the toml corresponding to dictionary
@@ -23,9 +27,15 @@ def dump(o, f):
         TypeError: When anything other than file descriptor is passed
     """
 
-    if not f.write:
-        raise TypeError("You can only dump an object to a file descriptor")
     d = dumps(o)
+    try:
+        if not f.write:
+            raise TypeError("You can only dump an object to a file descriptor")
+    except AttributeError:
+        if isinstance(f, (unicode, binary_type)):
+            with io.open(f, "w", encoding="utf-8") as fd:
+                fd.write(d)
+            return d
     f.write(d)
     return d
 
