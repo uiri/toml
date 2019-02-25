@@ -120,7 +120,7 @@ def load(f, _dict=dict, decoder=None):
                           "existing file.")
             raise FNFError(error_msg)
         if decoder is None:
-            decoder = TomlDecoder()
+            decoder = TomlDecoder(_dict)
         d = decoder.get_empty_table()
         for l in f:
             if op.exists(l):
