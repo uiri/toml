@@ -161,12 +161,12 @@ def test_exceptions():
         toml.load(2)
 
     try:
-        FileNotFoundError
+        FNFError = FileNotFoundError
     except NameError:
         # py2
-        FileNotFoundError = IOError
+        FNFError = IOError
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(FNFError):
         toml.load([])
 
 
