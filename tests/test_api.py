@@ -183,7 +183,7 @@ class FakeFile(object):
         return self.written
 
 
-def test_dump():
+def test_dump(tmpdir):
     f = FakeFile()
     g = FakeFile()
     h = FakeFile()
@@ -191,6 +191,14 @@ def test_dump():
     toml.dump(toml.load(f), g)
     toml.dump(toml.load(g), h)
     assert g.written == h.written
+
+    a = str(tmpdir.join("a"))
+    b = str(tmpdir.join("b"))
+    c = str(tmpdir.join("c"))
+    toml.dump(TEST_DICT, a)
+    toml.dump(toml.load(a), b)
+    toml.dump(toml.load(b), c)
+    assert toml.load(a) == toml.load(b)
 
 
 def test_paths():
