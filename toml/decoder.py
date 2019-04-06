@@ -96,6 +96,8 @@ def load(f, _dict=dict, decoder=None):
         f: Path to the file to open, array of files to read into single dict
            or a file descriptor
         _dict: (optional) Specifies the class of the returned toml dictionary
+        comments: (optional) Specifies whether comment information has to
+                  preserved or not
 
     Returns:
         Parsed toml file represented as a dictionary
@@ -106,7 +108,6 @@ def load(f, _dict=dict, decoder=None):
         IOError / FileNotFoundError -- When an array with no valid (existing)
         (Python 2 / Python 3)          file paths is passed
     """
-
     if _ispath(f):
         with io.open(_getpath(f), encoding='utf-8') as ffile:
             return loads(ffile.read(), _dict, decoder)
@@ -146,6 +147,8 @@ def loads(s, _dict=dict, decoder=None):
     Args:
         s: String to be parsed
         _dict: (optional) Specifies the class of the returned toml dictionary
+        comments: (optional) Specifies whether comment information has to
+                  preserved or not
 
     Returns:
         Parsed toml file represented as a dictionary
@@ -277,13 +280,7 @@ def loads(s, _dict=dict, decoder=None):
                 openstrchar = ""
         if item == '#' and (not openstring and not keygroup and
                             not arrayoftables):
-            j = i
-            try:
-                while sl[j] != '\n':
-                    sl[j] = ' '
-                    j += 1
-            except IndexError:
-                break
+            beginline = False
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
             if beginline:
@@ -325,6 +322,7 @@ def loads(s, _dict=dict, decoder=None):
     multikey = None
     multilinestr = ""
     multibackslash = False
+    comment_no = 0
     pos = 0
     for idx, line in enumerate(s):
         if idx > 0:
@@ -333,6 +331,9 @@ def loads(s, _dict=dict, decoder=None):
             line = line.strip()
         if line == "" and (not multikey or multibackslash):
             continue
+        if line.startswith('#'):
+            currentlevel['comment ' + str(comment_no)] = line
+            comment_no += 1
         if multikey:
             if multibackslash:
                 multilinestr += line
