@@ -43,7 +43,6 @@ try:
 except NameError:
     FNFError = IOError
 
-
 TIME_RE = re.compile(r"([0-9]{2}):([0-9]{2}):([0-9]{2})(\.([0-9]{3,6}))?")
 
 
@@ -167,7 +166,9 @@ def loads(s, _dict=dict, decoder=None):
         s = s.decode('utf8')
 
     original = s
+    print(s)
     sl = list(s)
+    print(sl)
     openarr = 0
     openstring = False
     openstrchar = ""
@@ -277,13 +278,8 @@ def loads(s, _dict=dict, decoder=None):
                 openstrchar = ""
         if item == '#' and (not openstring and not keygroup and
                             not arrayoftables):
-            j = i
-            try:
-                while sl[j] != '\n':
-                    sl[j] = ' '
-                    j += 1
-            except IndexError:
-                break
+            beginline = False
+
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
             if beginline:
@@ -325,14 +321,19 @@ def loads(s, _dict=dict, decoder=None):
     multikey = None
     multilinestr = ""
     multibackslash = False
+    comment = 0
     pos = 0
     for idx, line in enumerate(s):
+        print(idx, line)
         if idx > 0:
             pos += len(s[idx - 1]) + 1
         if not multilinestr or multibackslash or '\n' not in multilinestr:
             line = line.strip()
         if line == "" and (not multikey or multibackslash):
             continue
+        if line.startswith('#'):
+            currentlevel['comment ' + str(comment)] = line
+            comment += 1
         if multikey:
             if multibackslash:
                 multilinestr += line
@@ -464,6 +465,7 @@ def loads(s, _dict=dict, decoder=None):
                 raise TomlDecodeError(str(err), original, pos)
             if ret is not None:
                 multikey, multilinestr, multibackslash = ret
+    print(retval)
     return retval
 
 
