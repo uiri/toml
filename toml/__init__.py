@@ -13,6 +13,8 @@ load = decoder.load
 loads = decoder.loads
 TomlDecoder = decoder.TomlDecoder
 TomlDecodeError = decoder.TomlDecodeError
+CommentKey = decoder.CommentKey
+TomlPreserveCommentDecoder = decoder.TomlPreserveCommentDecoder
 
 dump = encoder.dump
 dumps = encoder.dumps
@@ -20,3 +22,4 @@ TomlEncoder = encoder.TomlEncoder
 TomlArraySeparatorEncoder = encoder.TomlArraySeparatorEncoder
 TomlPreserveInlineDictEncoder = encoder.TomlPreserveInlineDictEncoder
 TomlNumpyEncoder = encoder.TomlNumpyEncoder
+TomlPreserveCommentEncoder = encoder.TomlPreserveCommentEncoder
