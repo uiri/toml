@@ -43,6 +43,7 @@ try:
 except NameError:
     FNFError = IOError
 
+
 TIME_RE = re.compile(r"([0-9]{2}):([0-9]{2}):([0-9]{2})(\.([0-9]{3,6}))?")
 
 
@@ -63,6 +64,21 @@ class TomlDecodeError(ValueError):
 
 # Matches a TOML number, which allows underscores for readability
 _number_with_underscores = re.compile('([0-9])(_([0-9]))*')
+
+
+class CommentKey:
+    def __init__(self, key, val):
+        self.key = key
+        self.val = val
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __str__(self):
+        return '{}, {}'.format(self.key, self.val)
+
+    def __eq__(self, other):
+        return str(self) == other
 
 
 def _strictly_valid_num(n):
@@ -95,6 +111,7 @@ def load(f, _dict=dict, decoder=None):
         f: Path to the file to open, array of files to read into single dict
            or a file descriptor
         _dict: (optional) Specifies the class of the returned toml dictionary
+        decoder: The decoder to use
 
     Returns:
         Parsed toml file represented as a dictionary
@@ -166,9 +183,7 @@ def loads(s, _dict=dict, decoder=None):
         s = s.decode('utf8')
 
     original = s
-    print(s)
     sl = list(s)
-    print(sl)
     openarr = 0
     openstring = False
     openstrchar = ""
@@ -178,6 +193,7 @@ def loads(s, _dict=dict, decoder=None):
     keygroup = False
     dottedkey = False
     keyname = 0
+
     for i, item in enumerate(sl):
         if item == '\r' and sl[i + 1] == '\n':
             sl[i] = ' '
@@ -278,8 +294,17 @@ def loads(s, _dict=dict, decoder=None):
                 openstrchar = ""
         if item == '#' and (not openstring and not keygroup and
                             not arrayoftables):
-            beginline = False
-
+            comment = ''
+            j = i
+            try:
+                while sl[j] != '\n':
+                    comment += s[j]
+                    sl[j] = ' '
+                    j += 1
+            except IndexError:
+                break
+            # store the comment info
+            decoder.store_comment_info(i, original, comment)
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
             if beginline:
@@ -321,19 +346,18 @@ def loads(s, _dict=dict, decoder=None):
     multikey = None
     multilinestr = ""
     multibackslash = False
-    comment = 0
     pos = 0
+    recent = 'start'
     for idx, line in enumerate(s):
-        print(idx, line)
         if idx > 0:
             pos += len(s[idx - 1]) + 1
+
+        decoder.match_comments(idx, original, s, currentlevel, recent)
+
         if not multilinestr or multibackslash or '\n' not in multilinestr:
             line = line.strip()
         if line == "" and (not multikey or multibackslash):
             continue
-        if line.startswith('#'):
-            currentlevel['comment ' + str(comment)] = line
-            comment += 1
         if multikey:
             if multibackslash:
                 multilinestr += line
@@ -368,9 +392,11 @@ def loads(s, _dict=dict, decoder=None):
             if line[1] == '[':
                 arrayoftables = True
                 line = line[2:]
+                recent = '[[' + line + ']]'
                 splitstr = ']]'
             else:
                 line = line[1:]
+                recent = '[' + line + ']'
                 splitstr = ']'
             i = 1
             quotesplits = decoder._get_split_on_quotes(line)
@@ -458,6 +484,7 @@ def loads(s, _dict=dict, decoder=None):
             except ValueError as err:
                 raise TomlDecodeError(str(err), original, pos)
         elif "=" in line:
+            recent = line.split('=')[0].strip()
             try:
                 ret = decoder.load_line(line, currentlevel, multikey,
                                         multibackslash)
@@ -465,7 +492,6 @@ def loads(s, _dict=dict, decoder=None):
                 raise TomlDecodeError(str(err), original, pos)
             if ret is not None:
                 multikey, multilinestr, multibackslash = ret
-    print(retval)
     return retval
 
 
@@ -959,3 +985,124 @@ class TomlDecoder(object):
                     atype = ntype
                 retval.append(nval)
         return retval
+
+    def handle_comment(self, currentlevel, line, comment_type,
+                       recent=None):
+        pass
+
+    def store_comment_info(self, i, original, comment):
+        pass
+
+    def match_comments(self, idx, original, s, currentlevel, recent):
+        pass
+
+
+def rreplace(s, old, new, occurrence):
+    li = s.rsplit(old, occurrence)
+    return new.join(li)
+
+
+class TomlPreserveCommentDecoder(TomlDecoder):
+
+    def __init__(self, _dict=dict):
+        self.comment_info = list()
+        self.comment_lines = []
+        self.inlines = []
+        self.composing_array = []
+        self.comment_norm_factor = 0
+        self.original = []
+        super(TomlPreserveCommentDecoder, self).__init__(_dict)
+
+    def match_comments(self, idx, original, s, currentlevel, recent):
+        if len(self.comment_info) > 0 and self.comment_info[0][0] - 1 == idx:
+            # match the comment lines with their original positions
+            # in the file and handle them appropriately
+            original_line_no = self.comment_lines[0] - 1
+            if len(self.original) == 0:
+                self.original = original.split('\n')
+            original_line = self.original[original_line_no]
+            if original_line.strip().startswith('#'):
+                self.handle_comment(currentlevel, original_line,
+                                    'normal',
+                                    recent)
+
+            elif len(s[idx].split('=', 1)) == 2:
+                if s[idx].split('=', 1)[1].strip().startswith('['):
+                    self.handle_comment(currentlevel, s[idx],
+                                        'array')
+                else:
+                    self.handle_comment(currentlevel, original_line,
+                                        'inline')
+
+            if self.comment_info[0][1] != 0:
+                self.comment_norm_factor += self.comment_info[0][1] - 1
+            self.comment_info.pop(0)
+            self.comment_lines.pop(0)
+            if len(self.comment_info) > 0:
+                self.comment_info[0][0] -= self.comment_norm_factor
+
+    def store_comment_info(self, i, original, comment):
+        # Store the line number of comments in the original line
+        # along with the number of lines the comment spans into
+
+        line_no = original.count('\n', 0, i) + 1
+        ls = original.split('\n')
+        comment_line = ls[line_no - 1]
+
+        if comment_line.strip().startswith('#'):
+            self.comment_info.append([line_no, 0])
+            self.comment_lines.append(line_no)
+            return
+
+        comment_line = rreplace(comment_line, comment, '', 1)
+        if ('=' in comment_line) and (len(comment_line.split('=', 1)) == 2) \
+                and (not comment_line.split('=')[1].strip().startswith('[')):
+            self.comment_info.append([line_no, 0])
+            self.comment_lines.append(line_no)
+            self.inlines.append(comment)
+        else:
+            composing_array = []
+            current_line_no = line_no - 1
+            comment_line = ls[line_no - 1]
+            while (len(comment_line.split('=')) != 2) or \
+                    (not comment_line.split('=')[1].strip().startswith('[')):
+                current_line_no = current_line_no - 1
+                comment_line = ls[current_line_no]
+            start = current_line_no + 1
+            array_len = 0
+            while not comment_line.strip().endswith(']'):
+                array_len += 1
+                current_line_no += 1
+                composing_array.append(comment_line)
+                comment_line = ls[current_line_no]
+            composing_array.append(comment_line)
+            if [start, array_len + 1] not in self.comment_info:
+                self.comment_info.append([start, array_len + 1])
+                self.comment_lines.append(line_no)
+                self.composing_array.append(composing_array)
+
+    def handle_inline_comment(self, line, currentlevel):
+        comment = self.inlines.pop(0)
+        pair = line.split('=')
+        currentlevel[CommentKey(pair[0].strip() + '-' +
+                                'comment' + '_inline', comment)] = comment
+
+    def handle_comment(self, currentlevel, line, comment_type,
+                       recent=None):
+        if comment_type == 'normal':
+            currentlevel[CommentKey(recent + '-' + 'comment', line)] = line
+        elif comment_type == 'inline':
+            self.handle_inline_comment(line, currentlevel)
+        else:
+            self.handle_array_comment(line, currentlevel)
+
+    def handle_array_comment(self, line, currentlevel):
+        key = line.split("=")[0].strip()
+        comment = '\n'.join(self.composing_array.pop(0))
+        lst = list(line)
+        while ' ' in lst:
+            lst.remove(' ')
+        line = ''.join(lst)
+
+        currentlevel[CommentKey(key + '-' +
+                                'comment' + '_array', line)] = comment

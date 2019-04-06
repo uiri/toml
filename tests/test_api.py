@@ -211,3 +211,35 @@ def test_warnings():
 def test_commutativity():
     o = toml.loads(toml.dumps(TEST_DICT))
     assert o == toml.loads(toml.dumps(o))
+
+
+def test_comment_preserve_decoder_encoder():
+    test_str = """[[products]]
+name = "Nail"
+sku = 284758393
+num = [ 1, #Number 1
+        2, # Number 2
+        3, # name = { first = 'Tom', last = 'Preston-Werner' }
+      ]
+# This is a comment
+color = "gray" # Hello World
+# name = { first = 'Tom', last = 'Preston-Werner' }
+# arr7 = [
+#  1, 2, 3
+# ]
+# lines  = '''
+# The first newline is
+# trimmed in raw strings.
+#   All other whitespace
+#   is preserved.
+# '''
+[animals]
+color = "gray" # col
+fruits = "apple" # a = [1,2,3]
+"""
+
+    o = toml.dumps(toml.loads(test_str,
+                              decoder=toml.TomlPreserveCommentDecoder()),
+                   encoder=toml.TomlPreserveCommentEncoder())
+
+    assert len(o) == len(test_str) and sorted(test_str) == sorted(o)

@@ -68,7 +68,21 @@ def dumps(o, encoder=None):
             for s in addtosections:
                 newsections[section + "." + s] = addtosections[s]
         sections = newsections
+    retval = encoder.write_comments(retval)
     return retval
+
+
+def remove_quotes(line):
+    line.strip()
+    lst = list(line)
+    if lst[0] == '"' and lst[len(lst) - 1] == '"':
+        lst.pop(0)
+        lst.pop(len(lst) - 1)
+    elif lst[0] == '"':
+        lst.pop(0)
+    elif lst[len(lst) - 1] == '"':
+        lst.pop(len(lst) - 1)
+    return ''.join(lst)
 
 
 def _dump_str(v):
@@ -220,6 +234,9 @@ class TomlEncoder(object):
         retstr += arraystr
         return (retstr, retdict)
 
+    def write_comments(self, retval):
+        return retval
+
 
 class TomlPreserveInlineDictEncoder(TomlEncoder):
 
@@ -263,3 +280,58 @@ class TomlNumpyEncoder(TomlEncoder):
         self.dump_funcs[np.float16] = _dump_float
         self.dump_funcs[np.float32] = _dump_float
         self.dump_funcs[np.float64] = _dump_float
+
+
+class TomlPreserveCommentEncoder(TomlEncoder):
+
+    def __init__(self, _dict=dict):
+        super(TomlPreserveCommentEncoder, self).__init__(_dict)
+
+    def write_comments(self, retval):
+        print(retval)
+        lst = retval.split('\n')
+        for i, item in enumerate(lst):
+            split_pat = (re.findall(r'\"\s*\=\s*\"', item))
+            if split_pat:
+                key = item.split(split_pat[0])
+                if '-comment_inline' in key[0]:
+                    val = remove_quotes(key[1].strip())
+                    if val in key[0]:
+                        lst[i] = "blank"
+                        key = key[0].split('-comment_inline')[0]
+                        for idx, j in enumerate(lst):
+                            contents = j.split('=', 1)
+                            if len(contents) == 2:
+                                if remove_quotes(key) == contents[0].strip():
+                                    qpos = j.rfind('"')
+                                    if qpos == -1:
+                                        qpos = j.rfind("'")
+                                    cpos = j.rfind('#')
+                                    if cpos == -1:
+                                        lst[idx] = j + ' ' + val
+                                        break
+                                    elif cpos < qpos:
+                                        lst[idx] = j + ' ' + val
+                                        break
+                elif '-comment_array' in key[0]:
+                    pos = key[0].find(',')
+                    k = key[0][pos + 1:].strip()
+                    lst[i] = ('\n'.join((remove_quotes(key[1]).split('\\n'))))
+                    for idx, j in enumerate(lst):
+                        ln = list(j)
+                        while ' ' in ln:
+                            ln.remove(' ')
+                        line = ''.join(ln)
+                        if line == k:
+                            lst[idx] = "blank"
+                            break
+                elif '-comment' in key[0]:
+                    if remove_quotes(key[1].strip()) in key[0]:
+                        val = remove_quotes(key[1].strip())
+                        lst[i] = val
+
+        while 'blank' in lst:
+            lst.remove('blank')
+
+        lst.pop()
+        return '\n'.join(lst)
