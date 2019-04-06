@@ -68,7 +68,21 @@ def dumps(o, encoder=None):
             for s in addtosections:
                 newsections[section + "." + s] = addtosections[s]
         sections = newsections
+    retval = encoder.write_comments(retval)
     return retval
+
+
+def remove_quotes(line):
+    line.strip()
+    lst = list(line)
+    if lst[0] == '"' and lst[len(lst) - 1] == '"':
+        lst.pop(0)
+        lst.pop(len(lst) - 1)
+    elif lst[0] == '"':
+        lst.pop(0)
+    elif lst[len(lst) - 1] == '"':
+        lst.pop(len(lst) - 1)
+    return ''.join(lst)
 
 
 def _dump_str(v):
@@ -220,6 +234,9 @@ class TomlEncoder(object):
         retstr += arraystr
         return (retstr, retdict)
 
+    def write_comments(self, retval):
+        return retval
+
 
 class TomlPreserveInlineDictEncoder(TomlEncoder):
 
@@ -263,3 +280,50 @@ class TomlNumpyEncoder(TomlEncoder):
         self.dump_funcs[np.float16] = _dump_float
         self.dump_funcs[np.float32] = _dump_float
         self.dump_funcs[np.float64] = _dump_float
+
+
+class TomlPreserveCommentEncoder(TomlEncoder):
+
+    def __init__(self, _dict=dict):
+        super(TomlPreserveCommentEncoder, self).__init__(_dict)
+
+    def write_comments(self, retval):
+        sections = retval.split('\n\n')
+        objects = []
+        for idx, content in enumerate(sections):
+            lst = content.split('\n')
+            for i, item in enumerate(lst):
+                split_pat = (re.findall(r'\"\s*\=\s*\"', item))
+                if split_pat:
+                    key = item.split(split_pat[0])
+                    if '-comment_inline' in key[0]:
+                        val = remove_quotes(key[1].strip())
+                        if val in key[0]:
+                            lst[i] = "blank"
+                            key = remove_quotes(key[0].
+                                                split('-comment_inline')[0])
+                            for indx, j in enumerate(lst):
+                                if len(j.split('=', 1)) == 2:
+                                    k = j.split('=')[0].strip()
+                                    if k == key:
+                                        val = unescape(val)
+                                        lst[indx] = j + ' ' + val
+                    elif '-comment' in key[0]:
+                        if remove_quotes(key[1].strip()) in key[0]:
+                            val = remove_quotes(key[1].strip())
+                            val = unescape(val)
+                            lst[i] = val
+
+            while 'blank' in lst:
+                lst.remove('blank')
+
+            objects.append('\n'.join(lst))
+
+        return '\n\n'.join(objects)
+
+
+def unescape(val):
+    if sys.version_info > (3, 0):
+        return bytes(val, "utf-8").decode("unicode_escape")
+    else:
+        return val.decode('string_escape')
