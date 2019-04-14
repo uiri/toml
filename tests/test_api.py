@@ -7,7 +7,6 @@ from decimal import Decimal
 
 from toml.decoder import InlineTableDict
 
-
 TEST_STR = """
 [a]\r
 b = 1\r
@@ -42,6 +41,12 @@ def test_bug_196():
     round_trip_bug_dict = toml.loads(toml.dumps(bug_dict))
     assert round_trip_bug_dict == bug_dict
     assert round_trip_bug_dict['x'] == bug_dict['x']
+
+
+def test_bug_207():
+    with pytest.raises(toml.TomlDecodeError):
+        toml.loads('arr7=['
+                   '"red", "yellow", "green"')
 
 
 def test_valid_tests():
