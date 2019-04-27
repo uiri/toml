@@ -1,4 +1,5 @@
 import datetime
+import functools
 import re
 import sys
 from decimal import Decimal
@@ -70,13 +71,13 @@ def dumps(o, encoder=None):
         sections = newsections
     return retval
 
-def _dump_str(v, escape_unicode=True):
+def _dump_str(v, escape_unicode=True, multiline=False):
     if sys.version_info < (3,) and hasattr(v, 'decode') and isinstance(v, str):
         v = v.decode('utf-8')
     else:
         v = unicode(v)
     out = ''
-    quote = '"""' if len(v.splitlines()) > 1 else '"'
+    quote = '"""' if len(v.splitlines()) > 1 and multiline else '"'
     for line in v.splitlines():
         for char in line:
             c = ord(char)
@@ -93,13 +94,14 @@ def _dump_str(v, escape_unicode=True):
                     out += '\\U'
                 out += h
             else:            
-                if char == '\\' or char == '"':
-                        out += '\\'
+                if char == '\\' or (char == '"' and quote != '"""'):
+                    out += '\\'
                 out += char
         out += '\n'
-    out = out[:-1]
     if quote == '"""':
         out = '\n' + out
+    else:
+        out = out[:-1]
     return unicode('%s%s%s' % (quote, out, quote))
 
 def _dump_float(v):
@@ -116,12 +118,13 @@ def _dump_time(v):
 
 class TomlEncoder(object):
 
-    def __init__(self, _dict=dict, preserve=False, escape_unicode=True):
+    def __init__(self, _dict=dict, preserve=False, escape_unicode=True, multiline=False):
         self._dict = _dict
         self.preserve = preserve
+        dump_str = functools.partial(_dump_str, escape_unicode=escape_unicode, multiline=multiline)
         self.dump_funcs = {
-            str: _dump_str,
-            unicode: _dump_str,
+            str: dump_str,
+            unicode: dump_str,
             list: self.dump_list,
             bool: lambda v: unicode(v).lower(),
             int: lambda v: v,
