@@ -184,12 +184,13 @@ class FakeFile(object):
 
 
 def test_dump():
+    from collections import OrderedDict
     f = FakeFile()
     g = FakeFile()
     h = FakeFile()
     toml.dump(TEST_DICT, f)
-    toml.dump(toml.load(f), g)
-    toml.dump(toml.load(g), h)
+    toml.dump(toml.load(f, _dict=OrderedDict), g)
+    toml.dump(toml.load(g, _dict=OrderedDict), h)
     assert g.written == h.written
 
 
