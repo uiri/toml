@@ -103,7 +103,7 @@ def _dump_str(v):
 
 
 def _dump_float(v):
-    return "{0:.16}".format(v).replace("e+0", "e+").replace("e-0", "e-")
+    return "{}".format(v).replace("e+0", "e+").replace("e-0", "e-")
 
 
 def _dump_time(v):
