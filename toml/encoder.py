@@ -9,12 +9,13 @@ if sys.version_info >= (3,):
     unicode = str
 
 
-def dump(o, f):
+def dump(o, f, encoder=None):
     """Writes out dict as toml to a file
 
     Args:
         o: Object to dump into toml
         f: File descriptor where the toml should be stored
+        encoder: The ``TomlEncoder`` to use for constructing the output string
 
     Returns:
         String containing the toml corresponding to dictionary
@@ -25,7 +26,7 @@ def dump(o, f):
 
     if not f.write:
         raise TypeError("You can only dump an object to a file descriptor")
-    d = dumps(o)
+    d = dumps(o, encoder=encoder)
     f.write(d)
     return d
 
@@ -35,11 +36,22 @@ def dumps(o, encoder=None):
 
     Args:
         o: Object to dump into toml
-
-        preserve: Boolean parameter. If true, preserve inline tables.
+        encoder: The ``TomlEncoder`` to use for constructing the output string
 
     Returns:
         String containing the toml corresponding to dict
+
+    Examples:
+        ```python
+        >>> import toml
+        >>> output = {
+        ... 'a': "I'm a string",
+        ... 'b': ["I'm", "a", "list"],
+        ... 'c': 2400
+        ... }
+        >>> toml.dumps(output)
+        'a = "I\'m a string"\nb = [ "I\'m", "a", "list",]\nc = 2400\n'
+        ```
     """
 
     retval = ""
