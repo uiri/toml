@@ -114,6 +114,22 @@ corresponding TOML-formatted data.
 
 For more functions, view the API Reference below.
 
+Note
+----
+
+For Numpy users, by default the data types ``np.floatX`` will not be translated to floats by toml, but will instead be encoded as strings. To get around this, specify the ``TomlNumpyEncoder`` when saving your data.
+
+.. code:: pycon
+
+  >>> import toml
+  >>> import numpy as np
+  >>> a = np.arange(0, 10, dtype=np.double)
+  >>> output = {'a': a}
+  >>> toml.dumps(output)
+  'a = [ "0.0", "1.0", "2.0", "3.0", "4.0", "5.0", "6.0", "7.0", "8.0", "9.0",]\n'
+  >>> toml.dumps(output, encoder=toml.TomlNumpyEncoder())
+  'a = [ 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0,]\n'
+
 API Reference
 =============
 
@@ -148,12 +164,13 @@ API Reference
     * ``TomlDecodeError``: When an error occurs while decoding the
       TOML-formatted string
 
-``toml.dump(o, f)``
+``toml.dump(o, f, encoder=None)``
   Write a dictionary to a file containing TOML-formatted data
 
   :Args:
     * ``o``: An object to be converted into TOML
     * ``f``: A File descriptor where the TOML-formatted output should be stored
+    * ``encoder``: An instance of ``TomlEncoder`` (or subclass) for encoding the object. If ``None``, will default to ``TomlEncoder``
 
   :Returns:
     A string containing the TOML-formatted data corresponding to object ``o``
@@ -161,14 +178,17 @@ API Reference
   :Raises:
     * ``TypeError``: When anything other than file descriptor is passed
 
-``toml.dumps(o)``
+``toml.dumps(o, encoder=None)``
   Create a TOML-formatted string from an input object
 
   :Args:
     * ``o``: An object to be converted into TOML
+    * ``encoder``: An instance of ``TomlEncoder`` (or subclass) for encoding the object. If ``None``, will default to ``TomlEncoder``
 
   :Returns:
     A string containing the TOML-formatted data corresponding to object ``o``
+
+
 
 Licensing
 =========
