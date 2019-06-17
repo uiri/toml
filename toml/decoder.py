@@ -193,14 +193,12 @@ def loads(s, _dict=dict, decoder=None):
     keygroup = False
     dottedkey = False
     keyname = 0
-
-    arr_beg = arr_end = None
     key = ''
     prev_key = ''
     compress_size = 0
+    line_no = 1
 
     for i, item in enumerate(sl):
-
         if item == '\r' and sl[i + 1] == '\n':
             sl[i] = ' '
             continue
@@ -304,7 +302,6 @@ def loads(s, _dict=dict, decoder=None):
         if item == '#' and (not openstring and not keygroup and
                             not arrayoftables):
             j = i
-            comment_line_no = original.count('\n', 0, i) + 1
             comment = prev_key
             try:
                 while sl[j] != '\n':
@@ -314,8 +311,8 @@ def loads(s, _dict=dict, decoder=None):
             except IndexError:
                 break
             if not openarr:
-                decoder.comm_list.append((comment_line_no - compress_size,
-                                          comment_line_no, comment))
+                decoder.comm_list.append((line_no - compress_size,
+                                          line_no, comment))
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
             if beginline:
@@ -325,8 +322,6 @@ def loads(s, _dict=dict, decoder=None):
                     keygroup = True
             else:
                 openarr += 1
-                if openarr == 1:
-                    arr_beg = original.count('\n', 0, i) + 1
         if item == ']' and not openstring:
             if keygroup:
                 keygroup = False
@@ -335,9 +330,6 @@ def loads(s, _dict=dict, decoder=None):
                     arrayoftables = False
             else:
                 openarr -= 1
-                if openarr == 0:
-                    arr_end = original.count('\n', 0, i) + 1
-                    compress_size += arr_end - arr_beg
         if item == '\n':
             if openstring or multilinestr:
                 if not multilinestr:
@@ -350,8 +342,10 @@ def loads(s, _dict=dict, decoder=None):
                     compress_size += 1
             elif openarr:
                 sl[i] = ' '
+                compress_size += 1
             else:
                 beginline = True
+            line_no += 1
         elif beginline and sl[i] != ' ' and sl[i] != '\t':
             beginline = False
             if not keygroup and not arrayoftables:
@@ -366,7 +360,6 @@ def loads(s, _dict=dict, decoder=None):
     multibackslash = False
     pos = 0
     recent = 'start'
-    decoder.init_match()
     for idx, line in enumerate(s):
         if idx > 0:
             pos += len(s[idx - 1]) + 1
@@ -1025,10 +1018,13 @@ class TomlPreserveCommentDecoder(TomlDecoder):
         self.next_mod = None
         self.next_org = None
         self.next_content = None
+        self.matched = True
         super(TomlPreserveCommentDecoder, self).__init__(_dict)
 
     def match_comments(self, idx, original, s, currentlevel, recent=None):
 
+        if self.matched:
+            self.init_match()
         if idx == self.next_mod - 1:
             original_line_no = self.next_org - 1
             if len(self.original) == 0:
@@ -1049,7 +1045,9 @@ class TomlPreserveCommentDecoder(TomlDecoder):
             else:
                 self.handle_comment(currentlevel, original_line,
                                     'inline', item)
-            self.init_match()
+            self.matched = True
+        else:
+            self.matched = False
 
     def init_match(self):
         if len(self.comm_list) > 0:
