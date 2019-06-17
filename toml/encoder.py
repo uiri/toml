@@ -118,6 +118,10 @@ def _dump_float(v):
     return "{}".format(v).replace("e+0", "e+").replace("e-0", "e-")
 
 
+def _dump_int(v):
+    return "{}".format(int(v))
+
+
 def _dump_time(v):
     utcoffset = v.utcoffset()
     if utcoffset is None:
@@ -136,7 +140,7 @@ class TomlEncoder(object):
             unicode: _dump_str,
             list: self.dump_list,
             bool: lambda v: unicode(v).lower(),
-            int: lambda v: v,
+            int: _dump_int,
             float: _dump_float,
             Decimal: _dump_float,
             datetime.datetime: lambda v: v.isoformat().replace('+00:00', 'Z'),
@@ -275,3 +279,6 @@ class TomlNumpyEncoder(TomlEncoder):
         self.dump_funcs[np.float16] = _dump_float
         self.dump_funcs[np.float32] = _dump_float
         self.dump_funcs[np.float64] = _dump_float
+        self.dump_funcs[np.int16] = _dump_int
+        self.dump_funcs[np.int32] = _dump_int
+        self.dump_funcs[np.int64] = _dump_int

@@ -119,6 +119,23 @@ def test_numpy_floats():
     assert o == toml.loads(toml.dumps(o, encoder=encoder))
 
 
+def test_numpy_ints():
+    import numpy as np
+
+    encoder = toml.TomlNumpyEncoder()
+    d = {'a': np.array([1, 3], dtype=np.int64)}
+    o = toml.loads(toml.dumps(d, encoder=encoder))
+    assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+    d = {'a': np.array([1, 3], dtype=np.int32)}
+    o = toml.loads(toml.dumps(d, encoder=encoder))
+    assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+    d = {'a': np.array([1, 3], dtype=np.int16)}
+    o = toml.loads(toml.dumps(d, encoder=encoder))
+    assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+
 def test_ordered():
     from toml import ordered as toml_ordered
     encoder = toml_ordered.TomlOrderedEncoder()
