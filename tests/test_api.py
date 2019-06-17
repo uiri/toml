@@ -233,6 +233,8 @@ color = "gray" # Hello World
 [animals]
 color = "gray" # col
 fruits = "apple" # a = [1,2,3]
+a = 3
+b-comment = "a is 3"
 """
 
     s = toml.dumps(toml.loads(test_str,
