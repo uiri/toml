@@ -66,6 +66,27 @@ class TomlDecodeError(ValueError):
 _number_with_underscores = re.compile('([0-9])(_([0-9]))*')
 
 
+class CommentValue(object):
+    def __init__(self, val, comment, beginline, _dict):
+        self.val = val
+        separator = "\n" if beginline else " "
+        self.comment = separator + comment
+        self._dict = _dict
+
+    def __getitem__(self, key):
+        return self.val[key]
+
+    def __setitem__(self, key, value):
+        self.val[key] = value
+
+    def dump(self, dump_value_func):
+        retstr = dump_value_func(self.val)
+        if isinstance(self.val, self._dict):
+            return self.comment + "\n" + unicode(retstr)
+        else:
+            return unicode(retstr) + self.comment
+
+
 def _strictly_valid_num(n):
     n = n.strip()
     if not n:
@@ -96,6 +117,7 @@ def load(f, _dict=dict, decoder=None):
         f: Path to the file to open, array of files to read into single dict
            or a file descriptor
         _dict: (optional) Specifies the class of the returned toml dictionary
+        decoder: The decoder to use
 
     Returns:
         Parsed toml file represented as a dictionary
@@ -177,11 +199,16 @@ def loads(s, _dict=dict, decoder=None):
     keygroup = False
     dottedkey = False
     keyname = 0
+    key = ''
+    prev_key = ''
+    line_no = 1
+
     for i, item in enumerate(sl):
         if item == '\r' and sl[i + 1] == '\n':
             sl[i] = ' '
             continue
         if keyname:
+            key += item
             if item == '\n':
                 raise TomlDecodeError("Key name found without value."
                                       " Reached end of line.", original, i)
@@ -226,6 +253,8 @@ def loads(s, _dict=dict, decoder=None):
                     continue
             if item == '=':
                 keyname = 0
+                prev_key = key[:-1].rstrip()
+                key = ''
                 dottedkey = False
             else:
                 raise TomlDecodeError("Found invalid character in key name: '" +
@@ -278,12 +307,16 @@ def loads(s, _dict=dict, decoder=None):
         if item == '#' and (not openstring and not keygroup and
                             not arrayoftables):
             j = i
+            comment = ""
             try:
                 while sl[j] != '\n':
+                    comment += s[j]
                     sl[j] = ' '
                     j += 1
             except IndexError:
                 break
+            if not openarr:
+                decoder.preserve_comment(line_no, prev_key, comment, beginline)
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
             if beginline:
@@ -314,12 +347,14 @@ def loads(s, _dict=dict, decoder=None):
                 sl[i] = ' '
             else:
                 beginline = True
+            line_no += 1
         elif beginline and sl[i] != ' ' and sl[i] != '\t':
             beginline = False
             if not keygroup and not arrayoftables:
                 if sl[i] == '=':
                     raise TomlDecodeError("Found empty keyname. ", original, i)
                 keyname = 1
+                key += item
     s = ''.join(sl)
     s = s.split('\n')
     multikey = None
@@ -329,6 +364,9 @@ def loads(s, _dict=dict, decoder=None):
     for idx, line in enumerate(s):
         if idx > 0:
             pos += len(s[idx - 1]) + 1
+
+        decoder.embed_comments(idx, currentlevel)
+
         if not multilinestr or multibackslash or '\n' not in multilinestr:
             line = line.strip()
         if line == "" and (not multikey or multibackslash):
@@ -957,3 +995,27 @@ class TomlDecoder(object):
                     atype = ntype
                 retval.append(nval)
         return retval
+
+    def preserve_comment(self, line_no, key, comment, beginline):
+        pass
+
+    def embed_comments(self, idx, currentlevel):
+        pass
+
+
+class TomlPreserveCommentDecoder(TomlDecoder):
+
+    def __init__(self, _dict=dict):
+        self.saved_comments = {}
+        super(TomlPreserveCommentDecoder, self).__init__(_dict)
+
+    def preserve_comment(self, line_no, key, comment, beginline):
+        self.saved_comments[line_no] = (key, comment, beginline)
+
+    def embed_comments(self, idx, currentlevel):
+        if idx not in self.saved_comments:
+            return
+
+        key, comment, beginline = self.saved_comments[idx]
+        currentlevel[key] = CommentValue(currentlevel[key], comment, beginline,
+                                         self._dict)
