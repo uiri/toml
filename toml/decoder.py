@@ -66,19 +66,25 @@ class TomlDecodeError(ValueError):
 _number_with_underscores = re.compile('([0-9])(_([0-9]))*')
 
 
-class CommentKey:
-    def __init__(self, key, val):
-        self.key = key
+class CommentValue(object):
+    def __init__(self, val, comment, beginline, _dict):
         self.val = val
+        separator = "\n" if beginline else " "
+        self.comment = separator + comment
+        self._dict = _dict
 
-    def __hash__(self):
-        return hash(str(self))
+    def __getitem__(self, key):
+        return self.val[key]
 
-    def __str__(self):
-        return '{}, {}'.format(self.key, self.val)
+    def __setitem__(self, key, value):
+        self.val[key] = value
 
-    def __eq__(self, other):
-        return str(self) == other
+    def dump(self, dump_value_func):
+        retstr = dump_value_func(self.val)
+        if isinstance(self.val, self._dict):
+            return self.comment + "\n" + unicode(retstr)
+        else:
+            return unicode(retstr) + self.comment
 
 
 def _strictly_valid_num(n):
@@ -195,7 +201,6 @@ def loads(s, _dict=dict, decoder=None):
     keyname = 0
     key = ''
     prev_key = ''
-    compress_size = 0
     line_no = 1
 
     for i, item in enumerate(sl):
@@ -248,7 +253,7 @@ def loads(s, _dict=dict, decoder=None):
                     continue
             if item == '=':
                 keyname = 0
-                prev_key = key
+                prev_key = key[:-1].rstrip()
                 key = ''
                 dottedkey = False
             else:
@@ -302,7 +307,7 @@ def loads(s, _dict=dict, decoder=None):
         if item == '#' and (not openstring and not keygroup and
                             not arrayoftables):
             j = i
-            comment = prev_key
+            comment = ""
             try:
                 while sl[j] != '\n':
                     comment += s[j]
@@ -311,8 +316,7 @@ def loads(s, _dict=dict, decoder=None):
             except IndexError:
                 break
             if not openarr:
-                decoder.comm_list.append((line_no - compress_size,
-                                          line_no, comment))
+                decoder.preserve_comment(line_no, prev_key, comment, beginline)
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
             if beginline:
@@ -339,10 +343,8 @@ def loads(s, _dict=dict, decoder=None):
                     sl[i] = sl[i - 1]
                     if sl[i - 3] == sl[i - 1]:
                         sl[i - 3] = ' '
-                    compress_size += 1
             elif openarr:
                 sl[i] = ' '
-                compress_size += 1
             else:
                 beginline = True
             line_no += 1
@@ -359,12 +361,11 @@ def loads(s, _dict=dict, decoder=None):
     multilinestr = ""
     multibackslash = False
     pos = 0
-    recent = 'start'
     for idx, line in enumerate(s):
         if idx > 0:
             pos += len(s[idx - 1]) + 1
 
-        decoder.match_comments(idx, original, s, currentlevel, recent)
+        decoder.embed_comments(idx, currentlevel)
 
         if not multilinestr or multibackslash or '\n' not in multilinestr:
             line = line.strip()
@@ -404,11 +405,9 @@ def loads(s, _dict=dict, decoder=None):
             if line[1] == '[':
                 arrayoftables = True
                 line = line[2:]
-                recent = '[[' + line + ']]'
                 splitstr = ']]'
             else:
                 line = line[1:]
-                recent = '[' + line + ']'
                 splitstr = ']'
             i = 1
             quotesplits = decoder._get_split_on_quotes(line)
@@ -496,7 +495,6 @@ def loads(s, _dict=dict, decoder=None):
             except ValueError as err:
                 raise TomlDecodeError(str(err), original, pos)
         elif "=" in line:
-            recent = line.split('=')[0].strip()
             try:
                 ret = decoder.load_line(line, currentlevel, multikey,
                                         multibackslash)
@@ -625,7 +623,6 @@ class InlineTableDict(object):
 class TomlDecoder(object):
 
     def __init__(self, _dict=dict):
-        self.comm_list = []
         self._dict = _dict
 
     def get_empty_table(self):
@@ -999,73 +996,26 @@ class TomlDecoder(object):
                 retval.append(nval)
         return retval
 
-    def handle_comment(self, currentlevel, line, comment_type, val):
+    def preserve_comment(self, line_no, key, comment, beginline):
         pass
 
-    def match_comments(self, idx, original, s, currentlevel, recent):
-        pass
-
-    def init_match(self):
+    def embed_comments(self, idx, currentlevel):
         pass
 
 
 class TomlPreserveCommentDecoder(TomlDecoder):
 
     def __init__(self, _dict=dict):
-        self.original = []
-        self.comm_list = []
-        self.next = None
-        self.next_mod = None
-        self.next_org = None
-        self.next_content = None
-        self.matched = True
+        self.saved_comments = {}
         super(TomlPreserveCommentDecoder, self).__init__(_dict)
 
-    def match_comments(self, idx, original, s, currentlevel, recent=None):
+    def preserve_comment(self, line_no, key, comment, beginline):
+        self.saved_comments[line_no] = (key, comment, beginline)
 
-        if self.matched:
-            self.init_match()
-        if idx == self.next_mod - 1:
-            original_line_no = self.next_org - 1
-            if len(self.original) == 0:
-                self.original = original.split('\n')
-            original_line = self.original[original_line_no]
+    def embed_comments(self, idx, currentlevel):
+        if idx not in self.saved_comments:
+            return
 
-            item = self.next_content
-
-            if (original_line.strip().startswith('#')) \
-                    and (s[idx].strip() == ''):
-                self.handle_comment(currentlevel, original_line,
-                                    'normal',
-                                    item,
-                                    recent
-                                    )
-            elif not item.split('=', 1)[1].strip().startswith('#'):
-                pass
-            else:
-                self.handle_comment(currentlevel, original_line,
-                                    'inline', item)
-            self.matched = True
-        else:
-            self.matched = False
-
-    def init_match(self):
-        if len(self.comm_list) > 0:
-            self.next = self.comm_list.pop(0)
-            self.next_mod = self.next[0]
-            self.next_org = self.next[1]
-            self.next_content = self.next[2]
-
-    def handle_comment(self, currentlevel, line, comment_type, val,
-                       recent=None):
-        if comment_type == 'normal':
-            currentlevel[CommentKey(recent + '-' + 'comment', line)] = line
-        elif comment_type == 'inline':
-            handle_inline_comment(currentlevel, val)
-
-
-def handle_inline_comment(currentlevel, val):
-    pair = val.split('=', 1)
-    comment = pair[1].strip()
-    currentlevel[CommentKey(pair[0].strip() + '-' +
-                            'comment' + '_inline', comment)] = comment
+        key, comment, beginline = self.saved_comments[idx]
+        currentlevel[key] = CommentValue(currentlevel[key], comment, beginline,
+                                         self._dict)
