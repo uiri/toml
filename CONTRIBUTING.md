@@ -1,19 +1,15 @@
-************
-Contributing
-************
+# Contributing
 
 Issues and Pull Requests are always welcome. Thank you in advance for
 your contribution!
 
-Reporting Issues
-================
+## Reporting Issues
 
 Before reporting an issue, please test the issue using the latest
 development version to see if your issue has been fixed since the
 latest release.
 
-Testing
-=======
+## Testing
 
 ### Unit tests
 Unit tests can be run using [tox](https://tox.readthedocs.io/en/latest/).
@@ -38,8 +34,7 @@ There is a ``decoding_test.py`` script in the *tests/* directory
 which acts as a harness in order to allow ``toml`` to be used with
 the toml test suite, written (unfortunately) in Go.
 
-Directions
-----------
+## Directions
 
 1. Install `Go <https://golang.org/>`_ (AKA golang)
 2. Get the toml-test suite from `here <https://github.com/BurntSushi/toml-test>`_
