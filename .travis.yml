@@ -11,7 +11,6 @@ matrix:
   include:
     - python: "3.7"
       dist: xenial
-      sudo: true
 
 notifications:
   email: false
