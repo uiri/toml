@@ -814,7 +814,8 @@ class TomlDecoder(object):
                         pass
                     if not oddbackslash:
                         if closed:
-                            raise ValueError("Stuff after closed string. WTF?")
+                            raise ValueError("Found tokens after a closed " +
+                                             "string. Invalid TOML.")
                         else:
                             if not triplequote or triplequotecount > 1:
                                 closed = True
