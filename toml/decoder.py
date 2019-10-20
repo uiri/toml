@@ -355,6 +355,9 @@ def loads(s, _dict=dict, decoder=None):
                     raise TomlDecodeError("Found empty keyname. ", original, i)
                 keyname = 1
                 key += item
+    if keyname:
+        raise TomlDecodeError("Key name found without value."
+                              " Reached end of file.", original, len(s))
     s = ''.join(sl)
     s = s.split('\n')
     multikey = None
