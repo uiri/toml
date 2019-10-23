@@ -231,6 +231,16 @@ def test_commutativity():
     assert o == toml.loads(toml.dumps(o))
 
 
+def test_pathlib():
+    if (3, 4) <= sys.version_info:
+        import pathlib
+        o = {"root": {"path": pathlib.Path("/home/edgy")}}
+        test_str = """[root]
+path = "/home/edgy"
+"""
+        assert test_str == toml.dumps(o, encoder=toml.TomlPathlibEncoder())
+
+
 def test_comment_preserve_decoder_encoder():
     test_str = """[[products]]
 name = "Nail"

@@ -289,3 +289,16 @@ class TomlPreserveCommentEncoder(TomlEncoder):
         from toml.decoder import CommentValue
         super(TomlPreserveCommentEncoder, self).__init__(_dict, preserve)
         self.dump_funcs[CommentValue] = lambda v: v.dump(self.dump_value)
+
+
+class TomlPathlibEncoder(TomlEncoder):
+
+    def _dump_pathlib_path(self, v):
+        return _dump_str(str(v))
+
+    def dump_value(self, v):
+        if (3, 4) <= sys.version_info:
+            import pathlib
+            if isinstance(v, pathlib.PurePath):
+                v = str(v)
+        return super(TomlPathlibEncoder, self).dump_value(v)
