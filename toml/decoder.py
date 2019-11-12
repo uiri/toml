@@ -724,6 +724,8 @@ class TomlDecoder(object):
                 pass
             if _load_date(pair[-1]) is not None:
                 break
+            if TIME_RE.match(pair[-1]):
+                break 
             i += 1
             prev_val = pair[-1]
             pair = line.split('=', i)
