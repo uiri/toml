@@ -22,3 +22,4 @@ TomlArraySeparatorEncoder = encoder.TomlArraySeparatorEncoder
 TomlPreserveInlineDictEncoder = encoder.TomlPreserveInlineDictEncoder
 TomlNumpyEncoder = encoder.TomlNumpyEncoder
 TomlPreserveCommentEncoder = encoder.TomlPreserveCommentEncoder
+TomlPathlibEncoder = encoder.TomlPathlibEncoder

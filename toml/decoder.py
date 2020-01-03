@@ -355,6 +355,9 @@ def loads(s, _dict=dict, decoder=None):
                     raise TomlDecodeError("Found empty keyname. ", original, i)
                 keyname = 1
                 key += item
+    if keyname:
+        raise TomlDecodeError("Key name found without value."
+                              " Reached end of file.", original, len(s))
     s = ''.join(sl)
     s = s.split('\n')
     multikey = None
@@ -377,9 +380,14 @@ def loads(s, _dict=dict, decoder=None):
             else:
                 multilinestr += line
             multibackslash = False
-            if len(line) > 2 and (line[-1] == multilinestr[0] and
-                                  line[-2] == multilinestr[0] and
-                                  line[-3] == multilinestr[0]):
+            closed = False
+            if multilinestr[0] == '[':
+                closed = line[-1] == ']'
+            elif len(line) > 2:
+                closed = (line[-1] == multilinestr[0] and
+                          line[-2] == multilinestr[0] and
+                          line[-3] == multilinestr[0])
+            if closed:
                 try:
                     value, vtype = decoder.load_value(multilinestr)
                 except ValueError as err:
@@ -750,15 +758,9 @@ class TomlDecoder(object):
         elif (pair[0][0] == '"' or pair[0][0] == "'") and \
                 (pair[0][-1] == pair[0][0]):
             pair[0] = _unescape(pair[0][1:-1])
-        if len(pair[1]) > 2 and ((pair[1][0] == '"' or pair[1][0] == "'") and
-                                 pair[1][1] == pair[1][0] and
-                                 pair[1][2] == pair[1][0] and
-                                 not (len(pair[1]) > 5 and
-                                      pair[1][-1] == pair[1][0] and
-                                      pair[1][-2] == pair[1][0] and
-                                      pair[1][-3] == pair[1][0])):
-            k = len(pair[1]) - 1
-            while k > -1 and pair[1][k] == '\\':
+        k, koffset = self._load_line_multiline_str(pair[1])
+        if k > -1:
+            while k > -1 and pair[1][k + koffset] == '\\':
                 multibackslash = not multibackslash
                 k -= 1
             if multibackslash:
@@ -778,6 +780,26 @@ class TomlDecoder(object):
                 return multikey, multilinestr, multibackslash
             else:
                 currentlevel[pair[0]] = value
+
+    def _load_line_multiline_str(self, p):
+        poffset = 0
+        if len(p) < 3:
+            return -1, poffset
+        if p[0] == '[' and (p.strip()[-1] != ']' and
+                            self._load_array_isstrarray(p)):
+            newp = p[1:].strip().split(',')
+            while len(newp) > 1 and newp[-1][0] != '"' and newp[-1][0] != "'":
+                newp = newp[:-2] + [newp[-2] + ',' + newp[-1]]
+            newp = newp[-1]
+            poffset = len(p) - len(newp)
+            p = newp
+        if p[0] != '"' and p[0] != "'":
+            return -1, poffset
+        if p[1] != p[0] or p[2] != p[0]:
+            return -1, poffset
+        if len(p) > 5 and p[-1] == p[0] and p[-2] == p[0] and p[-3] == p[0]:
+            return -1, poffset
+        return len(p) - 1, poffset
 
     def load_value(self, v, strictly_valid=True):
         if not v:
@@ -814,7 +836,8 @@ class TomlDecoder(object):
                         pass
                     if not oddbackslash:
                         if closed:
-                            raise ValueError("Stuff after closed string. WTF?")
+                            raise ValueError("Found tokens after a closed " +
+                                             "string. Invalid TOML.")
                         else:
                             if not triplequote or triplequotecount > 1:
                                 closed = True
@@ -902,15 +925,18 @@ class TomlDecoder(object):
                 break
         return not backslash
 
+    def _load_array_isstrarray(self, a):
+        a = a[1:-1].strip()
+        if a != '' and (a[0] == '"' or a[0] == "'"):
+            return True
+        return False
+
     def load_array(self, a):
         atype = None
         retval = []
         a = a.strip()
         if '[' not in a[1:-1] or "" != a[1:-1].split('[')[0].strip():
-            strarray = False
-            tmpa = a[1:-1].strip()
-            if tmpa != '' and (tmpa[0] == '"' or tmpa[0] == "'"):
-                strarray = True
+            strarray = self._load_array_isstrarray(a)
             if not a[1:-1].strip().startswith('{'):
                 a = a[1:-1].split(',')
             else:
