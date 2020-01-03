@@ -1,30 +1,20 @@
 import datetime
-import io
 from os import linesep
+import pathlib
 import re
 import sys
 
 from toml.tz import TomlTz
 
-if sys.version_info < (3,):
-    _range = xrange  # noqa: F821
-else:
-    unicode = str
-    _range = range
-    basestring = str
-    unichr = chr
-
 
 def _detect_pathlib_path(p):
-    if (3, 4) <= sys.version_info:
-        import pathlib
-        if isinstance(p, pathlib.PurePath):
-            return True
+    if isinstance(p, pathlib.PurePath):
+        return True
     return False
 
 
 def _ispath(p):
-    if isinstance(p, basestring):
+    if isinstance(p, str):
         return True
     return _detect_pathlib_path(p)
 
@@ -66,7 +56,7 @@ class TomlDecodeError(ValueError):
 _number_with_underscores = re.compile('([0-9])(_([0-9]))*')
 
 
-class CommentValue(object):
+class CommentValue:
     def __init__(self, val, comment, beginline, _dict):
         self.val = val
         separator = "\n" if beginline else " "
@@ -82,9 +72,9 @@ class CommentValue(object):
     def dump(self, dump_value_func):
         retstr = dump_value_func(self.val)
         if isinstance(self.val, self._dict):
-            return self.comment + "\n" + unicode(retstr)
+            return self.comment + "\n" + str(retstr)
         else:
-            return unicode(retstr) + self.comment
+            return str(retstr) + self.comment
 
 
 def _strictly_valid_num(n):
@@ -130,7 +120,7 @@ def load(f, _dict=dict, decoder=None):
     """
 
     if _ispath(f):
-        with io.open(_getpath(f), encoding='utf-8') as ffile:
+        with open(_getpath(f), encoding='utf-8') as ffile:
             return loads(ffile.read(), _dict, decoder)
     elif isinstance(f, list):
         from os import path as op
@@ -182,10 +172,10 @@ def loads(s, _dict=dict, decoder=None):
         decoder = TomlDecoder(_dict)
     retval = decoder.get_empty_table()
     currentlevel = retval
-    if not isinstance(s, basestring):
+    if not isinstance(s, str):
         raise TypeError("Expecting something like a string")
 
-    if not isinstance(s, unicode):
+    if not isinstance(s, str):
         s = s.decode('utf8')
 
     original = s
@@ -453,7 +443,7 @@ def loads(s, _dict=dict, decoder=None):
                                               original, pos)
                 i += 1
             currentlevel = retval
-            for i in _range(len(groups)):
+            for i in range(len(groups)):
                 group = groups[i]
                 if group == "":
                     raise TomlDecodeError("Can't have a keygroup with an empty "
@@ -587,8 +577,8 @@ def _load_unicode_escapes(v, hexbytes, prefix):
         if hxb[0] == "d" and hxb[1].strip('01234567'):
             raise ValueError("Invalid escape sequence: " + hxb +
                              ". Only scalar unicode points are allowed.")
-        v += unichr(int(hxb, 16))
-        v += unicode(hx[len(hxb):])
+        v += chr(int(hxb, 16))
+        v += str(hx[len(hxb):])
     return v
 
 
@@ -624,11 +614,11 @@ def _unescape(v):
     return v
 
 
-class InlineTableDict(object):
+class InlineTableDict:
     """Sentinel subclass of dict for inline tables."""
 
 
-class TomlDecoder(object):
+class TomlDecoder:
 
     def __init__(self, _dict=dict):
         self._dict = _dict
@@ -1001,7 +991,7 @@ class TomlDecoder(object):
             a = []
             openarr = 0
             j = 0
-            for i in _range(len(al)):
+            for i in range(len(al)):
                 if al[i] == '[':
                     openarr += 1
                 elif al[i] == ']':
@@ -1010,7 +1000,7 @@ class TomlDecoder(object):
                     a.append(''.join(al[j:i]))
                     j = i + 1
             a.append(''.join(al[j:]))
-        for i in _range(len(a)):
+        for i in range(len(a)):
             a[i] = a[i].strip()
             if a[i] != '':
                 nval, ntype = self.load_value(a[i])
@@ -1033,7 +1023,7 @@ class TomlPreserveCommentDecoder(TomlDecoder):
 
     def __init__(self, _dict=dict):
         self.saved_comments = {}
-        super(TomlPreserveCommentDecoder, self).__init__(_dict)
+        super().__init__(_dict)
 
     def preserve_comment(self, line_no, key, comment, beginline):
         self.saved_comments[line_no] = (key, comment, beginline)

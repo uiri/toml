@@ -1,12 +1,9 @@
 import datetime
 import re
-import sys
+import pathlib
 from decimal import Decimal
 
 from toml.decoder import InlineTableDict
-
-if sys.version_info >= (3,):
-    unicode = str
 
 
 def dump(o, f, encoder=None):
@@ -84,8 +81,6 @@ def dumps(o, encoder=None):
 
 
 def _dump_str(v):
-    if sys.version_info < (3,) and hasattr(v, 'decode') and isinstance(v, str):
-        v = v.decode('utf-8')
     v = "%r" % v
     if v[0] == 'u':
         v = v[1:]
@@ -111,7 +106,7 @@ def _dump_str(v):
         else:
             joiner = "u00"
         v = [v[0] + joiner + v[1]] + v[2:]
-    return unicode('"' + v[0] + '"')
+    return str('"' + v[0] + '"')
 
 
 def _dump_float(v):
@@ -126,16 +121,15 @@ def _dump_time(v):
     return v.isoformat()[:-6]
 
 
-class TomlEncoder(object):
+class TomlEncoder:
 
     def __init__(self, _dict=dict, preserve=False):
         self._dict = _dict
         self.preserve = preserve
         self.dump_funcs = {
             str: _dump_str,
-            unicode: _dump_str,
             list: self.dump_list,
-            bool: lambda v: unicode(v).lower(),
+            bool: lambda v: str(v).lower(),
             int: lambda v: v,
             float: _dump_float,
             Decimal: _dump_float,
@@ -150,7 +144,7 @@ class TomlEncoder(object):
     def dump_list(self, v):
         retval = "["
         for u in v:
-            retval += " " + unicode(self.dump_value(u)) + ","
+            retval += " " + str(self.dump_value(u)) + ","
         retval += "]"
         return retval
 
@@ -169,7 +163,7 @@ class TomlEncoder(object):
             retval += "{ " + ", ".join(val_list) + " }\n"
             return retval
         else:
-            return unicode(self.dump_value(section))
+            return str(self.dump_value(section))
 
     def dump_value(self, v):
         # Lookup function corresponding to v's type
@@ -186,7 +180,7 @@ class TomlEncoder(object):
         retdict = self._dict()
         arraystr = ""
         for section in o:
-            section = unicode(section)
+            section = str(section)
             qsection = section
             if not re.match(r'^[A-Za-z0-9_-]+$', section):
                 qsection = _dump_str(section)
@@ -223,7 +217,7 @@ class TomlEncoder(object):
                 else:
                     if o[section] is not None:
                         retstr += (qsection + " = " +
-                                   unicode(self.dump_value(o[section])) + '\n')
+                                   str(self.dump_value(o[section])) + '\n')
             elif self.preserve and isinstance(o[section], InlineTableDict):
                 retstr += (qsection + " = " +
                            self.dump_inline_table(o[section]))
@@ -236,13 +230,13 @@ class TomlEncoder(object):
 class TomlPreserveInlineDictEncoder(TomlEncoder):
 
     def __init__(self, _dict=dict):
-        super(TomlPreserveInlineDictEncoder, self).__init__(_dict, True)
+        super().__init__(_dict, True)
 
 
 class TomlArraySeparatorEncoder(TomlEncoder):
 
     def __init__(self, _dict=dict, preserve=False, separator=","):
-        super(TomlArraySeparatorEncoder, self).__init__(_dict, preserve)
+        super().__init__(_dict, preserve)
         if separator.strip() == "":
             separator = "," + separator
         elif separator.strip(' \t\n\r,'):
@@ -261,7 +255,7 @@ class TomlArraySeparatorEncoder(TomlEncoder):
                     for r in u:
                         s.append(r)
                 else:
-                    retval += " " + unicode(u) + self.separator
+                    retval += " " + str(u) + self.separator
             t = s
         retval += "]"
         return retval
@@ -271,7 +265,7 @@ class TomlNumpyEncoder(TomlEncoder):
 
     def __init__(self, _dict=dict, preserve=False):
         import numpy as np
-        super(TomlNumpyEncoder, self).__init__(_dict, preserve)
+        super().__init__(_dict, preserve)
         self.dump_funcs[np.float16] = _dump_float
         self.dump_funcs[np.float32] = _dump_float
         self.dump_funcs[np.float64] = _dump_float
@@ -287,7 +281,7 @@ class TomlPreserveCommentEncoder(TomlEncoder):
 
     def __init__(self, _dict=dict, preserve=False):
         from toml.decoder import CommentValue
-        super(TomlPreserveCommentEncoder, self).__init__(_dict, preserve)
+        super().__init__(_dict, preserve)
         self.dump_funcs[CommentValue] = lambda v: v.dump(self.dump_value)
 
 
@@ -297,8 +291,6 @@ class TomlPathlibEncoder(TomlEncoder):
         return _dump_str(str(v))
 
     def dump_value(self, v):
-        if (3, 4) <= sys.version_info:
-            import pathlib
-            if isinstance(v, pathlib.PurePath):
-                v = str(v)
-        return super(TomlPathlibEncoder, self).dump_value(v)
+        if isinstance(v, pathlib.PurePath):
+            v = str(v)
+        return super().dump_value(v)

@@ -1,8 +1,8 @@
 import toml
 import copy
+import pathlib
 import pytest
 import os
-import sys
 from decimal import Decimal
 
 from toml.decoder import InlineTableDict
@@ -21,18 +21,6 @@ def test_bug_148():
     assert 'a = "\\u0064"\n' == toml.dumps({'a': '\\x64'})
     assert 'a = "\\\\x64"\n' == toml.dumps({'a': '\\\\x64'})
     assert 'a = "\\\\\\u0064"\n' == toml.dumps({'a': '\\\\\\x64'})
-
-
-def test_bug_144():
-    if sys.version_info >= (3,):
-        return
-
-    bug_dict = {'username': '\xd7\xa9\xd7\x9c\xd7\x95\xd7\x9d'}
-    round_trip_bug_dict = toml.loads(toml.dumps(bug_dict))
-    unicoded_bug_dict = {'username': bug_dict['username'].decode('utf-8')}
-    assert round_trip_bug_dict == unicoded_bug_dict
-    assert bug_dict['username'] == (round_trip_bug_dict['username']
-                                    .encode('utf-8'))
 
 
 def test_bug_196():
@@ -187,7 +175,7 @@ def test_exceptions():
         toml.load([])
 
 
-class FakeFile(object):
+class FakeFile:
 
     def __init__(self):
         self.written = ""
@@ -213,11 +201,8 @@ def test_dump():
 
 def test_paths():
     toml.load("test.toml")
-    import sys
-    if (3, 4) <= sys.version_info:
-        import pathlib
-        p = pathlib.Path("test.toml")
-        toml.load(p)
+    p = pathlib.Path("test.toml")
+    toml.load(p)
 
 
 def test_warnings():
@@ -232,13 +217,11 @@ def test_commutativity():
 
 
 def test_pathlib():
-    if (3, 4) <= sys.version_info:
-        import pathlib
-        o = {"root": {"path": pathlib.Path("/home/edgy")}}
-        test_str = """[root]
+    o = {"root": {"path": pathlib.Path("/home/edgy")}}
+    test_str = """[root]
 path = "/home/edgy"
 """
-        assert test_str == toml.dumps(o, encoder=toml.TomlPathlibEncoder())
+    assert test_str == toml.dumps(o, encoder=toml.TomlPathlibEncoder())
 
 
 def test_comment_preserve_decoder_encoder():

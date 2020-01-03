@@ -5,22 +5,11 @@ import json
 import sys
 import toml
 
-if sys.version_info < (3,):
-    _range = xrange  # noqa: F821
-    iteritems = dict.iteritems
-else:
-    unicode = str
-    _range = range
-    basestring = str
-    unichr = chr
-    iteritems = dict.items
-    long = int
-
 
 def tag(value):
     if isinstance(value, dict):
         d = {}
-        for k, v in iteritems(value):
+        for k, v in dict.items(value):
             d[k] = tag(v)
         return d
     elif isinstance(value, list):
@@ -34,13 +23,11 @@ def tag(value):
         except IndexError:
             pass
         return {'type': 'array', 'value': a}
-    elif isinstance(value, basestring):
+    elif isinstance(value, str):
         return {'type': 'string', 'value': value}
     elif isinstance(value, bool):
         return {'type': 'bool', 'value': str(value).lower()}
     elif isinstance(value, int):
-        return {'type': 'integer', 'value': str(value)}
-    elif isinstance(value, long):
         return {'type': 'integer', 'value': str(value)}
     elif isinstance(value, float):
         return {'type': 'float', 'value': repr(value)}
