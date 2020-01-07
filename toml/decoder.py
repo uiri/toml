@@ -38,6 +38,23 @@ def _getpath(p):
     return p
 
 
+def _split(s, d):
+    quotes = ('"', "'")
+    def _split_gen(s, d):
+        l = -1
+        is_quoted = False
+        q = None
+        for i, c in enumerate(s):
+            if c in quotes and not(i > 0 and s[i-1] == '\\'):
+                q = c if q is None else None
+                is_quoted = not is_quoted
+            if c == d and not is_quoted:
+                yield s[l+1:i]
+                l = i
+        yield s[l+1:]
+    return list(_split_gen(s, d))
+
+
 try:
     FNFError = FileNotFoundError
 except NameError:
@@ -940,7 +957,7 @@ class TomlDecoder(object):
         if '[' not in a[1:-1] or "" != a[1:-1].split('[')[0].strip():
             strarray = self._load_array_isstrarray(a)
             if not a[1:-1].strip().startswith('{'):
-                a = a[1:-1].split(',')
+                a = _split(a[1:-1], ',')
             else:
                 # a is an inline object, we must find the matching parenthesis
                 # to define groups
