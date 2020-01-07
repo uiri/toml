@@ -40,18 +40,19 @@ def _getpath(p):
 
 def _split(s, d):
     quotes = ('"', "'")
+
     def _split_gen(s, d):
-        l = -1
+        left = -1
         is_quoted = False
         q = None
         for i, c in enumerate(s):
-            if c in quotes and not(i > 0 and s[i-1] == '\\'):
+            if c in quotes and not(i > 0 and s[i - 1] == '\\'):
                 q = c if q is None else None
                 is_quoted = not is_quoted
             if c == d and not is_quoted:
-                yield s[l+1:i]
-                l = i
-        yield s[l+1:]
+                yield s[left + 1:i]
+                left = i
+        yield s[left + 1:]
     return list(_split_gen(s, d))
 
 
