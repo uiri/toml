@@ -358,6 +358,9 @@ def loads(s, _dict=dict, decoder=None):
     if keyname:
         raise TomlDecodeError("Key name found without value."
                               " Reached end of file.", original, len(s))
+    if openstring: # reached EOF and have an unterminated string
+        raise TomlDecodeError("Unterminated string found."
+                              " Reached end of file.", original, len(s))
     s = ''.join(sl)
     s = s.split('\n')
     multikey = None
