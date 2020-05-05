@@ -270,3 +270,15 @@ b-comment = "a is 3"
                    encoder=toml.TomlPreserveCommentEncoder())
 
     assert len(s) == len(test_str) and sorted(test_str) == sorted(s)
+
+
+@pytest.mark.xfail
+def test_checks_on_triple_quote_fail():
+    assert toml.loads('foo="""1\\\n2"""# toto ')['foo'] == "1\\\n2"
+
+
+def test_checks_on_triple_quote():
+    assert toml.loads('foo="""1\n2"""# toto ')['foo'] == "1\n2"
+    assert toml.loads('foo="""1\n2\n"""# toto ')['foo'] == "1\n2\n"
+    assert toml.loads('foo=["""1\n2"""]# toto ')['foo'] == ["1\n2"]
+    assert toml.loads('foo=["""1\n2"""# toto\n]# toto')['foo'] == ["1\n2"]
