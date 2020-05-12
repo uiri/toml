@@ -144,7 +144,7 @@ def load(f, _dict=dict, decoder=None):
         if decoder is None:
             decoder = TomlDecoder(_dict)
         d = decoder.get_empty_table()
-        for l in f:
+        for l in f:  # noqa: E741
             if op.exists(l):
                 d.update(load(l, _dict, decoder))
             else:
