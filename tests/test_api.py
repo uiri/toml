@@ -270,13 +270,3 @@ b-comment = "a is 3"
                    encoder=toml.TomlPreserveCommentEncoder())
 
     assert len(s) == len(test_str) and sorted(test_str) == sorted(s)
-
-
-@pytest.mark.parametrize('test_val', [
-    'opt = "unterminated double\n',
-    "opt = 'unterminated single\n",
-    "opt = '''\nunterminated\nraw multiline\n",
-    'opt = """\nunterminated\nmultiline\n'])
-def test_unterminated_string_eof(test_val):
-    with pytest.raises(toml.TomlDecodeError):
-        toml.loads(test_val)
