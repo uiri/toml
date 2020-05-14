@@ -24,7 +24,7 @@ def _detect_pathlib_path(p):
 
 
 def _ispath(p):
-    if isinstance(p, basestring):
+    if isinstance(p, (bytes, basestring)):
         return True
     return _detect_pathlib_path(p)
 

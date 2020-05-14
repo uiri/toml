@@ -213,6 +213,7 @@ def test_dump():
 
 def test_paths():
     toml.load("test.toml")
+    toml.load(b"test.toml")
     import sys
     if (3, 4) <= sys.version_info:
         import pathlib
