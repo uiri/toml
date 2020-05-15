@@ -44,6 +44,10 @@ def test_bug_196():
     assert round_trip_bug_dict['x'] == bug_dict['x']
 
 
+def test_bug_295():
+    toml.dumps({'x': {'y': {'z': {'w': {}}}}})
+
+
 def test_valid_tests():
     valid_dir = "toml-test/tests/valid/"
     for f in os.listdir(valid_dir):
