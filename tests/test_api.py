@@ -201,6 +201,7 @@ def test_dump():
 
 def test_paths():
     toml.load("test.toml")
+    toml.load(b"test.toml")
     p = pathlib.Path("test.toml")
     toml.load(p)
 

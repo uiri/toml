@@ -14,7 +14,7 @@ def _detect_pathlib_path(p):
 
 
 def _ispath(p):
-    if isinstance(p, str):
+    if isinstance(p, (bytes, str)):
         return True
     return _detect_pathlib_path(p)
 
@@ -134,7 +134,7 @@ def load(f, _dict=dict, decoder=None):
         if decoder is None:
             decoder = TomlDecoder(_dict)
         d = decoder.get_empty_table()
-        for l in f:
+        for l in f:  # noqa: E741
             if op.exists(l):
                 d.update(load(l, _dict, decoder))
             else:
@@ -347,6 +347,9 @@ def loads(s, _dict=dict, decoder=None):
                 key += item
     if keyname:
         raise TomlDecodeError("Key name found without value."
+                              " Reached end of file.", original, len(s))
+    if openstring:  # reached EOF and have an unterminated string
+        raise TomlDecodeError("Unterminated string found."
                               " Reached end of file.", original, len(s))
     s = ''.join(sl)
     s = s.split('\n')
@@ -713,6 +716,8 @@ class TomlDecoder:
             except ValueError:
                 pass
             if _load_date(pair[-1]) is not None:
+                break
+            if TIME_RE.match(pair[-1]):
                 break
             i += 1
             prev_val = pair[-1]

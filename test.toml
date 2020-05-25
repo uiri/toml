@@ -40,6 +40,12 @@ hosts = [
   "omega"
 ]
 
+[meeting]
+[meeting.inspace]
+time = 10:00:00
+[meeting.nospace]
+time=10:00:00
+
 [[fruit]]
   name = "apple"
 
