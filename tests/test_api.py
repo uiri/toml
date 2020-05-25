@@ -103,7 +103,7 @@ def test_array_sep():
 
 
 def test_numpy_floats():
-    import numpy as np
+    np = pytest.importorskip('numpy')
 
     encoder = toml.TomlNumpyEncoder()
     d = {'a': np.array([1, .3], dtype=np.float64)}
@@ -120,7 +120,7 @@ def test_numpy_floats():
 
 
 def test_numpy_ints():
-    import numpy as np
+    np = pytest.importorskip('numpy')
 
     encoder = toml.TomlNumpyEncoder()
     d = {'a': np.array([1, 3], dtype=np.int64)}
