@@ -58,28 +58,33 @@ def dumps(o, encoder=None):
     if encoder is None:
         encoder = TomlEncoder(o.__class__)
     addtoretval, sections = encoder.dump_sections(o, "")
+    sections = list(sections.items())
     retval += addtoretval
     outer_objs = [id(o)]
-    while sections:
-        section_ids = [id(section) for section in sections]
-        for outer_obj in outer_objs:
-            if outer_obj in section_ids:
-                raise ValueError("Circular reference detected")
-        outer_objs += section_ids
-        newsections = encoder.get_empty_table()
-        for section in sections:
-            addtoretval, addtosections = encoder.dump_sections(
-                sections[section], section)
 
-            if addtoretval or (not addtoretval and not addtosections):
-                if retval and retval[-2:] != "\n\n":
-                    retval += "\n"
-                retval += "[" + section + "]\n"
-                if addtoretval:
-                    retval += addtoretval
-            for s in addtosections:
-                newsections[section + "." + s] = addtosections[s]
-        sections = newsections
+    while True:
+        try:
+            section, values = sections.pop(0)
+        except IndexError:
+            return retval
+
+        section_id = id(section)
+        if section_id in outer_objs:
+            raise ValueError("Circular reference detected")
+
+        outer_objs.append(section_id)
+
+        addtoretval, addtosections = encoder.dump_sections(values, section)
+        if addtoretval or (not addtoretval and not addtosections):
+            if retval and retval[-2:] != "\n\n":
+                retval += "\n"
+            retval += "[" + section + "]\n"
+            if addtoretval:
+                retval += addtoretval
+
+        for s in addtosections:
+            sections.insert(0, (section + "." + s, addtosections[s]))
+
     return retval
 
 
