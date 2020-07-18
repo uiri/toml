@@ -59,9 +59,9 @@ def dumps(o, encoder=None):
         encoder = TomlEncoder(o.__class__)
     addtoretval, sections = encoder.dump_sections(o, "")
     retval += addtoretval
-    outer_objs = [id(o)]
     while sections:
         section_ids = [id(section) for section in sections]
+        outer_objs = [id(o)]
         for outer_obj in outer_objs:
             if outer_obj in section_ids:
                 raise ValueError("Circular reference detected")
