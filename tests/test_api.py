@@ -271,3 +271,12 @@ b-comment = "a is 3"
                    encoder=toml.TomlPreserveCommentEncoder())
 
     assert len(s) == len(test_str) and sorted(test_str) == sorted(s)
+
+
+def test_deepcopy_timezone():
+    import copy
+
+    o = toml.loads("dob = 1979-05-24T07:32:00-08:00")
+    o2 = copy.deepcopy(o)
+    assert o2["dob"] == o["dob"]
+    assert o2["dob"] is not o["dob"]
