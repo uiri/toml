@@ -378,18 +378,19 @@ def loads(s, _dict=dict, decoder=None):
         if line == "" and (not multikey or multibackslash):
             continue
         if multikey:
+            closed = False
+            line_clean_end = line.rstrip()
+            if multilinestr[0] == '[':
+                closed = line_clean_end[-1] == ']'
+            elif len(line) > 2:
+                closed = line_clean_end[-3:] == multilinestr[:3]
+            if closed:
+                line = line_clean_end
             if multibackslash:
                 multilinestr += line
             else:
                 multilinestr += line
             multibackslash = False
-            closed = False
-            if multilinestr[0] == '[':
-                closed = line[-1] == ']'
-            elif len(line) > 2:
-                closed = (line[-1] == multilinestr[0] and
-                          line[-2] == multilinestr[0] and
-                          line[-3] == multilinestr[0])
             if closed:
                 try:
                     value, vtype = decoder.load_value(multilinestr)
