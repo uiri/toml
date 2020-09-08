@@ -811,8 +811,12 @@ class TomlDecoder(object):
             raise ValueError("Empty value is invalid")
         if v == 'true':
             return (True, "bool")
+        elif v.lower() == 'true':
+            raise ValueError("Only all lowercase booleans allowed")
         elif v == 'false':
             return (False, "bool")
+        elif v.lower() == 'false':
+            raise ValueError("Only all lowercase booleans allowed")
         elif v[0] == '"' or v[0] == "'":
             quotechar = v[0]
             testv = v[1:].split(quotechar)
