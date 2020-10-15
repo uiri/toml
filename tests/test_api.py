@@ -44,6 +44,19 @@ def test_bug_196():
     assert round_trip_bug_dict['x'] == bug_dict['x']
 
 
+def test_bug_314():
+    data = """12:34:56.1 1
+12:34:56.12 12
+12:34:56.123 123
+12:34:56.1234 1234
+12:34:56.12345 12345
+12:34:56.123456 123456
+12:34:56.1234567 123456"""
+    for line in data.splitlines():
+        input_, expected = tuple(line.split(" "))
+        decoded = toml.loads(f"a={input_}")['a']
+        assert decoded.microsecond == int(expected)
+
 def test_valid_tests():
     valid_dir = "toml-test/tests/valid/"
     for f in os.listdir(valid_dir):
