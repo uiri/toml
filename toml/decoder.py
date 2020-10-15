@@ -936,6 +936,11 @@ class TomlDecoder(object):
             return True
         return False
 
+    def _split_array(self, a):
+        import re
+        PATTERN = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
+        return PATTERN.split(a)[1::2]
+
     def load_array(self, a):
         atype = None
         retval = []
@@ -943,7 +948,7 @@ class TomlDecoder(object):
         if '[' not in a[1:-1] or "" != a[1:-1].split('[')[0].strip():
             strarray = self._load_array_isstrarray(a)
             if not a[1:-1].strip().startswith('{'):
-                a = a[1:-1].split(',')
+                a = self._split_array(a[1:-1])
             else:
                 # a is an inline object, we must find the matching parenthesis
                 # to define groups

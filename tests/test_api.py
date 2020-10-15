@@ -57,6 +57,12 @@ def test_bug_314():
         decoded = toml.loads(f"a={input_}")['a']
         assert decoded.microsecond == int(expected)
 
+def test_bug_322():
+    toml_string="""
+    a=[',','']
+    """
+    assert toml.loads(toml_string)['a'] == [',','']
+
 def test_valid_tests():
     valid_dir = "toml-test/tests/valid/"
     for f in os.listdir(valid_dir):
