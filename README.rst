@@ -2,10 +2,10 @@
 TOML
 ****
 
-.. image:: https://badge.fury.io/py/toml.svg
-    :target: https://badge.fury.io/py/toml
+.. image:: https://img.shields.io/pypi/v/toml
+    :target: https://pypi.org/project/toml/
 
-.. image:: https://travis-ci.org/uiri/toml.svg?branch=master
+.. image:: https://img.shields.io/travis/uiri/toml
     :target: https://travis-ci.org/uiri/toml
 
 .. image:: https://img.shields.io/pypi/pyversions/toml.svg
