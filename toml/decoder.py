@@ -440,7 +440,8 @@ def loads(s, _dict=dict, decoder=None):
                                            groups[i][0] == "'"):
                     groupstr = groups[i]
                     j = i + 1
-                    while not groupstr[0] == groupstr[-1]:
+                    while ((not groupstr[0] == groupstr[-1]) or
+                           len(groupstr) == 1):
                         j += 1
                         if j > len(groups) + 2:
                             raise TomlDecodeError("Invalid group name '" +
