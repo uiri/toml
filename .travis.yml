@@ -1,33 +1,31 @@
 language: python
 cache: pip
 python:
- - "2.7"
- - "3.4"
- - "3.5"
- - "3.6"
- - "3.7"
- - "3.8"
- - "3.9-dev"
- #- "pypy"
-
+  - '2.7'
+  - '3.4'
+  - '3.5'
+  - '3.6'
+  - '3.7'
+  - '3.8'
+  - 3.9-dev
 notifications:
   email: false
 addons:
   apt:
     packages:
-    - git
-    - golang
+      - git
+      - golang
 before_install:
- - export GOPATH=~/go
- - go get github.com/BurntSushi/toml-test
- - git clone https://github.com/BurntSushi/toml-test
+  - export GOPATH=~/go
+  - go get github.com/BurntSushi/toml-test
+  - 'git clone https://github.com/BurntSushi/toml-test'
 install:
- - pip install tox-travis
- - python setup.py install
- - chmod +x ./tests/*.sh
+  - pip install tox-travis
+  - python setup.py install
+  - chmod +x ./tests/*.sh
 script:
- - ~/go/bin/toml-test ./tests/decoding_test.sh
- - tox
- - tox -e check
+  - ~/go/bin/toml-test ./tests/decoding_test.sh
+  - tox
+  - tox -e check
 after_success:
- - tox -e codecov
+  - tox -e codecov
