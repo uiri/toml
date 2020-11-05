@@ -1,3 +1,4 @@
+import collections
 import datetime
 import re
 import sys
@@ -161,7 +162,7 @@ class TomlEncoder(object):
         https://github.com/toml-lang/toml#user-content-inline-table
         """
         retval = ""
-        if isinstance(section, dict):
+        if isinstance(section, collections.abc.Mapping):
             val_list = []
             for k, v in section.items():
                 val = self.dump_inline_table(v)
