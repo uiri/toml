@@ -1,20 +1,10 @@
-"""Python module which parses and emits TOML.
-
-Released under the MIT license.
-"""
-
-from toml import encoder
-from toml import decoder
-
-__version__ = "0.10.2"
-_spec_ = "0.5.0"
+from toml import decoder as decoder, encoder as encoder
 
 load = decoder.load
 loads = decoder.loads
 TomlDecoder = decoder.TomlDecoder
 TomlDecodeError = decoder.TomlDecodeError
 TomlPreserveCommentDecoder = decoder.TomlPreserveCommentDecoder
-
 dump = encoder.dump
 dumps = encoder.dumps
 TomlEncoder = encoder.TomlEncoder

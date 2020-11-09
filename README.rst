@@ -2,8 +2,8 @@
 TOML
 ****
 
-.. image:: https://badge.fury.io/py/toml.svg
-    :target: https://badge.fury.io/py/toml
+.. image:: https://img.shields.io/pypi/v/toml
+    :target: https://pypi.org/project/toml/
 
 .. image:: https://travis-ci.org/uiri/toml.svg?branch=master
     :target: https://travis-ci.org/uiri/toml
@@ -92,6 +92,33 @@ corresponding TOML-formatted data.
 .. code:: pycon
 
   >>> new_toml_string = toml.dumps(parsed_toml)
+  >>> print(new_toml_string)
+  title = "TOML Example"
+  [owner]
+  name = "Tom Preston-Werner"
+  dob = 1979-05-27T07:32:00Z
+  [database]
+  server = "192.168.1.1"
+  ports = [ 8001, 8001, 8002,]
+  connection_max = 5000
+  enabled = true
+  [clients]
+  data = [ [ "gamma", "delta",], [ 1, 2,],]
+  hosts = [ "alpha", "omega",]
+  [servers.alpha]
+  ip = "10.0.0.1"
+  dc = "eqdc10"
+  [servers.beta]
+  ip = "10.0.0.2"
+  dc = "eqdc10"
+
+*toml.dump* takes a dictionary and a file descriptor and returns a string containing the
+corresponding TOML-formatted data.
+
+.. code:: pycon
+
+  >>> with open('new_toml_file.toml', 'w') as f:
+  ...     new_toml_string = toml.dump(parsed_toml, f)
   >>> print(new_toml_string)
   title = "TOML Example"
   [owner]
