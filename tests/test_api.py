@@ -102,6 +102,14 @@ def test_array_sep():
     assert o == toml.loads(toml.dumps(o, encoder=encoder))
 
 
+def test_array_sep_indent_first_line():
+    encoder = toml.TomlArraySeparatorEncoder(
+        separator=",\n   ", indent_first_line=True)
+    d = {"a": [1, 2, 3]}
+    o = toml.loads(toml.dumps(d, encoder=encoder))
+    assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+
 def test_numpy_floats():
     np = pytest.importorskip('numpy')
 

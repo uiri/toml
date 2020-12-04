@@ -241,17 +241,21 @@ class TomlPreserveInlineDictEncoder(TomlEncoder):
 
 class TomlArraySeparatorEncoder(TomlEncoder):
 
-    def __init__(self, _dict=dict, preserve=False, separator=","):
+    def __init__(self, _dict=dict, preserve=False, separator=",",
+                 indent_first_line=False):
         super(TomlArraySeparatorEncoder, self).__init__(_dict, preserve)
         if separator.strip() == "":
             separator = "," + separator
         elif separator.strip(' \t\n\r,'):
             raise ValueError("Invalid separator for arrays")
         self.separator = separator
+        self.indent_first_line = indent_first_line
 
     def dump_list(self, v):
         t = []
         retval = "["
+        if self.indent_first_line:
+            retval += self.separator.strip(',')
         for u in v:
             t.append(self.dump_value(u))
         while t != []:
@@ -263,7 +267,7 @@ class TomlArraySeparatorEncoder(TomlEncoder):
                 else:
                     retval += " " + unicode(u) + self.separator
             t = s
-        retval += "]"
+        retval += " ]"
         return retval
 
 
