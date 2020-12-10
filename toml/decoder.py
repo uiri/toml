@@ -1,3 +1,4 @@
+import collections
 import datetime
 import io
 from os import linesep
@@ -367,6 +368,8 @@ def loads(s, _dict=dict, decoder=None):
     multilinestr = ""
     multibackslash = False
     pos = 0
+    # A helper list for making default dicts behave as expected
+    group_check = []
     for idx, line in enumerate(s):
         if idx > 0:
             pos += len(s[idx - 1]) + 1
@@ -474,9 +477,16 @@ def loads(s, _dict=dict, decoder=None):
                         elif arrayoftables:
                             currentlevel[group].append(decoder.get_empty_table()
                                                        )
+                        elif isinstance(currentlevel, collections.defaultdict):
+                            if group in group_check:
+                                raise TomlDecodeError("Group '" + group +
+                                                      "' is a duplicate.",
+                                                      original, pos)
+                            group_check.append(group)
+                            pass
                         else:
-                            raise TomlDecodeError("What? " + group +
-                                                  " already exists?" +
+                            raise TomlDecodeError("What? '" + group +
+                                                  "' already exists? " +
                                                   str(currentlevel),
                                                   original, pos)
                 except TypeError:

@@ -3,6 +3,7 @@ import copy
 import pytest
 import os
 import sys
+from collections import defaultdict
 from decimal import Decimal
 
 from toml.decoder import InlineTableDict
@@ -170,6 +171,16 @@ def test_invalid_tests():
                 toml.load(fh)
 
 
+def test_invalid_tests_dd():
+    invalid_dir = "toml-test/tests/invalid/"
+    for f in os.listdir(invalid_dir):
+        if not f.endswith("toml"):
+            continue
+        with pytest.raises(toml.TomlDecodeError):
+            with open(os.path.join(invalid_dir, f)) as fh:
+                toml.load(fh, lambda: defaultdict(dict))
+
+
 def test_exceptions():
     with pytest.raises(TypeError):
         toml.loads(2)
@@ -280,3 +291,16 @@ def test_deepcopy_timezone():
     o2 = copy.deepcopy(o)
     assert o2["dob"] == o["dob"]
     assert o2["dob"] is not o["dob"]
+
+
+def test_default_dict():
+    # https://github.com/uiri/toml/issues/342
+    data = """\
+    [section]
+    foo = "bar"
+    """
+    def dict_factory(**kw):
+        return defaultdict(dict, **kw)
+    o = toml.loads(data, dict_factory)
+    assert o == defaultdict(dict, {'section': {'foo': 'bar'}})
+
