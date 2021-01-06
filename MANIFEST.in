@@ -1,6 +1,7 @@
 include LICENSE
 include README.rst
 include toml/*pyi
+include toml/py.typed
 include tox.ini
 include test.toml
 recursive-include tests *.py *.sh
