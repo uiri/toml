@@ -305,7 +305,7 @@ def loads(s, _dict=dict, decoder=None):
             else:
                 openstrchar = ""
         if item == '#' and (not openstring and not keygroup and
-                            not arrayoftables):
+                            not arrayoftables and not multilinestr):
             j = i
             comment = ""
             try:
