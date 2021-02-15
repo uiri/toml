@@ -44,6 +44,15 @@ def test_bug_196():
     assert round_trip_bug_dict['x'] == bug_dict['x']
 
 
+def test_bug_310():
+    multi_str = '''\
+  multi = """\
+  one "two #three" four
+"""
+'''
+    bug_dict = toml.loads(multi_str)
+    assert bug_dict["multi"] == 'one "two #three" four'
+
 def test_valid_tests():
     valid_dir = "toml-test/tests/valid/"
     for f in os.listdir(valid_dir):
