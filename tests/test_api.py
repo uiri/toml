@@ -51,7 +51,8 @@ def test_bug_310():
 """
 '''
     bug_dict = toml.loads(multi_str)
-    assert bug_dict["multi"] == 'one "two #three" four'
+    assert bug_dict["multi"] == '  one "two #three" four\n'
+
 
 def test_valid_tests():
     valid_dir = "toml-test/tests/valid/"
