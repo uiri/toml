@@ -1024,10 +1024,7 @@ class TomlDecoder(object):
             a[i] = a[i].strip()
             if a[i] != '':
                 nval, ntype = self.load_value(a[i])
-                if atype:
-                    if ntype != atype:
-                        raise ValueError("Not a homogeneous array")
-                else:
+                if not atype:
                     atype = ntype
                 retval.append(nval)
         return retval
