@@ -1053,5 +1053,6 @@ class TomlPreserveCommentDecoder(TomlDecoder):
             return
 
         key, comment, beginline = self.saved_comments[idx]
-        currentlevel[key] = CommentValue(currentlevel[key], comment, beginline,
+        if key in currentlevel:
+            currentlevel[key] = CommentValue(currentlevel[key], comment, beginline,
                                          self._dict)
