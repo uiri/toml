@@ -113,4 +113,5 @@ auto-save-list
 tramp
 .\#*
 
-
+# VScode
+.vscode
