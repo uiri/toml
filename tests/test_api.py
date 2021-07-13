@@ -16,6 +16,13 @@ c = 2
 
 TEST_DICT = {"a": {"b": 1, "c": 2}}
 
+def test_bug_368():
+    data  = toml.loads(toml.dumps({"a": "\""}))
+    assert "\"" == data["a"]
+
+def test_bug_368Bis():
+    data  = toml.loads(toml.dumps({"a": ''}))
+    assert '' == data["a"]
 
 def test_bug_148():
     assert 'a = "\\u0064"\n' == toml.dumps({'a': '\\x64'})
