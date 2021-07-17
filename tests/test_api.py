@@ -279,6 +279,49 @@ b-comment = "a is 3"
     # This should match the original string, not the one with an invalid comment
     assert len(s) == len(test_str) and sorted(test_str) == sorted(s)
 
+def test_comment_preserve_decoder_before_comments():
+    """
+    Tests to allow comment preserver assign comments that come before 
+    """
+    decoder = toml.TomlPreserveCommentDecoder(beforeComment=True)
+    encoder = toml.TomlPreserveCommentEncoder(beforeComment=True)
+    test_str = """
+        # Global tags can be specified here in key="value" format.
+        [global_tags]
+        # dc = "us-east-1" # will tag all metrics with dc=us-east-1
+        # rack = "1a"
+        ## Environment variables can be used as tags, and throughout the config file
+        # user = "$USER"
+
+
+        # Configuration for telegraf agent
+        [agent]
+        ## Default data collection interval for all inputs
+        interval = "10s"
+        ## Rounds collection interval to 'interval'
+        ## ie, if interval="10s" then always collect on :00, :10, :20, etc.
+        round_interval = true
+
+        # # Gather Azure Storage Queue metrics
+        [[inputs.azure_storage_queue]]
+
+        #   ## Required Azure Storage Account name
+
+            account_name = "mystorageaccount" # Inline comment
+        #
+        #   ## Required Azure Storage Account access key
+            account_key = "storageaccountaccesskey"
+        #
+        #   ## Set to false to disable peeking age of oldest message (executes faster)
+            peek_oldest_message_age = true
+    """
+    data = toml.loads(test_str, decoder=decoder)
+
+
+
+
+    assert len(toml.dumps(data, encoder=encoder)) == len(test_str)
+
 def test_deepcopy_timezone():
     import copy
 

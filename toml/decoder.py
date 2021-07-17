@@ -316,6 +316,7 @@ def loads(s, _dict=dict, decoder=None):
             except IndexError:
                 break
             if not openarr:
+                print("Preserving a comment", line_no, " with prev_key: ", prev_key, "[", beginline ,"]: ", comment)
                 decoder.preserve_comment(line_no, prev_key, comment, beginline)
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
@@ -371,6 +372,7 @@ def loads(s, _dict=dict, decoder=None):
         if idx > 0:
             pos += len(s[idx - 1]) + 1
 
+        print("DEBUG: ", idx, ":", currentlevel, " - ", line)
         decoder.embed_comments(idx, currentlevel)
 
         if not multilinestr or multibackslash or '\n' not in multilinestr:
@@ -1051,7 +1053,6 @@ class TomlPreserveCommentDecoder(TomlDecoder):
     def embed_comments(self, idx, currentlevel):
         if idx not in self.saved_comments:
             return
-
         key, comment, beginline = self.saved_comments[idx]
         if key in currentlevel:
             currentlevel[key] = CommentValue(currentlevel[key], comment, beginline,
