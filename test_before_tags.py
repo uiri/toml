@@ -26,10 +26,10 @@ def test_before_comments():
 
             #   ## Required Azure Storage Account name
 
-                account_name = "mystorageaccount" # Inline comment
+            account_name = "mystorageaccount" # Inline comment
             #
             #   ## Required Azure Storage Account access key
-                account_key = "storageaccountaccesskey"
+            account_key = "storageaccountaccesskey"
             #
             #   ## Set to false to disable peeking age of oldest message (executes faster)
                 peek_oldest_message_age = true
@@ -100,18 +100,34 @@ def test_before_comments():
 
     expected = {
         "comments" : [
-            ""
-        ]
+            "Required Azure Storage Account name",
+            "Inline comment"
+        ],
+        "parent" : "[[inputs.azure_storage_queue]]"
     }
+    
     assert parsed_tags["account_name = \"mystorageaccount\""] == expected
 
     # account_key
-    expected = {}
+    expected = {
+        "components" : [
+            "Required Azure Storage Account access key"
+        ],
+        "parent" : "[[inputs.azure_storage_queue]]"
+    }
+
+    print(parsed_tags["account_key = \"storageaccountaccesskey\""], "\n==\n", expected)
+
     assert parsed_tags["account_key = \"storageaccountaccesskey\""] == expected
 
     # peek_oldest_message_age
 
-    expected = {}
+    expected = {
+        "components" : [
+            "Set to false to disable peeking age of oldest message (executes faster)"
+        ],
+        "parent" : "[[inputs.azure_storage_queue]]"
+    }
     assert parsed_tags["peak_oldest_message_age = true"] == expected
 
 if __name__ == "__main__":

@@ -1062,7 +1062,9 @@ class TomlPreserveCommentDecoder(TomlDecoder):
         self.saved_comments[line_no] = (key, comment, beginline)
 
     def embed_comments(self, idx, currentlevel, line=""):
-
+        
+        def strip_comment(inp):
+            return re.sub(r'^(\s?#?)+', '',inp)
         if self.beforeComments:
             if line.strip():
                 temp = "\n".join(self.stored_comments)
@@ -1077,12 +1079,18 @@ class TomlPreserveCommentDecoder(TomlDecoder):
                 else:
                     retval["parent"] = self.parent_line
 
+                # Handle inline comments - want to associate with the line they're on
+                if idx+1 in self.saved_comments:
+                    retval["comments"].append(strip_comment(self.saved_comments[idx+1][1]).strip())
+
                 self.before_tags.append(retval)
 
                 self.stored_line = idx
                 self.stored_comments = [] 
             else:
-                found_comments = [re.sub(r'^\s?#+\s?#?\s?', '',self.saved_comments[x][1].strip()) for x in self.saved_comments if x > self.stored_line and x <= idx + 1]
+                found_comments = [strip_comment(self.saved_comments[x][1].strip()) for x in self.saved_comments if x > self.stored_line and x <= idx + 1]
+
+
                 self.stored_comments += found_comments
                 self.remove_before_duplicates()
 
