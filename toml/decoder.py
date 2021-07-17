@@ -1054,6 +1054,8 @@ class TomlPreserveCommentDecoder(TomlDecoder):
         self.stored_comments = []
         self.stored_line = 0
 
+        self.parent_line = ""
+
         self.before_tags = []
 
     def preserve_comment(self, line_no, key, comment, beginline):
@@ -1065,15 +1067,22 @@ class TomlPreserveCommentDecoder(TomlDecoder):
             if line.strip():
                 temp = "\n".join(self.stored_comments)
 
-                self.before_tags.append({
+                retval = {
                     "name" : line.strip(),
-                    "comments" : (",".join(self.stored_comments)).split(",")
-                })
+                    "comments" : ("!DELIMITER!".join(self.stored_comments)).split("!DELIMITER!")
+                }
+
+                if "]" in line:
+                    self.parent_line = line.strip()
+                else:
+                    retval["parent"] = self.parent_line
+
+                self.before_tags.append(retval)
 
                 self.stored_line = idx
                 self.stored_comments = [] 
             else:
-                found_comments = [self.saved_comments[x][1].replace("#", "").strip() for x in self.saved_comments if x > self.stored_line and x <= idx + 1]
+                found_comments = [re.sub(r'^\s?#+\s?#?\s?', '',self.saved_comments[x][1].strip()) for x in self.saved_comments if x > self.stored_line and x <= idx + 1]
                 self.stored_comments += found_comments
                 self.remove_before_duplicates()
 
