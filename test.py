@@ -36,6 +36,15 @@ test_str = """
 decoder = toml.TomlPreserveCommentDecoder(beforeComments=True)
 data = toml.loads(test_str, decoder=decoder)
 
+decoder.remove_before_duplicates()
+
+
+print("______________________________________")
+from pprint import pprint
+pprint(decoder.before_tags)
+print("______________________________________")
+
+
 # Global tags
 assert decoder.before_tags["global_tags"] == {
     "comments": ["""Global tags can be specified here in key="value" format."""],
@@ -43,7 +52,7 @@ assert decoder.before_tags["global_tags"] == {
 }
 
 # Agent
-assert decoder.before_tags["[agent]"] == {
+assert decoder.before_tags["agent"] == {
     "comments" : ["""Configuration for telegraf agent"""],
     "children" : [
         {
@@ -61,11 +70,30 @@ assert decoder.before_tags["[agent]"] == {
     ]
 }
 
-assert decoder.before_tags["[agent]"]
+assert decoder.before_tags["inputs.azure_storage_queue"] == {
+    "comments" : "Gather Azure Storage Queue metrics",
+    "children" : [
+        {
+            "name" : "account_name",
+            "comments" : [
+                "Required Azure Storage Account name",
+                "Inline comment"
+            ]
+        }, {
+            "name": "account_key",
+            "comments" :[
+                "Required Azure Storage Account access key",
 
-# Inputs.azure_storage_queue
+            ]
+        },{
+            "name" : "peek_oldest_message_age",
+            "comments" :[
+                """Set to false to disable peeking age of oldest message (executes faster)"""
+            ]
+        }
+    ]
+}
 
-# Special note to account_name
 
 
 print(data)

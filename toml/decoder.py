@@ -316,7 +316,6 @@ def loads(s, _dict=dict, decoder=None):
             except IndexError:
                 break
             if not openarr:
-                print("Preserving a comment", line_no, " with prev_key: ", prev_key, "[", beginline ,"]: ", comment)
                 decoder.preserve_comment(line_no, prev_key, comment, beginline)
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
@@ -372,8 +371,11 @@ def loads(s, _dict=dict, decoder=None):
         if idx > 0:
             pos += len(s[idx - 1]) + 1
 
-        print("DEBUG: ", idx, ":", currentlevel, " - ", line)
-        decoder.embed_comments(idx, currentlevel)
+        if "beforeComments" in dir(decoder) and decoder.beforeComments == True:
+            decoder.embed_comments(idx, currentlevel, line=line)
+        else:
+            decoder.embed_comments(idx, currentlevel)
+
 
         if not multilinestr or multibackslash or '\n' not in multilinestr:
             line = line.strip()
@@ -1043,17 +1045,49 @@ class TomlDecoder(object):
 
 class TomlPreserveCommentDecoder(TomlDecoder):
 
-    def __init__(self, _dict=dict):
+    def __init__(self, beforeComments=False, _dict=dict):
         self.saved_comments = {}
         super(TomlPreserveCommentDecoder, self).__init__(_dict)
+
+        self.beforeComments = beforeComments
+        
+        self.stored_comments = []
+        self.stored_line = 0
+
+        self.before_tags = []
 
     def preserve_comment(self, line_no, key, comment, beginline):
         self.saved_comments[line_no] = (key, comment, beginline)
 
-    def embed_comments(self, idx, currentlevel):
+    def embed_comments(self, idx, currentlevel, line=""):
+
+        if self.beforeComments:
+            if line.strip():
+                temp = "\n".join(self.stored_comments)
+
+                self.before_tags.append({
+                    "name" : line.strip(),
+                    "comments" : (",".join(self.stored_comments)).split(",")
+                })
+
+                self.stored_line = idx
+                self.stored_comments = [] 
+            else:
+                found_comments = [self.saved_comments[x][1].replace("#", "").strip() for x in self.saved_comments if x > self.stored_line and x <= idx + 1]
+                self.stored_comments += found_comments
+                self.remove_before_duplicates()
+
         if idx not in self.saved_comments:
             return
         key, comment, beginline = self.saved_comments[idx]
         if key in currentlevel:
             currentlevel[key] = CommentValue(currentlevel[key], comment, beginline,
                                          self._dict)
+    def remove_before_duplicates(self):
+        seen = set()
+        result = []
+        for item in self.stored_comments:
+            if item not in seen:
+                seen.add(item)
+                result.append(item)
+        self.stored_comments = result
