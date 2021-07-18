@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 import toml
-from pprint import pprint
 
-def test_before_comments():
-    """Tests handling before comments"""
-    test_str = """
+TEST_STR = """
             # Global tags can be specified here in key="value" format.
             [global_tags]
             # dc = "us-east-1" # will tag all metrics with dc=us-east-1
@@ -34,15 +31,19 @@ def test_before_comments():
             #   ## Set to false to disable peeking age of oldest message (executes faster)
                 peek_oldest_message_age = true
     """
+
+
+def test_before_comments():
+    """Tests handling before comments"""
+
     decoder = toml.TomlPreserveCommentDecoder(beforeComments=True)
-    data = toml.loads(test_str, decoder=decoder)
+    data = toml.loads(TEST_STR, decoder=decoder)
 
     parsed_tags = {}
 
     for line in decoder.before_tags:
         parsed_tags[line["name"]] = line
         del parsed_tags[line["name"]]["name"]
-
 
     # Global tags
     assert parsed_tags["[global_tags]"] == {
@@ -51,20 +52,19 @@ def test_before_comments():
 
     # user = "$USER"
     expected = {
-        "comments" : [
+        "comments": [
             """dc = "us-east-1" # will tag all metrics with dc=us-east-1""",
             'rack = "1a"',
             """Environment variables can be used as tags, and throughout the config file"""
         ],
-        "parent" : "[global_tags]"
+        "parent": "[global_tags]"
     }
-
 
     assert parsed_tags["user = \"$USER\""] == expected
 
     # Agent
     expected = {
-        "comments" : ["""Configuration for telegraf agent"""],
+        "comments": ["""Configuration for telegraf agent"""],
     }
 
     assert parsed_tags["[agent]"] == expected
@@ -74,24 +74,22 @@ def test_before_comments():
         "comments": [
             "Default data collection interval for all inputs"
         ],
-        "parent" : "[agent]"
+        "parent": "[agent]"
     }
     assert parsed_tags["interval = \"10s\""] == expected
 
     # round_interval = true
     expected = {
-        "comments" : [
+        "comments": [
             "Rounds collection interval to 'interval'",
             'ie, if interval="10s" then always collect on :00, :10, :20, etc.'
         ],
-        "parent" : "[agent]"
+        "parent": "[agent]"
     }
     assert parsed_tags["round_interval = true"] == expected
 
-
-
     expected = {
-        "comments" : ["Gather Azure Storage Queue metrics"]
+        "comments": ["Gather Azure Storage Queue metrics"]
     }
 
     assert parsed_tags["[[inputs.azure_storage_queue]]"] == expected
@@ -99,33 +97,32 @@ def test_before_comments():
     # account_name
 
     expected = {
-        "comments" : [
+        "comments": [
             "Required Azure Storage Account name",
             "Inline comment"
         ],
-        "parent" : "[[inputs.azure_storage_queue]]"
+        "parent": "[[inputs.azure_storage_queue]]"
     }
 
     assert parsed_tags["account_name = \"mystorageaccount\""] == expected
 
     # account_key
     expected = {
-        "comments" : [
+        "comments": [
             "Required Azure Storage Account access key"
         ],
-        "parent" : "[[inputs.azure_storage_queue]]"
+        "parent": "[[inputs.azure_storage_queue]]"
     }
-
 
     assert parsed_tags["account_key = \"storageaccountaccesskey\""] == expected
 
     # peek_oldest_message_age
 
     expected = {
-        "comments" : [
+        "comments": [
             "Set to false to disable peeking age of oldest message (executes faster)"
         ],
-        "parent" : "[[inputs.azure_storage_queue]]"
+        "parent": "[[inputs.azure_storage_queue]]"
     }
 
     assert parsed_tags["peek_oldest_message_age = true"] == expected
