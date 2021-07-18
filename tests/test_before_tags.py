@@ -110,25 +110,22 @@ def test_before_comments():
 
     # account_key
     expected = {
-        "components" : [
+        "comments" : [
             "Required Azure Storage Account access key"
         ],
         "parent" : "[[inputs.azure_storage_queue]]"
     }
 
-    print(parsed_tags["account_key = \"storageaccountaccesskey\""], "\n==\n", expected)
 
     assert parsed_tags["account_key = \"storageaccountaccesskey\""] == expected
 
     # peek_oldest_message_age
 
     expected = {
-        "components" : [
+        "comments" : [
             "Set to false to disable peeking age of oldest message (executes faster)"
         ],
         "parent" : "[[inputs.azure_storage_queue]]"
     }
-    assert parsed_tags["peak_oldest_message_age = true"] == expected
 
-if __name__ == "__main__":
-    test_before_comments()
+    assert parsed_tags["peek_oldest_message_age = true"] == expected

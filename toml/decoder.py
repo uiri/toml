@@ -1050,7 +1050,7 @@ class TomlPreserveCommentDecoder(TomlDecoder):
         super(TomlPreserveCommentDecoder, self).__init__(_dict)
 
         self.beforeComments = beforeComments
-        
+
         self.stored_comments = []
         self.stored_line = 0
 
@@ -1062,7 +1062,7 @@ class TomlPreserveCommentDecoder(TomlDecoder):
         self.saved_comments[line_no] = (key, comment, beginline)
 
     def embed_comments(self, idx, currentlevel, line=""):
-        
+
         def strip_comment(inp):
             return re.sub(r'^(\s?#?)+', '',inp)
         if self.beforeComments:
@@ -1071,7 +1071,7 @@ class TomlPreserveCommentDecoder(TomlDecoder):
 
                 retval = {
                     "name" : line.strip(),
-                    "comments" : ("!DELIMITER!".join(self.stored_comments)).split("!DELIMITER!")
+                    "comments" : [x for x in self.stored_comments if x != ""]
                 }
 
                 if "]" in line:
@@ -1080,15 +1080,18 @@ class TomlPreserveCommentDecoder(TomlDecoder):
                     retval["parent"] = self.parent_line
 
                 # Handle inline comments - want to associate with the line they're on
-                if idx+1 in self.saved_comments:
+                if idx+1 in self.saved_comments and self.saved_comments[idx+1] != "":
                     retval["comments"].append(strip_comment(self.saved_comments[idx+1][1]).strip())
+
+                    # BREAKING - to avoid duplicate comments with inlines, we will remove from saved_comments
+                    del self.saved_comments[idx+1]
 
                 self.before_tags.append(retval)
 
                 self.stored_line = idx
-                self.stored_comments = [] 
+                self.stored_comments = []
             else:
-                found_comments = [strip_comment(self.saved_comments[x][1].strip()) for x in self.saved_comments if x > self.stored_line and x <= idx + 1]
+                found_comments = [strip_comment(self.saved_comments[x][1].strip()) for x in self.saved_comments if x > self.stored_line and x <= idx + 1 ]
 
 
                 self.stored_comments += found_comments
