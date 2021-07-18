@@ -1065,6 +1065,7 @@ class TomlPreserveCommentDecoder(TomlDecoder):
 
         def strip_comment(inp):
             return re.sub(r'^(\s?#?)+', '',inp)
+
         if self.beforeComments:
             if line.strip():
                 temp = "\n".join(self.stored_comments)

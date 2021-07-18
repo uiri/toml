@@ -38,7 +38,7 @@ def test_before_comments():
     data = toml.loads(test_str, decoder=decoder)
 
     parsed_tags = {}
-    
+
     for line in decoder.before_tags:
         parsed_tags[line["name"]] = line
         del parsed_tags[line["name"]]["name"]
@@ -58,7 +58,7 @@ def test_before_comments():
         ],
         "parent" : "[global_tags]"
     }
-    
+
 
     assert parsed_tags["user = \"$USER\""] == expected
 
@@ -66,7 +66,7 @@ def test_before_comments():
     expected = {
         "comments" : ["""Configuration for telegraf agent"""],
     }
-    
+
     assert parsed_tags["[agent]"] == expected
 
     # interval = "10s"
@@ -105,7 +105,7 @@ def test_before_comments():
         ],
         "parent" : "[[inputs.azure_storage_queue]]"
     }
-    
+
     assert parsed_tags["account_name = \"mystorageaccount\""] == expected
 
     # account_key
