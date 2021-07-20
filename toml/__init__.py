@@ -6,7 +6,7 @@ Released under the MIT license.
 from toml import encoder
 from toml import decoder
 
-__version__ = "0.10.3"
+__version__ = "0.10.4"
 _spec_ = "0.5.0"
 
 load = decoder.load
