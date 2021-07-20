@@ -1085,14 +1085,18 @@ class TomlPreserveCommentDecoder(TomlDecoder):
                     retval["comments"].append(strip_comment(self.saved_comments[idx+1][1]).strip())
 
                     # BREAKING - to avoid duplicate comments with inlines, we will remove from saved_comments
-                    del self.saved_comments[idx+1]
+                    self.saved_comments[idx+1] = (self.saved_comments[idx+1][0], "", self.saved_comments[idx+1][2])
 
                 self.before_tags.append(retval)
 
                 self.stored_line = idx
                 self.stored_comments = []
             else:
-                found_comments = [strip_comment(self.saved_comments[x][1].strip()) for x in self.saved_comments if x > self.stored_line and x <= idx + 1 ]
+                found_comments = [
+                    strip_comment(self.saved_comments[x][1].strip()) 
+                    for x in self.saved_comments 
+                    if x > self.stored_line and x <= idx + 1 
+                    ]
 
 
                 self.stored_comments += found_comments
