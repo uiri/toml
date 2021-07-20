@@ -1075,7 +1075,7 @@ class TomlPreserveCommentDecoder(TomlDecoder):
                     "comments" : [x for x in self.stored_comments if x != ""]
                 }
 
-                if "]" in line:
+                if "]" in line and "=" not in line:
                     self.parent_line = line.strip()
                 else:
                     retval["parent"] = self.parent_line

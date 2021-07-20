@@ -126,3 +126,30 @@ def test_before_comments():
     }
 
     assert parsed_tags["peek_oldest_message_age = true"] == expected
+
+def test_bugfix_improper_parents():
+    """
+    Tests bug that sets arrays to be parents due to [ ] being present
+    """
+    test_str = """
+    [[outputs.influxdb]]   
+    ## The full HTTP or UDP URL for your InfluxDB instance.   
+    ##  
+    ## Multiple URLs can be specified for a single cluster, only ONE of the  
+    ## urls will be written to each interval.   
+    # urls = ["unix:///var/run/influxdb.sock"]  
+    # urls = ["udp://127.0.0.1:8089"]   
+    urls = ["http://127.0.0.1:8086"]   
+
+    ## The target database for metrics; will be created as needed.   
+    ## For UDP url endpoint database needs to be configured on server side.   
+    # database = "telegraf"   
+    ## The value of this tag will be used to determine the database.  If this   
+    ## tag is not set the 'database' option is used as the default.   
+    database_tag = ""
+    """
+
+    decoder = toml.TomlPreserveCommentDecoder(beforeComments=True)
+    data = toml.loads(test_str, decoder=decoder)
+
+    assert decoder.before_tags[-1]["parent"] == "[[outputs.influxdb]]"
