@@ -18,7 +18,7 @@ Testing
 ### Unit tests
 Unit tests can be run using [tox](https://tox.readthedocs.io/en/latest/).
 Simply `pip install tox` and you are ready to go. Tox creates required
-virual eniroments and installs necessary packages.
+virtual environments and installs necessary packages.
 
     tox
 
