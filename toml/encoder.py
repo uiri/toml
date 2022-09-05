@@ -95,7 +95,8 @@ def _dump_str(v):
     if singlequote:
         v = v.replace("\\'", "'")
         v = v.replace('"', '\\"')
-    v = v.split("\\x")
+    # split on \x, but not \\x
+    v = re.split(r"(?<!\\)\\x", v)
     while len(v) > 1:
         i = -1
         if not v[0]:
