@@ -280,3 +280,15 @@ def test_deepcopy_timezone():
     o2 = copy.deepcopy(o)
     assert o2["dob"] == o["dob"]
     assert o2["dob"] is not o["dob"]
+
+
+def test_list_of_inline_tables_with_preserve():
+    test_str = """[[test]]
+x = [ { name = "test1" }, { name = "test2" },]
+
+"""
+    s = toml.dumps(toml.loads(test_str,
+                              decoder=toml.TomlDecoder()),
+                   encoder=toml.TomlEncoder(preserve_list=True))
+
+    assert len(s) == len(test_str) and sorted(test_str) == sorted(s)
