@@ -212,7 +212,7 @@ class TomlEncoder(object):
 
                     if self.preserve and len(inlines) == len(o[section]):
                         retstr += (qsection + " = " +
-                                   unicode(self.dump_value(o[section])) + '\n')
+                                   unicode(self.dump_value(o[section])) + "\n")
 
                         continue
 
