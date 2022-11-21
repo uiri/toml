@@ -128,9 +128,10 @@ def _dump_time(v):
 
 class TomlEncoder(object):
 
-    def __init__(self, _dict=dict, preserve=False):
+    def __init__(self, _dict=dict, preserve=False, preserve_list=False):
         self._dict = _dict
         self.preserve = preserve
+        self.preserve_list = preserve_list
         self.dump_funcs = {
             str: _dump_str,
             unicode: _dump_str,
@@ -210,7 +211,7 @@ class TomlEncoder(object):
                         if isinstance(a, InlineTableDict):
                             inlines.append(a)
 
-                    if self.preserve and len(inlines) == len(o[section]):
+                    if self.preserve_list and len(inlines) == len(o[section]):
                         retstr += (qsection + " = " +
                                    unicode(self.dump_value(o[section])) + "\n")
 
@@ -254,14 +255,14 @@ class TomlEncoder(object):
 
 class TomlPreserveInlineDictEncoder(TomlEncoder):
 
-    def __init__(self, _dict=dict):
-        super(TomlPreserveInlineDictEncoder, self).__init__(_dict, True)
+    def __init__(self, _dict=dict, preserve_list=False):
+        super(TomlPreserveInlineDictEncoder, self).__init__(_dict, True, preserve_list)
 
 
 class TomlArraySeparatorEncoder(TomlEncoder):
 
-    def __init__(self, _dict=dict, preserve=False, separator=","):
-        super(TomlArraySeparatorEncoder, self).__init__(_dict, preserve)
+    def __init__(self, _dict=dict, preserve=False, separator=",", preserve_list=False):
+        super(TomlArraySeparatorEncoder, self).__init__(_dict, preserve, preserve_list)
         if separator.strip() == "":
             separator = "," + separator
         elif separator.strip(' \t\n\r,'):
@@ -288,9 +289,9 @@ class TomlArraySeparatorEncoder(TomlEncoder):
 
 class TomlNumpyEncoder(TomlEncoder):
 
-    def __init__(self, _dict=dict, preserve=False):
+    def __init__(self, _dict=dict, preserve=False, preserve_list=False):
         import numpy as np
-        super(TomlNumpyEncoder, self).__init__(_dict, preserve)
+        super(TomlNumpyEncoder, self).__init__(_dict, preserve, preserve_list)
         self.dump_funcs[np.float16] = _dump_float
         self.dump_funcs[np.float32] = _dump_float
         self.dump_funcs[np.float64] = _dump_float
@@ -304,9 +305,9 @@ class TomlNumpyEncoder(TomlEncoder):
 
 class TomlPreserveCommentEncoder(TomlEncoder):
 
-    def __init__(self, _dict=dict, preserve=False):
+    def __init__(self, _dict=dict, preserve=False, preserve_list=False):
         from toml.decoder import CommentValue
-        super(TomlPreserveCommentEncoder, self).__init__(_dict, preserve)
+        super(TomlPreserveCommentEncoder, self).__init__(_dict, preserve, preserve_list)
         self.dump_funcs[CommentValue] = lambda v: v.dump(self.dump_value)
 
 
