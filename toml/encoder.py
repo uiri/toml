@@ -154,7 +154,7 @@ class TomlEncoder(object):
         retval += "]"
         return retval
 
-    def dump_inline_table(self, section):
+    def dump_inline_table(self, section, with_newline=True):
         """Preserve inline table in its compact syntax instead of expanding
         into subsection.
 
@@ -166,14 +166,21 @@ class TomlEncoder(object):
             for k, v in section.items():
                 val = self.dump_inline_table(v)
                 val_list.append(k + " = " + val)
-            retval += "{ " + ", ".join(val_list) + " }\n"
+            retval += "{ " + ", ".join(val_list) + " }"
+
+            if with_newline:
+                retval += "\n"
+
             return retval
         else:
             return unicode(self.dump_value(section))
 
+    def dump_inline_table_value(self, value):
+        return self.dump_inline_table(value, False)
+
     def dump_value(self, v):
         # Lookup function corresponding to v's type
-        dump_fn = self.dump_funcs.get(type(v))
+        dump_fn = self.dump_inline_table_value if isinstance(v, InlineTableDict) else self.dump_funcs.get(type(v))
         if dump_fn is None and hasattr(v, '__iter__'):
             dump_fn = self.dump_funcs[list]
         # Evaluate function (if it exists) else return v
@@ -192,11 +199,23 @@ class TomlEncoder(object):
                 qsection = _dump_str(section)
             if not isinstance(o[section], dict):
                 arrayoftables = False
+                inlines = []
+
                 if isinstance(o[section], list):
                     for a in o[section]:
                         if isinstance(a, dict):
                             arrayoftables = True
                 if arrayoftables:
+                    for a in o[section]:
+                        if isinstance(a, InlineTableDict):
+                            inlines.append(a)
+
+                    if self.preserve and len(inlines) == len(o[section]):
+                        retstr += (qsection + " = " +
+                                   unicode(self.dump_value(o[section])) + '\n')
+
+                        continue
+
                     for a in o[section]:
                         arraytabstr = "\n"
                         arraystr += "[[" + sup + qsection + "]]\n"
