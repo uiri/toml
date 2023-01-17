@@ -128,9 +128,10 @@ def _dump_time(v):
 
 class TomlEncoder(object):
 
-    def __init__(self, _dict=dict, preserve=False):
+    def __init__(self, _dict=dict, preserve=False, preserve_list=False):
         self._dict = _dict
         self.preserve = preserve
+        self.preserve_list = preserve_list
         self.dump_funcs = {
             str: _dump_str,
             unicode: _dump_str,
@@ -154,7 +155,7 @@ class TomlEncoder(object):
         retval += "]"
         return retval
 
-    def dump_inline_table(self, section):
+    def dump_inline_table(self, section, with_newline=True):
         """Preserve inline table in its compact syntax instead of expanding
         into subsection.
 
@@ -166,14 +167,21 @@ class TomlEncoder(object):
             for k, v in section.items():
                 val = self.dump_inline_table(v)
                 val_list.append(k + " = " + val)
-            retval += "{ " + ", ".join(val_list) + " }\n"
+            retval += "{ " + ", ".join(val_list) + " }"
+
+            if with_newline:
+                retval += "\n"
+
             return retval
         else:
             return unicode(self.dump_value(section))
 
+    def dump_inline_table_value(self, value):
+        return self.dump_inline_table(value, False)
+
     def dump_value(self, v):
         # Lookup function corresponding to v's type
-        dump_fn = self.dump_funcs.get(type(v))
+        dump_fn = self.dump_inline_table_value if isinstance(v, InlineTableDict) else self.dump_funcs.get(type(v))
         if dump_fn is None and hasattr(v, '__iter__'):
             dump_fn = self.dump_funcs[list]
         # Evaluate function (if it exists) else return v
@@ -192,11 +200,23 @@ class TomlEncoder(object):
                 qsection = _dump_str(section)
             if not isinstance(o[section], dict):
                 arrayoftables = False
+                inlines = []
+
                 if isinstance(o[section], list):
                     for a in o[section]:
                         if isinstance(a, dict):
                             arrayoftables = True
                 if arrayoftables:
+                    for a in o[section]:
+                        if isinstance(a, InlineTableDict):
+                            inlines.append(a)
+
+                    if self.preserve_list and len(inlines) == len(o[section]):
+                        retstr += (qsection + " = " +
+                                   unicode(self.dump_value(o[section])) + "\n")
+
+                        continue
+
                     for a in o[section]:
                         arraytabstr = "\n"
                         arraystr += "[[" + sup + qsection + "]]\n"
@@ -235,14 +255,14 @@ class TomlEncoder(object):
 
 class TomlPreserveInlineDictEncoder(TomlEncoder):
 
-    def __init__(self, _dict=dict):
-        super(TomlPreserveInlineDictEncoder, self).__init__(_dict, True)
+    def __init__(self, _dict=dict, preserve_list=False):
+        super(TomlPreserveInlineDictEncoder, self).__init__(_dict, True, preserve_list)
 
 
 class TomlArraySeparatorEncoder(TomlEncoder):
 
-    def __init__(self, _dict=dict, preserve=False, separator=","):
-        super(TomlArraySeparatorEncoder, self).__init__(_dict, preserve)
+    def __init__(self, _dict=dict, preserve=False, separator=",", preserve_list=False):
+        super(TomlArraySeparatorEncoder, self).__init__(_dict, preserve, preserve_list)
         if separator.strip() == "":
             separator = "," + separator
         elif separator.strip(' \t\n\r,'):
@@ -269,9 +289,9 @@ class TomlArraySeparatorEncoder(TomlEncoder):
 
 class TomlNumpyEncoder(TomlEncoder):
 
-    def __init__(self, _dict=dict, preserve=False):
+    def __init__(self, _dict=dict, preserve=False, preserve_list=False):
         import numpy as np
-        super(TomlNumpyEncoder, self).__init__(_dict, preserve)
+        super(TomlNumpyEncoder, self).__init__(_dict, preserve, preserve_list)
         self.dump_funcs[np.float16] = _dump_float
         self.dump_funcs[np.float32] = _dump_float
         self.dump_funcs[np.float64] = _dump_float
@@ -285,9 +305,9 @@ class TomlNumpyEncoder(TomlEncoder):
 
 class TomlPreserveCommentEncoder(TomlEncoder):
 
-    def __init__(self, _dict=dict, preserve=False):
+    def __init__(self, _dict=dict, preserve=False, preserve_list=False):
         from toml.decoder import CommentValue
-        super(TomlPreserveCommentEncoder, self).__init__(_dict, preserve)
+        super(TomlPreserveCommentEncoder, self).__init__(_dict, preserve, preserve_list)
         self.dump_funcs[CommentValue] = lambda v: v.dump(self.dump_value)
 
 
