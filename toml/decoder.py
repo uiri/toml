@@ -43,7 +43,6 @@ try:
 except NameError:
     FNFError = IOError
 
-
 TIME_RE = re.compile(r"([0-9]{2}):([0-9]{2}):([0-9]{2})(\.([0-9]{3,6}))?")
 
 
@@ -876,7 +875,7 @@ class TomlDecoder(object):
                                                      v[1] == v[2]):
                 v = v[2:-2]
             return (v[1:-1], "str")
-        elif v[0] == '[':
+        elif v[0] == '[' and v[len(v) - 1] == ']':
             return (self.load_array(v), "array")
         elif v[0] == '{':
             inline_object = self.get_empty_inline_table()
