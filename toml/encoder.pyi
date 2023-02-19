@@ -32,3 +32,6 @@ class TomlPreserveCommentEncoder(TomlEncoder):
 
 class TomlPathlibEncoder(TomlEncoder):
     def dump_value(self, v: Any): ...
+
+class TomlDataclassEncoder(TomlEncoder):
+    def dump_value(self, v: Any): ...

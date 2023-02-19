@@ -179,6 +179,9 @@ class TomlEncoder(object):
         # Evaluate function (if it exists) else return v
         return dump_fn(v) if dump_fn is not None else self.dump_funcs[str](v)
 
+    def _preprocess_section(self, contents):
+        return contents
+
     def dump_sections(self, o, sup):
         retstr = ""
         if sup != "" and sup[-1] != ".":
@@ -188,16 +191,17 @@ class TomlEncoder(object):
         for section in o:
             section = unicode(section)
             qsection = section
+            contents = self._preprocess_section(o[section])
             if not re.match(r'^[A-Za-z0-9_-]+$', section):
                 qsection = _dump_str(section)
-            if not isinstance(o[section], dict):
+            if not isinstance(contents, dict):
                 arrayoftables = False
-                if isinstance(o[section], list):
-                    for a in o[section]:
+                if isinstance(contents, list):
+                    for a in contents:
                         if isinstance(a, dict):
                             arrayoftables = True
                 if arrayoftables:
-                    for a in o[section]:
+                    for a in contents:
                         arraytabstr = "\n"
                         arraystr += "[[" + sup + qsection + "]]\n"
                         s, d = self.dump_sections(a, sup + qsection)
@@ -221,14 +225,14 @@ class TomlEncoder(object):
                             d = newd
                         arraystr += arraytabstr
                 else:
-                    if o[section] is not None:
+                    if contents is not None:
                         retstr += (qsection + " = " +
-                                   unicode(self.dump_value(o[section])) + '\n')
-            elif self.preserve and isinstance(o[section], InlineTableDict):
+                                   unicode(self.dump_value(contents)) + '\n')
+            elif self.preserve and isinstance(contents, InlineTableDict):
                 retstr += (qsection + " = " +
-                           self.dump_inline_table(o[section]))
+                           self.dump_inline_table(contents))
             else:
-                retdict[qsection] = o[section]
+                retdict[qsection] = contents
         retstr += arraystr
         return (retstr, retdict)
 
@@ -302,3 +306,19 @@ class TomlPathlibEncoder(TomlEncoder):
             if isinstance(v, pathlib.PurePath):
                 v = str(v)
         return super(TomlPathlibEncoder, self).dump_value(v)
+
+class TomlDataclassEncoder(TomlEncoder):
+
+    def _preprocess_section(self, contents):
+        if (3, 7) <= sys.version_info:
+            import dataclasses
+            if dataclasses.is_dataclass(contents):
+                contents = dataclasses.asdict(contents)
+            elif isinstance(contents, list):
+                contents, _contents = [], contents
+                for c in _contents:
+                    if dataclasses.is_dataclass(c):
+                        c = dataclasses.asdict(c)
+                    contents.append(c)
+
+        return super(TomlDataclassEncoder, self)._preprocess_section(contents)
