@@ -11,6 +11,9 @@ TOML_tools, a fork of TOML.
   >>> toml.dumps({'a': '\xad'})
   IndexError
 
+After labouring heroically with configparser, discovering toml
+
+
 Installation
 ============
 

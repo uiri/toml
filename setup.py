@@ -17,9 +17,10 @@ setup(
     # packages=['toml_tools'],
     license="MIT",
     long_description=readme_string,
+    long_description_content_type = 'text/x-rst',
     python_requires=">=2.6, !=3.0.*, !=3.1.*, !=3.2.*",
     classifiers=[
-        'Development Status :: 4 - Beta', #5 - Production/Stable',
+        'Development Status :: 3 - Alpha', #5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
