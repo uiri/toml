@@ -192,7 +192,7 @@ Args:
 
 Returns:
 
-   A dictionary (or object `_dict`) containing parsed TOML data
+ - A dictionary (or object `_dict`) containing parsed TOML data
 
 Raises:
 
