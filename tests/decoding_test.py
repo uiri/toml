@@ -3,7 +3,8 @@
 import datetime
 import json
 import sys
-import toml
+
+import toml_tools
 
 if sys.version_info < (3,):
     _range = xrange  # noqa: F821
@@ -55,6 +56,6 @@ def tag(value):
 
 
 if __name__ == '__main__':
-    tdata = toml.loads(sys.stdin.read())
+    tdata = toml_tools.loads(sys.stdin.read())
     tagged = tag(tdata)
     print(json.dumps(tagged))
