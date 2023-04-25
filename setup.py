@@ -3,14 +3,14 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import toml
+import toml_tools
 
 with open("README.rst") as readme_file:
     readme_string = readme_file.read()
 
 setup(
     name="toml-tools",
-    version=toml.__version__,
+    version=toml_tools.__version__,
     description="A fork of toml, a Python Library for TOML",
     author="William Pearson, James Parrott",  
     author_email="james.parrott@proton.me",

@@ -1,0 +1,71 @@
+# This is a TOML document. Boom.
+
+a = "C:\\Users\\n"
+
+title = "TOML Example"
+the-void = [[[[[]]]]]
+mixed = [[1, +2], ["a", "b"], [1.0, 2.0]]
+avogadro = 6.23e23
+
+[owner]
+name = "Tom \\ / Preston-Werner"
+organization = "GitHub"
+bio = "GitHub Cofounder & CEO\nLikes tater tots and beer."
+dob = 1979-05-27T07:32:00Z # First class dates? Why not?
+
+[database]
+server = "192.168.1.1"
+ports = [ 8001, 8001, 8002 ]
+connection_max = 5000
+enabled = true
+test = [["a"], ["b"], ["c"]]
+
+[servers]
+
+  # You can indent as you please. Tabs or spaces. TOML don't care.
+  [servers.alpha]
+  ip = "10.0.0.1"
+  dc = "eqdc10"
+
+  [servers.beta]
+  ip = "\u000a\u1000\u1000\u0002"
+  dc = "eqdc10"
+
+[clients]
+data = [ ["gamma", "delta"], [1, 2] ] # just an update to make sure parsers support it
+
+# Line breaks are OK when inside arrays
+hosts = [
+  "alpha",
+  "omega"
+]
+
+[meeting]
+[meeting.inspace]
+time = 10:00:00
+[meeting.nospace]
+time=10:00:00
+
+[[fruit]]
+  name = "apple"
+
+  [fruit.physical]
+    color = "red"
+    shape = "round"
+
+  [[fruit.variety]]
+    name = "red delicious"
+
+  #[fruit.variety]
+  #  name = "granny smith"
+
+[[fruit]]
+  name = "banana"
+
+  [[fruit.variety]]
+    name = "plantain"
+
+  [[fruit.variety]]
+    name = "whatever"
+    thing=34
+    "l.mao" = 42
