@@ -1,4 +1,4 @@
-# TOML_tools, a fork of TOML.
+# toml_tools, a fork of toml.
 
     >>> toml_tools.dumps({'a': '\xad'})
     'a = "\\u00ad"\n'
@@ -6,11 +6,29 @@
     >>> toml.dumps({'a': '\xad'})
     IndexError
 
-After labouring heroically with configparser, discovering toml
+After working with configparser, discovering the [toml](https://github.com/uiri/toml) library was like a
+breath of fresh air.  It just worked.  With incredibly little effort in comparison to .ini files (with only one
+function call, and maybe a context manager) `toml` produced exactly the dictionary I wanted from my TOML file.  When I 
+later needed to write `toml` files for users, it still had my back, and required hardly any additional work.
+
+So even though there are a few bugs (one of which I've already fixed - see above), and even though a few projects have 
+moved away towards [tomli-w](https://github.com/hukkin/tomli-w) (another great little opinionated library - it writes trailing commas to arrays) or even [tomlkit](https://github.com/sdispater/tomlkit) (I found it didn't write nested arrays of tables correctly), I think it's well worth fixing the bugs of the original `toml` project, and maintaining it [^0].  
+
+Please do submit bug reports for any issues you find.  Reading TOML is now natively supported in Python 3.11 [^1], but the 
+Python eco-system still has a need for a great TOML writer.
 
 ## Installation
 
     pip install toml-tools
+
+[^0]  Entirely coincidentally `;-)` a customer's application depends on `toml`.  It is
+undesirable to repeat all the testing and development work based on `toml` to date.  As it 
+happens, this application needs to run on Iron Python 2 as well.  So instead of submitting 
+more PRs to the original `toml` project mainly for my own needs, I've focussed my efforts on 
+this fork.  Hopefully I've not broken anything major, and perhaps it will even be of use 
+to you too.
+
+[^1] https://docs.python.org/3/library/tomllib.html
 
 # Parent project (TOML) Readme
 
