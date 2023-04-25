@@ -6,7 +6,7 @@ Released under the MIT license.
 from . import encoder
 from . import decoder
 
-__version__ = "0.10.2"
+__version__ = "0.10.3"
 _spec_ = "0.5.0"
 
 load = decoder.load
