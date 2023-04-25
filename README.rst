@@ -1,43 +1,53 @@
 ****
-TOML
+TOML_tools, a fork of TOML.
 ****
 
-.. image:: https://img.shields.io/pypi/v/toml
-    :target: https://pypi.org/project/toml/
+Installation
+============
 
-.. image:: https://travis-ci.org/uiri/toml.svg?branch=master
-    :target: https://travis-ci.org/uiri/toml
+WIP
 
-.. image:: https://img.shields.io/pypi/pyversions/toml.svg
-    :target: https://pypi.org/project/toml/
+.. To install the latest release on `PyPI <https://pypi.org/project/toml/>`_,
+.. simply run:
+
+::
+
+..   pip install toml
+
+.. Or to install the latest development version, run:
+
+::
+
+..   git clone https://github.com/uiri/toml.git
+..   cd toml
+..   python setup.py install
+
+
+
+****
+Parent project (TOML) Readme:
+****
+
+.. .. image:: https://img.shields.io/pypi/v/toml
+..     :target: https://pypi.org/project/toml/
+
+.. .. image:: https://travis-ci.org/uiri/toml.svg?branch=master
+..     :target: https://travis-ci.org/uiri/toml
+
+.. .. image:: https://img.shields.io/pypi/pyversions/toml.svg
+..     :target: https://pypi.org/project/toml/
 
 
 A Python library for parsing and creating `TOML <https://en.wikipedia.org/wiki/TOML>`_.
 
-The module passes `the TOML test suite <https://github.com/BurntSushi/toml-test>`_.
+.. The module passes `the TOML test suite <https://github.com/BurntSushi/toml-test>`_.
 
 See also:
 
 * `The TOML Standard <https://github.com/toml-lang/toml>`_
 * `The currently supported TOML specification <https://github.com/toml-lang/toml/blob/v0.5.0/README.md>`_
 
-Installation
-============
 
-To install the latest release on `PyPI <https://pypi.org/project/toml/>`_,
-simply run:
-
-::
-
-  pip install toml
-
-Or to install the latest development version, run:
-
-::
-
-  git clone https://github.com/uiri/toml.git
-  cd toml
-  python setup.py install
 
 Quick Tutorial
 ==============
