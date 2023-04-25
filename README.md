@@ -164,14 +164,16 @@ get around this, specify the `TomlNumpyEncoder` when saving your data.
 
 Parse a file or a list of files as TOML and return a dictionary.
 
-`f`: A path to a file, list of filepaths (to be read into
+Args:
+
+ - `f`: A path to a file, list of filepaths (to be read into
 single object) or a file descriptor
 
-`_dict`: The class of the dictionary object to be returned
+ - `_dict`: The class of the dictionary object to be returned
 
 Returns:
 
-A dictionary (or object `_dict`) containing parsed TOML data
+ - A dictionary (or object `_dict`) containing parsed TOML data
 
 Raises:
 
@@ -213,12 +215,12 @@ Args:
 
 Returns:
 
-A string containing the TOML-formatted data corresponding to
+ - A string containing the TOML-formatted data corresponding to
         object `o`
 
 Raises:
 
-`TypeError`: When anything other than file descriptor is
+ - `TypeError`: When anything other than file descriptor is
             passed
 
 ### toml.dumps(o, encoder=None)
@@ -234,7 +236,7 @@ Args:
 
 Returns:
 
-A string containing the TOML-formatted data corresponding to object `o`
+ - A string containing the TOML-formatted data corresponding to object `o`
 
 ## Licensing
 
