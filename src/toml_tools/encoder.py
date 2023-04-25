@@ -83,18 +83,16 @@ def dumps(o, encoder=None):
     return retval
 
 
-_Python_escaped_hex = re.compile(r"""  (?P<literal_backslashes>(\\\\)*)   
-                                       (\\x)  # Python Hex escape prefix 
+_Python_escaped_hex = re.compile(r"""(?<!\\) # not preceded by backslashes
+                                     (?P<literal_backslashes>(\\\\)*)   
+                                     (\\x)  # Python Hex escape prefix 
                                               # (used for extended-ASCII 
                                               # chars, e.g. repr('\xad'))
                                   """,
                                  flags = re.VERBOSE)
 
 def _Python_escaped_hex_to_escaped_toml(m):
-    backslashes = m.group('literal_backslashes')
-    if len(backslashes) % 2:
-        return m.group(0)
-    return backslashes + '\\u00' 
+    return m.group('literal_backslashes') + '\\u00' 
 
 
 def _dump_str(v):
