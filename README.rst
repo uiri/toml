@@ -1,10 +1,13 @@
 ***************************
 TOML_tools, a fork of TOML.
 ***************************
+
+
 ::
+
   >>> toml_tools.dumps({'a': '\xad'})
   'a = "\\u00ad"\n'
-  
+
   >>> toml.dumps({'a': '\xad'})
   IndexError
 
@@ -14,7 +17,7 @@ Installation
 
 ::
 
-  pip install toml
+  pip install toml-tools
 
 
 
