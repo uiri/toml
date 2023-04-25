@@ -1,32 +1,26 @@
-****
+***************************
 TOML_tools, a fork of TOML.
-****
+***************************
+::
+>>> toml_tools.dumps({'a': '\xad'})
+'a = "\\u00ad"\n'
+>>> toml.dumps({'a': '\xad'})
+IndexError
 
 Installation
 ============
 
-WIP
-
-.. To install the latest release on `PyPI <https://pypi.org/project/toml/>`_,
-.. simply run:
 
 ::
 
-..   pip install toml
-
-.. Or to install the latest development version, run:
-
-::
-
-..   git clone https://github.com/uiri/toml.git
-..   cd toml
-..   python setup.py install
+  pip install toml
 
 
 
-****
-Parent project (TOML) Readme:
-****
+
+****************************
+Parent project (TOML) Readme
+****************************
 
 .. .. image:: https://img.shields.io/pypi/v/toml
 ..     :target: https://pypi.org/project/toml/
