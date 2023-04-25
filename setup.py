@@ -4,7 +4,7 @@ except ImportError:
     from distutils.core import setup
 
 
-with open("README.rst") as readme_file:
+with open("README.md") as readme_file:
     readme_string = readme_file.read()
 
 setup(
@@ -17,7 +17,7 @@ setup(
     # packages=['toml_tools'],
     license="MIT",
     long_description=readme_string,
-    long_description_content_type = 'text/x-rst',
+    long_description_content_type = 'text/markdown',
     python_requires=">=2.6, !=3.0.*, !=3.1.*, !=3.2.*",
     classifiers=[
         'Development Status :: 3 - Alpha', #5 - Production/Stable',

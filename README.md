@@ -21,11 +21,11 @@ Python eco-system still has a need for a great TOML writer.
 
     pip install toml-tools
 
-[^0]  Entirely coincidentally `;-)` a customer's application depends on `toml`.  It is
-undesirable to repeat all the testing and development work based on `toml` to date.  As it 
+[^0]  Entirely coincidentally `;-)` a customer's application depends on toml.  It is
+undesirable to repeat all the testing and development work based on toml to date.  As it 
 happens, this application needs to run on Iron Python 2 as well.  So instead of submitting 
-more PRs to the original `toml` project mainly for my own needs, I've focussed my efforts on 
-this fork.  Hopefully I've not broken anything major, and perhaps it will even be of use 
+more PRs to the original toml project mainly for my own needs, I've focussed my efforts on 
+this fork.  Hopefully I've not broken anything major, so perhaps it will even be of use 
 to you too.
 
 [^1] https://docs.python.org/3/library/tomllib.html
@@ -46,7 +46,7 @@ See also:
 *toml.loads* takes in a string containing standard TOML-formatted data
 and returns a dictionary containing the parsed data.
 
-``` pycon
+```
 >>> import toml
 >>> toml_string = """
 ... # This is a TOML document.
@@ -89,7 +89,7 @@ and returns a dictionary containing the parsed data.
 *toml.dumps* takes a dictionary and returns a string containing the
 corresponding TOML-formatted data.
 
-``` pycon
+```
 >>> new_toml_string = toml.dumps(parsed_toml)
 >>> print(new_toml_string)
 title = "TOML Example"
@@ -115,7 +115,7 @@ dc = "eqdc10"
 *toml.dump* takes a dictionary and a file descriptor and returns a
 string containing the corresponding TOML-formatted data.
 
-``` pycon
+```
 >>> with open('new_toml_file.toml', 'w') as f:
 ...     new_toml_string = toml.dump(parsed_toml, f)
 >>> print(new_toml_string)
@@ -147,7 +147,7 @@ For Numpy users, by default the data types `np.floatX` will not be
 translated to floats by toml, but will instead be encoded as strings. To
 get around this, specify the `TomlNumpyEncoder` when saving your data.
 
-``` pycon
+```
 >>> import toml
 >>> import numpy as np
 >>> a = np.arange(0, 10, dtype=np.double)
@@ -160,84 +160,81 @@ get around this, specify the `TomlNumpyEncoder` when saving your data.
 
 ## API Reference
 
-`toml.load(f, _dict=dict)`
+### toml.load(f, _dict=dict)
 
-:   Parse a file or a list of files as TOML and return a dictionary.
+Parse a file or a list of files as TOML and return a dictionary.
 
-    Args
+`f`: A path to a file, list of filepaths (to be read into
+single object) or a file descriptor
 
-    :   -   `f`: A path to a file, list of filepaths (to be read into
-            single object) or a file descriptor
-        -   `_dict`: The class of the dictionary object to be returned
+`_dict`: The class of the dictionary object to be returned
 
-    Returns
+Returns:
 
-    :   A dictionary (or object `_dict`) containing parsed TOML data
+A dictionary (or object `_dict`) containing parsed TOML data
 
-    Raises
+Raises:
 
-    :   -   `TypeError`: When `f` is an invalid type or is a list
+ -   `TypeError`: When `f` is an invalid type or is a list
             containing invalid types
-        -   `TomlDecodeError`: When an error occurs while decoding the
+ -   `TomlDecodeError`: When an error occurs while decoding the
             file(s)
 
-`toml.loads(s, _dict=dict)`
+### toml.loads(s, _dict=dict)
 
-:   Parse a TOML-formatted string to a dictionary.
+Parse a TOML-formatted string to a dictionary.
 
-    Args
+Args:
+ -   `s`: The TOML-formatted string to be parsed
+ -   `_dict`: Specifies the class of the returned toml dictionary
 
-    :   -   `s`: The TOML-formatted string to be parsed
-        -   `_dict`: Specifies the class of the returned toml dictionary
+Returns:
 
-    Returns
+   A dictionary (or object `_dict`) containing parsed TOML data
 
-    :   A dictionary (or object `_dict`) containing parsed TOML data
+Raises:
 
-    Raises
+ -   `TypeError`: When a non-string object is passed
+ -   `TomlDecodeError`: When an error occurs while decoding the
+    TOML-formatted string
 
-    :   -   `TypeError`: When a non-string object is passed
-        -   `TomlDecodeError`: When an error occurs while decoding the
-            TOML-formatted string
+### toml.dump(o, f, encoder=None)
 
-`toml.dump(o, f, encoder=None)`
+Write a dictionary to a file containing TOML-formatted data
 
-:   Write a dictionary to a file containing TOML-formatted data
+Args:
 
-    Args
+ -   `o`: An object to be converted into TOML
+ -   `f`: A File descriptor where the TOML-formatted output
+    should be stored
+ -   `encoder`: An instance of `TomlEncoder` (or subclass) for
+    encoding the object. If `None`, will default to
+    `TomlEncoder`
 
-    :   -   `o`: An object to be converted into TOML
-        -   `f`: A File descriptor where the TOML-formatted output
-            should be stored
-        -   `encoder`: An instance of `TomlEncoder` (or subclass) for
-            encoding the object. If `None`, will default to
-            `TomlEncoder`
+Returns:
 
-    Returns
-
-    :   A string containing the TOML-formatted data corresponding to
+A string containing the TOML-formatted data corresponding to
         object `o`
 
-    Raises
+Raises:
 
-    :   -   `TypeError`: When anything other than file descriptor is
+`TypeError`: When anything other than file descriptor is
             passed
 
-`toml.dumps(o, encoder=None)`
+### toml.dumps(o, encoder=None)
 
-:   Create a TOML-formatted string from an input object
+Create a TOML-formatted string from an input object
 
-    Args
+Args:
 
-    :   -   `o`: An object to be converted into TOML
-        -   `encoder`: An instance of `TomlEncoder` (or subclass) for
-            encoding the object. If `None`, will default to
-            `TomlEncoder`
+ -   `o`: An object to be converted into TOML
+ -   `encoder`: An instance of `TomlEncoder` (or subclass) for
+    encoding the object. If `None`, will default to
+    `TomlEncoder`
 
-    Returns
+Returns:
 
-    :   A string containing the TOML-formatted data corresponding to
-        object `o`
+A string containing the TOML-formatted data corresponding to object `o`
 
 ## Licensing
 
