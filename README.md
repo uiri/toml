@@ -6,6 +6,8 @@
     >>> toml.dumps({'a': '\xad'})
     IndexError
 
+Both the toml-tools module and its parent, the original toml module pass 253 / 336 tests from `the TOML test suite <https://github.com/BurntSushi/toml-test>`_[^2].
+
 After working with configparser, discovering the [toml](https://github.com/uiri/toml) library was like a
 breath of fresh air.  It just worked.  With incredibly little effort in comparison to .ini files (with only one
 function call, and maybe a context manager) toml produced exactly the dictionary I wanted from my TOML file.  When I 
@@ -29,6 +31,9 @@ this fork.  Hopefully I've not broken anything major, so perhaps it will even be
 to you too.
 
 [^1] https://docs.python.org/3/library/tomllib.html
+
+[^2] Tested in a Ubuntu 22.04 WSL using Python 3.10, so currently both fail 83 `:(`.  On Windows 10 in Python 3.12, both 
+pass 249/336.
 
 # Parent project (TOML) Readme
 

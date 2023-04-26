@@ -57,6 +57,8 @@ Posix
   * For Python 2, use ``~/go/bin/toml-test ./tests/decoding_test2.sh``
   * For Python 3, use ``~/go/bin/toml-test ./tests/decoding_test3.sh``
 
+Ensure the line endings of a `.sh` file being run is correct for Posix if downloaded for
+Windows but running in WSL.
 
 Windows
 -------
@@ -64,5 +66,6 @@ Windows
 1. Download the latest binary release for Windows of the toml-test suite, `e.g. <https://github.com/BurntSushi/toml-test/releases/download/v1.3.0/toml-test-v1.3.0-windows-amd64.exe.gz>`
 2. Extract the zip file to a folder on your system path (press the windows key, enter env, and select Path) and rename the executable to toml-test.exe.  
 3. Test your changes for both versions of Python:
+  * For the default Python (e.g. from within a virtual environment) use ``toml-test .\tests\decoding_test.bat``
   * For Python 2, use ``toml-test .\tests\decoding_test2.bat``
   * For Python 3, use ``toml-test .\tests\decoding_test3.bat``
