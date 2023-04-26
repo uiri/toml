@@ -9,7 +9,7 @@ with open("README.md") as readme_file:
 
 setup(
     name="toml-tools",
-    version="0.10.4",
+    version="0.10.5",
     description="A fork of toml, a Python Library for TOML",
     author="William Pearson, James Parrott",  
     author_email="james.parrott@proton.me",
