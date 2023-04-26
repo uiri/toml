@@ -232,6 +232,14 @@ def test_commutativity():
     assert o == toml.loads(toml.dumps(o))
 
 
+@pytest.mark.skipif(sys.platform == 'win32', reason = '''This test's expected result
+                                                         is a hardcoded POSIX file 
+                                                         path. str(pathlib.Path(..)) 
+                                                         returns a path formatted
+                                                         according to the local 
+                                                         platform.  So this test
+                                                         will always fail on 
+                                                         Windows''')
 def test_pathlib():
     if (3, 4) <= sys.version_info:
         import pathlib
