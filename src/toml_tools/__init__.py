@@ -3,8 +3,8 @@
 Released under the MIT license.
 """
 
-from . import encoder
-from . import decoder
+from toml_tools import encoder
+from toml_tools import decoder
 
 
 load = decoder.load
