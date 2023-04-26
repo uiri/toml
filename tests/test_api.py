@@ -18,9 +18,9 @@ TEST_DICT = {"a": {"b": 1, "c": 2}}
 
 
 def test_bug_148():
-    assert 'a = "\\u0064"\n' == toml.dumps({'a': '\\x64'})
-    assert 'a = "\\\\x64"\n' == toml.dumps({'a': '\\\\x64'})
-    assert 'a = "\\\\\\u0064"\n' == toml.dumps({'a': '\\\\\\x64'})
+    assert r'a = "\\x64"' + '\n' == toml.dumps({'a': r'\x64'})
+    assert r'a = "\\\\x64"' + '\n' == toml.dumps({'a': r'\\x64'})
+    assert r'a = "\\\\\\x64"' + '\n' == toml.dumps({'a': r'\\\x64'})
 
 
 def test_bug_144():
