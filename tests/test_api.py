@@ -231,7 +231,8 @@ def test_commutativity():
     o = toml.loads(toml.dumps(TEST_DICT))
     assert o == toml.loads(toml.dumps(o))
 
-
+@pytest.mark.skipif(sys.platform == 'win32', 
+                    reason = 'Hardcoded POSIX file path from /uiri/toml')
 def test_pathlib():
     if (3, 4) <= sys.version_info:
         import pathlib
