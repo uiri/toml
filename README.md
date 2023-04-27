@@ -17,7 +17,7 @@ So even though there are a few bugs (one of which I've already fixed - see above
 moved away towards [tomli-w](https://github.com/hukkin/tomli-w) (another great little opinionated library - it writes trailing commas to arrays) or even [tomlkit](https://github.com/sdispater/tomlkit) (I found it didn't write nested arrays of tables correctly), I think it's well worth fixing the bugs of the original toml project, and maintaining it [^0].  
 
 Please do submit bug reports for any issues you find.  Reading TOML is now natively supported in Python 3.11 [^1], but the 
-Python eco-system still has a need for a great TOML writer.
+Python eco-system still needs a great TOML writer.
 
 ## Installation
 
@@ -27,7 +27,7 @@ Python eco-system still has a need for a great TOML writer.
 undesirable to repeat all the testing and development work based on toml to date.  As it 
 happens, this application needs to run on Iron Python 2 as well.  So instead of submitting 
 more PRs to the original toml project mainly for my own needs, I've focussed my efforts on 
-this fork.  Hopefully I've not broken anything major, so perhaps it will even be of use 
+this fork.  Hopefully I've not broken anything major, so perhaps it will be of use 
 to you too.
 
 [^1] https://docs.python.org/3/library/tomllib.html
