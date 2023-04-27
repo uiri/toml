@@ -6,7 +6,7 @@
     >>> toml.dumps({'a': '\xad'})
     IndexError
 
-Both the toml-tools module and its parent, the original toml module pass 253 / 336 tests from `the TOML test suite <https://github.com/BurntSushi/toml-test>`_[^2].
+Both the toml-tools module and its parent, the original toml module pass 253 / 336 tests from [the TOML test suite](https://github.com/BurntSushi/toml-test) [^2].
 
 After working with configparser, discovering the [toml](https://github.com/uiri/toml) library was like a
 breath of fresh air.  It just worked.  With incredibly little effort in comparison to .ini files (with only one
@@ -14,7 +14,7 @@ function call, and maybe a context manager) toml produced exactly the dictionary
 later needed to write TOML files for users, it still had my back, and required hardly any additional work.
 
 So even though there are a few bugs (one of which I've already fixed - see above), and even though a few projects have 
-moved away towards [tomlkit](https://github.com/sdispater/tomlkit) or [tomli-w](https://github.com/hukkin/tomli-w) (a great little opinionated library - but it writes trailing commas to arrays which is not to my personal taste), I think it's well worth fixing the bugs of the original toml project, and maintaining it [^0].  
+moved away towards [tomlkit](https://github.com/sdispater/tomlkit) or [tomli-w](https://github.com/hukkin/tomli-w) (a great little opinionated library - but it writes trailing commas to arrays, which is not to my personal taste), I think it's well worth fixing the bugs of the original toml project, and maintaining it [^0].  
 
 Please do submit bug reports for any issues you find.  Reading TOML is now natively supported in Python 3.11 [^1], but the 
 Python eco-system still needs a great TOML writer.
@@ -23,16 +23,16 @@ Python eco-system still needs a great TOML writer.
 
     pip install toml-tools
 
-[^0]  Entirely coincidentally `;-)` a customer's application depends on toml.  It is
+[^0]:  Entirely coincidentally `;-)` a customer's application depends on toml.  It is
 undesirable to repeat all the testing and development work based on toml to date.  As it 
 happens, this application needs to run on Iron Python 2 as well.  So instead of submitting 
 more PRs to the original toml project mainly for my own needs, I've focussed my efforts on 
 this fork.  Hopefully I've not broken anything major, so perhaps it will be of use 
 to you too.
 
-[^1] https://docs.python.org/3/library/tomllib.html
+[^1]: [https://docs.python.org/3/library/tomllib.html]
 
-[^2] Tested in a Ubuntu 22.04 WSL using Python 3.10, so currently both fail 83 `:(`.  On Windows 10 in Python 3.12, both 
+[^2]: Tested in a Ubuntu 22.04 WSL using Python 3.10, so currently both fail 83 `:(`.  On Windows 10 in Python 3.12, both 
 pass 249/336.
 
 # Parent project (TOML) Readme
