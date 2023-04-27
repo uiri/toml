@@ -14,7 +14,7 @@ function call, and maybe a context manager) toml produced exactly the dictionary
 later needed to write TOML files for users, it still had my back, and required hardly any additional work.
 
 So even though there are a few bugs (one of which I've already fixed - see above), and even though a few projects have 
-moved away towards [tomli-w](https://github.com/hukkin/tomli-w) (another great little opinionated library - it writes trailing commas to arrays) or even [tomlkit](https://github.com/sdispater/tomlkit) (I found it didn't write nested arrays of tables correctly), I think it's well worth fixing the bugs of the original toml project, and maintaining it [^0].  
+moved away towards [tomlkit](https://github.com/sdispater/tomlkit) or [tomli-w](https://github.com/hukkin/tomli-w) (a great little opinionated library - but it writes trailing commas to arrays which is not to my personal taste), I think it's well worth fixing the bugs of the original toml project, and maintaining it [^0].  
 
 Please do submit bug reports for any issues you find.  Reading TOML is now natively supported in Python 3.11 [^1], but the 
 Python eco-system still needs a great TOML writer.
