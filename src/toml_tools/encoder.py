@@ -105,11 +105,11 @@ def _toml_escape_from_hex(h):
     if len(hex_numerals) >= 9:
         raise ValueError(''' Hex value: %s too high 
                              to be an 8-hexit TOML Unicode 
-                             escape of the form \UXXXXXXXX''' % h)
+                             escape of the form \\UXXXXXXXX''' % h)
 
     escape_width = 4 if len(hex_numerals) <= 4 else 8
 
-    return u'\u%s' % hex_numerals.zfill(escape_width)
+    return u'\\u%s' % hex_numerals.zfill(escape_width)
 
 
 # Basic strings are surrounded by quotation marks (").  

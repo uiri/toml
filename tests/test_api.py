@@ -51,8 +51,11 @@ def test_bug_196():
     assert round_trip_bug_dict['x'] == bug_dict['x']
 
 
+TOML_TEST_DIR = r"..\toml-test-master\toml-test-master\tests"
+
+
 def test_valid_tests():
-    valid_dir = "toml-test/tests/valid/"
+    valid_dir = os.path.join(TOML_TEST_DIR,"valid")
     for f in os.listdir(valid_dir):
         if not f.endswith("toml"):
             continue
@@ -168,7 +171,7 @@ def test_decimal():
 
 
 def test_invalid_tests():
-    invalid_dir = "toml-test/tests/invalid/"
+    invalid_dir = os.path.join(TOML_TEST_DIR,"invalid")
     for f in os.listdir(invalid_dir):
         if not f.endswith("toml"):
             continue
