@@ -1,6 +1,8 @@
 import datetime
 import re
 import sys
+from collections import OrderedDict
+import itertools
 from decimal import Decimal
 
 from toml_tools.decoder import InlineTableDict
@@ -83,62 +85,66 @@ def dumps(o, encoder=None):
     return retval
 
 
-_Python_escaped_hex = re.compile(r"""(?<!\\) # not preceded by backslashes
-                                     (?P<literal_backslashes>(\\\\)*)   
-                                     (\\x)  # Python Hex escape prefix 
-                                              # (used for extended-ASCII 
-                                              # chars, e.g. repr('\xad'))
-                                  """,
-                                 flags = re.VERBOSE)
+def _range_of_strs_and_hexs(h_lower, h_upper, upper_inclusive = False):
+    a = int(h_lower, base = 16)
+    b = int(h_upper, base = 16)
 
-def _Python_escaped_hex_to_escaped_toml(m):
-    return m.group('literal_backslashes') + '\\u00' 
+    if upper_inclusive:
+        b += 1
+    for i in range(a, b):
+        yield chr(i), hex(i)
 
+
+def _toml_escape_from_hex(h):
+    try:
+        int(h, base = 16)
+    except ValueError:
+        raise ValueError('Not a string of a hexadecimal number: %s' % h)
+    hex_numerals = h.split('0x')[1]
+    
+    if len(hex_numerals) >= 9:
+        raise ValueError(''' Hex value: %s too high 
+                             to be an 8-hexit TOML Unicode 
+                             escape of the form \UXXXXXXXX''' % h)
+
+    escape_width = 4 if len(hex_numerals) <= 4 else 8
+
+    return u'\u%s' % hex_numerals.zfill(escape_width)
+
+
+# Basic strings are surrounded by quotation marks (").  
+# Any Unicode character may be used except those that must be 
+# escaped: quotation mark, backslash, and the control 
+# characters other than tab (U+0000 to U+0008, U+000A 
+# to U+001F, U+007F)."
+# https://toml.io/en/v1.0.0#string
+
+MUST_BE_ESCAPED = OrderedDict()
+
+MUST_BE_ESCAPED['\\'] = '\\' * 2
+
+for c, h in itertools.chain(_range_of_strs_and_hexs('0x0000', '0x0008', upper_inclusive=True),
+                            _range_of_strs_and_hexs('0x000A', '0x001F', upper_inclusive=True),
+                            _range_of_strs_and_hexs('0x007F', '0x007F', upper_inclusive=True)):
+    MUST_BE_ESCAPED[c] = _toml_escape_from_hex(h)
+
+MUST_BE_ESCAPED['"'] = '\\"'
+
+# Attempting to use a string.maketrans translation table based on 
+# MUST_BE_ESCAPED in Iron Python raises a value error, must have
+# only 256 chars, got 412 (the CPython 2 docs say replacements
+# can be any unicode str :(
+# https://docs.python.org/2.7/library/stdtypes.html#str.translate )
 
 def _dump_str(v):
-    if sys.version_info < (3,) and hasattr(v, 'decode') and isinstance(v, str):
-        v = v.decode('utf-8')
-    v = "%r" % v
-    if v[0] == 'u':
-        v = v[1:]
-    singlequote = v.startswith("'")
-    if singlequote or v.startswith('"'):
-        v = v[1:-1]
-    if singlequote:
-        v = v.replace("\\'", "'")
-        v = v.replace('"', '\\"')
 
-    # The mildly infamous code block below simple tries to 
-    # replace the Python hex escape in a repr \xZZ
-    # with its TOML version \u00ZZ, only when preceded by an
-    # even number of backslashes (literals).
-    #
-    # It unfortunately suffers from an error on Windows platforms, e.g.
-    # from v = repr('\xad')
-    #
-    # v = v.split("\\x")
-    # while len(v) > 1:
-    #     i = -1
-    #     if not v[0]:
-    #         v = v[1:]
-    #     v[0] = v[0].replace("\\\\", "\\")
-    #     # No, I don't know why != works and == breaks
-    #     joinx = v[0][i] != "\\"
-    #     while v[0][:i] and v[0][i] == "\\":
-    #         joinx = not joinx
-    #         i -= 1
-    #     if joinx:
-    #         joiner = "x"
-    #     else:
-    #         joiner = "u00"
-    #     v = [v[0] + joiner + v[1]] + v[2:]
-    
-    v = re.sub(_Python_escaped_hex, _Python_escaped_hex_to_escaped_toml, v)
+    v = unicode(v)
 
-    # print(v)
+    for c, escape_sequence in MUST_BE_ESCAPED.items():
+        v = v.replace(c, escape_sequence)
 
     return '"%s"' % v
-    # return unicode('"' + v[0] + '"')
+
 
 
 def _dump_float(v):
