@@ -138,7 +138,8 @@ MUST_BE_ESCAPED['"'] = '\\"'
 
 def _dump_str(v):
 
-    v = unicode(v)
+    if not isinstance(v, unicode):
+        v = unicode(v, encoding ='utf-8')
 
     for c, escape_sequence in MUST_BE_ESCAPED.items():
         v = v.replace(c, escape_sequence)
