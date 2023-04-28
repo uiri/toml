@@ -143,7 +143,7 @@ def _dump_str(v):
     for c, escape_sequence in MUST_BE_ESCAPED.items():
         v = v.replace(c, escape_sequence)
 
-    return '"%s"' % v
+    return u'"%s"' % v
 
 
 
