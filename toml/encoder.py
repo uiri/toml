@@ -173,7 +173,7 @@ class TomlEncoder(object):
 
     def dump_value(self, v):
         # Lookup function corresponding to v's type
-        dump_fn = self.dump_funcs.get(type(v))
+        dump_fn = next(f for t, f in self.dump_funcs.items() if isinstance(v, t), None)
         if dump_fn is None and hasattr(v, '__iter__'):
             dump_fn = self.dump_funcs[list]
         # Evaluate function (if it exists) else return v
