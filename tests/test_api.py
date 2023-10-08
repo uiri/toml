@@ -17,6 +17,12 @@ c = 2
 TEST_DICT = {"a": {"b": 1, "c": 2}}
 
 
+def test_bug_430():
+    # https://github.com/uiri/toml/issues/430 - IndexError
+    with pytest.raises(toml.TomlDecodeError, match="Key name found without value."):
+        toml.loads('\x00\r')
+
+
 def test_bug_148():
     assert 'a = "\\u0064"\n' == toml.dumps({'a': '\\x64'})
     assert 'a = "\\\\x64"\n' == toml.dumps({'a': '\\\\x64'})

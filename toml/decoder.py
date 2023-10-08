@@ -204,7 +204,7 @@ def loads(s, _dict=dict, decoder=None):
     line_no = 1
 
     for i, item in enumerate(sl):
-        if item == '\r' and sl[i + 1] == '\n':
+        if item == '\r' and len(sl) > (i + 1) and sl[i + 1] == '\n':
             sl[i] = ' '
             continue
         if keyname:
