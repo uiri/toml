@@ -18,6 +18,7 @@ setup(
     packages=['toml'],
     license="MIT",
     long_description=readme_string,
+    setup_requires=['setuptools'],
     python_requires=">=2.6, !=3.0.*, !=3.1.*, !=3.2.*",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -36,6 +37,9 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ]
