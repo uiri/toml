@@ -14,7 +14,7 @@ TOML
 
 A Python library for parsing and creating `TOML <https://en.wikipedia.org/wiki/TOML>`_.
 
-The module passes `the TOML test suite <https://github.com/BurntSushi/toml-test>`_.
+The module passes `the TOML test suite <https://github.com/toml-lang/toml-test>`_.
 
 See also:
 
