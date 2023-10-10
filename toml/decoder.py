@@ -942,7 +942,6 @@ class TomlDecoder(object):
         return False
 
     def load_array(self, a):
-        atype = None
         retval = []
         a = a.strip()
         if '[' not in a[1:-1] or "" != a[1:-1].split('[')[0].strip():
@@ -1024,11 +1023,6 @@ class TomlDecoder(object):
             a[i] = a[i].strip()
             if a[i] != '':
                 nval, ntype = self.load_value(a[i])
-                if atype:
-                    if ntype != atype:
-                        raise ValueError("Not a homogeneous array")
-                else:
-                    atype = ntype
                 retval.append(nval)
         return retval
 
