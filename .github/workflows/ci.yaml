@@ -22,20 +22,20 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: get toml-test
+      - name: install toml-test
         run: |
-            git clone https://github.com/BurntSushi/toml-test
-          # cd toml-test/cmd/toml-test
-          # go build
+            go install github.com/toml-lang/toml-test/cmd/toml-test@v1.4.0
 
       - name: Run python tests
         run: |
             pip -q install "tox>=4"
             tox run-parallel --parallel-no-spinner
 
-      # TODO(warchant): this cmd is old, need to update it
+      # TODO(warchant): many tests fail
       # - name: Run go tests
       #   run: |
-      #       pip -q install setuptools
-      #       python setup.py install
-      #       ./toml-test/cmd/toml-test/toml-test -i ./tests -g ./tests/gotests.sh
+      #       export PYTHONPATH=.
+      #       e=0
+      #       toml-test          ./tests/decoding_test.py || e=1
+      #       toml-test -encoder ./tests/encoding_test.py || e=1
+      #       exit $e
