@@ -83,11 +83,26 @@ def dumps(o, encoder=None):
     return retval
 
 
+_Python_escaped_hex = re.compile(r"""(?<!\\) # not preceded by a backslash
+                                     (?P<literal_backslashes>(\\\\)*) # pairs only of literal backslashes 
+                                                                      # (in a normal string literal 4 are 
+                                                                      # needed to match 1; in a raw string
+                                                                      # literal 4 will match 2 backslashes)
+                                     (\\x)  # Matches a Python Hex escape prefix in a repr string 
+                                            # (used for extended-ASCII 
+                                            # chars, e.g. repr('\xad'))
+                                  """,
+                                 flags = re.VERBOSE)
+
+def _Python_escaped_hex_to_escaped_toml(m):
+    return m.group('literal_backslashes') + '\\u00' 
+
+
 def _dump_str(v):
     if sys.version_info < (3,) and hasattr(v, 'decode') and isinstance(v, str):
         v = v.decode('utf-8')
-    v = "%r" % v
-    if v[0] == 'u':
+    v = "%r" % v    # basically v = repr(v)
+    if v[0] == 'u': # ditch any Python 2 unicode-literal-string's u prefix
         v = v[1:]
     singlequote = v.startswith("'")
     if singlequote or v.startswith('"'):
@@ -95,23 +110,13 @@ def _dump_str(v):
     if singlequote:
         v = v.replace("\\'", "'")
         v = v.replace('"', '\\"')
-    v = v.split("\\x")
-    while len(v) > 1:
-        i = -1
-        if not v[0]:
-            v = v[1:]
-        v[0] = v[0].replace("\\\\", "\\")
-        # No, I don't know why != works and == breaks
-        joinx = v[0][i] != "\\"
-        while v[0][:i] and v[0][i] == "\\":
-            joinx = not joinx
-            i -= 1
-        if joinx:
-            joiner = "x"
-        else:
-            joiner = "u00"
-        v = [v[0] + joiner + v[1]] + v[2:]
-    return unicode('"' + v[0] + '"')
+    
+    v = re.sub(_Python_escaped_hex, _Python_escaped_hex_to_escaped_toml, v)
+
+    return '"%s"' % v   # They're not as popular as double quoted strings, but
+                        # TOML also supports single quoted literal strings. 
+                        # However these cannot contain escapes, and the repr 
+                        # above might have introduced escapes.
 
 
 def _dump_float(v):
