@@ -42,7 +42,7 @@ Or to install the latest development version, run:
 Quick Tutorial
 ==============
 
-*toml.loads* takes in a string containing standard TOML-formatted data and
+*toml.loads()* takes in a string containing standard TOML-formatted data and
 returns a dictionary containing the parsed data.
 
 .. code:: pycon
@@ -86,7 +86,7 @@ returns a dictionary containing the parsed data.
   >>> parsed_toml = toml.loads(toml_string)
 
 
-*toml.dumps* takes a dictionary and returns a string containing the
+*toml.dumps()* takes a dictionary and returns a string containing the
 corresponding TOML-formatted data.
 
 .. code:: pycon
@@ -112,32 +112,15 @@ corresponding TOML-formatted data.
   ip = "10.0.0.2"
   dc = "eqdc10"
 
-*toml.dump* takes a dictionary and a file descriptor and returns a string containing the
-corresponding TOML-formatted data.
+Similarly *toml.dump()* takes a dictionary and a file descriptor and writes a string containing the
+corresponding TOML-formatted data to the file. The string is also returned.
 
 .. code:: pycon
 
   >>> with open('new_toml_file.toml', 'w') as f:
-  ...     new_toml_string = toml.dump(parsed_toml, f)
-  >>> print(new_toml_string)
-  title = "TOML Example"
-  [owner]
-  name = "Tom Preston-Werner"
-  dob = 1979-05-27T07:32:00Z
-  [database]
-  server = "192.168.1.1"
-  ports = [ 8001, 8001, 8002,]
-  connection_max = 5000
-  enabled = true
-  [clients]
-  data = [ [ "gamma", "delta",], [ 1, 2,],]
-  hosts = [ "alpha", "omega",]
-  [servers.alpha]
-  ip = "10.0.0.1"
-  dc = "eqdc10"
-  [servers.beta]
-  ip = "10.0.0.2"
-  dc = "eqdc10"
+  ...     written_toml_string = toml.dump(parsed_toml, f)
+  >>> new_toml_string == written_toml_string
+  True
 
 For more functions, view the API Reference below.
 
