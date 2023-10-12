@@ -85,6 +85,24 @@ returns a dictionary containing the parsed data.
   ... """
   >>> parsed_toml = toml.loads(toml_string)
 
+Results in this dict structure:
+
+.. code:: pycon
+
+  >>> import pprint
+  >>> pprint.pprint(parsed_toml)
+  {'clients': {'data': [['gamma', 'delta'], [1, 2]], 'hosts': ['alpha', 'omega']},
+   'database': {'connection_max': 5000,
+                'enabled': True,
+                'ports': [8001, 8001, 8002],
+                'server': '192.168.1.1'},
+   'owner': {'dob': datetime.datetime(1979, 5, 27, 7, 32, tzinfo=<toml.tz.TomlTz object at 0xb66f88f0>),
+             'name': 'Tom Preston-Werner'},
+   'servers': {'alpha': {'dc': 'eqdc10', 'ip': '10.0.0.1'},
+               'beta': {'dc': 'eqdc10', 'ip': '10.0.0.2'}},
+   'title': 'TOML Example'}
+
+
 
 *toml.dumps* takes a dictionary and returns a string containing the
 corresponding TOML-formatted data.
