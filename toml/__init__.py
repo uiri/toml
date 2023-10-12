@@ -23,3 +23,4 @@ TomlPreserveInlineDictEncoder = encoder.TomlPreserveInlineDictEncoder
 TomlNumpyEncoder = encoder.TomlNumpyEncoder
 TomlPreserveCommentEncoder = encoder.TomlPreserveCommentEncoder
 TomlPathlibEncoder = encoder.TomlPathlibEncoder
+TomlDataclassEncoder = encoder.TomlDataclassEncoder

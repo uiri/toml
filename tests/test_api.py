@@ -252,6 +252,33 @@ path = "/home/edgy"
         assert test_str == toml.dumps(o, encoder=toml.TomlPathlibEncoder())
 
 
+def test_dataclass():
+    if (3, 7) <= sys.version_info:
+        from dataclasses import dataclass, asdict
+
+        @dataclass
+        class TestDataClassIn():
+            a: int
+
+        @dataclass
+        class TestDataClass():
+            a: int
+            c: str
+            nested: TestDataClassIn
+            nested_arr: list
+
+        dc = TestDataClass(
+                a=1, c="ccc",
+                nested=TestDataClassIn(a=1),
+                nested_arr=[TestDataClassIn(a=10),
+                            TestDataClassIn(a=100)]
+             )
+        o = {"dc_on_root": dc, "dcarr_on_root": [TestDataClassIn(a=-1), TestDataClassIn(a=-2)]}
+        o_expected = {"dc_on_root": asdict(dc), "dcarr_on_root": [asdict(v) for v in o["dcarr_on_root"]]}
+
+        assert o_expected == toml.loads(toml.dumps(o, encoder=toml.TomlDataclassEncoder()))
+
+
 def test_comment_preserve_decoder_encoder():
     test_str = """[[products]]
 name = "Nail"
