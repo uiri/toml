@@ -282,6 +282,12 @@ b-comment = "a is 3"
 
     assert len(s) == len(test_str) and sorted(test_str) == sorted(s)
 
+    new_str = "# Comment outside area\n" + test_str
+    s = toml.dumps(toml.loads(new_str,
+                              decoder=toml.TomlPreserveCommentDecoder()),
+                   encoder=toml.TomlPreserveCommentEncoder())
+    # This should match the original string, not the one with an invalid comment
+    assert len(s) == len(test_str) and sorted(test_str) == sorted(s)
 
 def test_deepcopy_timezone():
     import copy
