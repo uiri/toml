@@ -221,4 +221,4 @@ Licensing
 =========
 
 This project is released under the terms of the MIT Open Source License. View
-*LICENSE.txt* for more information.
+`LICENSE <https://github.com/uiri/toml/blob/master/LICENSE>`_ for more information.
