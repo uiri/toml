@@ -212,9 +212,9 @@ class TomlEncoder(object):
                                 s1, d1 = self.dump_sections(d[dsec], sup +
                                                             qsection + "." +
                                                             dsec)
+                                arraytabstr += ("[" + sup + qsection +
+                                                "." + dsec + "]\n")
                                 if s1:
-                                    arraytabstr += ("[" + sup + qsection +
-                                                    "." + dsec + "]\n")
                                     arraytabstr += s1
                                 for s1 in d1:
                                     newd[dsec + "." + s1] = d1[s1]

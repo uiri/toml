@@ -49,6 +49,10 @@ def test_bug_196():
     assert round_trip_bug_dict == bug_dict
     assert round_trip_bug_dict['x'] == bug_dict['x']
 
+def test_bug_364():
+    bug_dict = {"foo": [{"bar": {}, "moot": {"a": 1}}]}
+    round_trip_bug_dict = toml.loads(toml.dumps(bug_dict))
+    assert bug_dict == round_trip_bug_dict
 
 def test_valid_tests():
     valid_dir = "toml-test/tests/valid/"
