@@ -1,5 +1,5 @@
 from toml.tz import TomlTz as TomlTz
-from typing import Any, Optional
+from typing import Any, IO, MutableMapping, Optional, Type, Union
 
 unicode = str
 basestring = str
