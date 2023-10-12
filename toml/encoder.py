@@ -148,10 +148,9 @@ class TomlEncoder(object):
         return self._dict()
 
     def dump_list(self, v):
-        retval = "["
-        for u in v:
-            retval += " " + unicode(self.dump_value(u)) + ","
-        retval += "]"
+        retval = "[ "
+        retval += ", ".join(unicode(self.dump_value(u)) for u in v)
+        retval += " ]"
         return retval
 
     def dump_inline_table(self, section):
