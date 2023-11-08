@@ -49,6 +49,12 @@ def test_bug_196():
     assert round_trip_bug_dict == bug_dict
     assert round_trip_bug_dict['x'] == bug_dict['x']
 
+def test_bug_322():
+    toml_string = """
+    a = [',', '']
+    """
+    decoded = toml.loads(toml_string)['a']
+    assert decoded == [',', '']
 
 def test_valid_tests():
     valid_dir = "toml-test/tests/valid/"
