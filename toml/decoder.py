@@ -363,6 +363,7 @@ def loads(s, _dict=dict, decoder=None):
                               " Reached end of file.", original, len(s))
     s = ''.join(sl)
     s = s.split('\n')
+    multilevel = None
     multikey = None
     multilinestr = ""
     multibackslash = False
@@ -395,7 +396,8 @@ def loads(s, _dict=dict, decoder=None):
                     value, vtype = decoder.load_value(multilinestr)
                 except ValueError as err:
                     raise TomlDecodeError(str(err), original, pos)
-                currentlevel[multikey] = value
+                multilevel[multikey] = value
+                multilevel = None
                 multikey = None
                 multilinestr = ""
             else:
@@ -513,7 +515,7 @@ def loads(s, _dict=dict, decoder=None):
             except ValueError as err:
                 raise TomlDecodeError(str(err), original, pos)
             if ret is not None:
-                multikey, multilinestr, multibackslash = ret
+                multilevel, multikey, multilinestr, multibackslash = ret
     return retval
 
 
@@ -783,7 +785,7 @@ class TomlDecoder(object):
             raise ValueError("Duplicate keys!")
         except KeyError:
             if multikey:
-                return multikey, multilinestr, multibackslash
+                return currentlevel, multikey, multilinestr, multibackslash
             else:
                 currentlevel[pair[0]] = value
 
