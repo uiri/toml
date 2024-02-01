@@ -1,4 +1,5 @@
 import datetime
+import functools
 import re
 import sys
 from decimal import Decimal
@@ -82,37 +83,38 @@ def dumps(o, encoder=None):
         sections = newsections
     return retval
 
-
-def _dump_str(v):
+def _dump_str(v, escape_unicode=True, multiline=False):
     if sys.version_info < (3,) and hasattr(v, 'decode') and isinstance(v, str):
         v = v.decode('utf-8')
-    v = "%r" % v
-    if v[0] == 'u':
-        v = v[1:]
-    singlequote = v.startswith("'")
-    if singlequote or v.startswith('"'):
-        v = v[1:-1]
-    if singlequote:
-        v = v.replace("\\'", "'")
-        v = v.replace('"', '\\"')
-    v = v.split("\\x")
-    while len(v) > 1:
-        i = -1
-        if not v[0]:
-            v = v[1:]
-        v[0] = v[0].replace("\\\\", "\\")
-        # No, I don't know why != works and == breaks
-        joinx = v[0][i] != "\\"
-        while v[0][:i] and v[0][i] == "\\":
-            joinx = not joinx
-            i -= 1
-        if joinx:
-            joiner = "x"
-        else:
-            joiner = "u00"
-        v = [v[0] + joiner + v[1]] + v[2:]
-    return unicode('"' + v[0] + '"')
-
+    else:
+        v = unicode(v)
+    out = ''
+    quote = '"""' if len(v.splitlines()) > 1 and multiline else '"'
+    for line in v.splitlines():
+        for char in line:
+            c = ord(char)
+            if (escape_unicode and c > 127) or c <= 0x1f or c == 0x7f:
+                h = hex(c)[2:]
+                if len(h) < 2:
+                    h = '0' + h
+                    out += '\\x'
+                if c > 255 and len(h) < 4:
+                    h = '0' * (4 - len(h)) + h
+                    out += '\\u'
+                if c > 65536 and len(h) < 8:
+                    h = '0' * (8 - len(h)) + h
+                    out += '\\U'
+                out += h
+            else:            
+                if char == '\\' or (char == '"' and quote != '"""'):
+                    out += '\\'
+                out += char
+        out += '\n'
+    if quote == '"""':
+        out = '\n' + out
+    else:
+        out = out[:-1]
+    return unicode('%s%s%s' % (quote, out, quote))
 
 def _dump_float(v):
     return "{}".format(v).replace("e+0", "e+").replace("e-0", "e-")
@@ -128,12 +130,13 @@ def _dump_time(v):
 
 class TomlEncoder(object):
 
-    def __init__(self, _dict=dict, preserve=False):
+    def __init__(self, _dict=dict, preserve=False, escape_unicode=True, multiline=False):
         self._dict = _dict
         self.preserve = preserve
+        dump_str = functools.partial(_dump_str, escape_unicode=escape_unicode, multiline=multiline)
         self.dump_funcs = {
-            str: _dump_str,
-            unicode: _dump_str,
+            str: dump_str,
+            unicode: dump_str,
             list: self.dump_list,
             bool: lambda v: unicode(v).lower(),
             int: lambda v: v,
