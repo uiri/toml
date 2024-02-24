@@ -3,7 +3,7 @@ import re
 import sys
 from decimal import Decimal
 
-from toml.decoder import InlineTableDict
+from .decoder import InlineTableDict
 
 if sys.version_info >= (3,):
     unicode = str

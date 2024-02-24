@@ -1,6 +1,6 @@
 from collections import OrderedDict
-from toml import TomlEncoder
-from toml import TomlDecoder
+from .encoder import TomlEncoder
+from .decoder import TomlDecoder
 
 
 class TomlOrderedDecoder(TomlDecoder):
