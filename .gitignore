@@ -113,9 +113,3 @@ venv.bak/
 auto-save-list
 tramp
 .\#*
-
-# vscode
-.vscode
-
-
-toml-test

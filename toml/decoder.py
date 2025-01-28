@@ -872,9 +872,7 @@ class TomlDecoder(object):
                         v = _load_unicode_escapes(hexbytes[0], hexbytes[1:],
                                                   prefix)
                 v = _unescape(v)
-            if len(v) > 1 and v[1] == quotechar and (len(v) < 3 or
-                                                     v[1] == v[2]):
-                v = v[2:-2]
+
             return (v[1:-1], "str")
         elif v[0] == '[':
             return (self.load_array(v), "array")
