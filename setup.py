@@ -16,6 +16,7 @@ setup(
     author_email="uiri@xqz.ca",
     url="https://github.com/uiri/toml",
     packages=['toml'],
+    package_data={'toml': ['py.typed', '*.pyi']},
     license="MIT",
     long_description=readme_string,
     setup_requires=['setuptools'],
