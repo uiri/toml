@@ -95,23 +95,28 @@ def _dump_str(v):
     if singlequote:
         v = v.replace("\\'", "'")
         v = v.replace('"', '\\"')
-    v = v.split("\\x")
-    while len(v) > 1:
-        i = -1
-        if not v[0]:
-            v = v[1:]
-        v[0] = v[0].replace("\\\\", "\\")
-        # No, I don't know why != works and == breaks
-        joinx = v[0][i] != "\\"
-        while v[0][:i] and v[0][i] == "\\":
-            joinx = not joinx
-            i -= 1
-        if joinx:
-            joiner = "x"
+    # TOML does not support \xNN escape sequences, convert to \u00NN.
+    # Process backslash pairs first to avoid confusing \\x (escaped
+    # backslash + literal x) with \x (hex escape from repr).
+    i = 0
+    result = ""
+    while i < len(v):
+        if v[i] == "\\" and i + 1 < len(v):
+            if v[i + 1] == "\\":
+                # Escaped backslash pair — keep as-is
+                result += "\\\\"
+                i += 2
+            elif v[i + 1] == "x":
+                # \xNN hex escape — convert to \u00NN for TOML
+                result += "\\u00"
+                i += 2
+            else:
+                result += v[i:i + 2]
+                i += 2
         else:
-            joiner = "u00"
-        v = [v[0] + joiner + v[1]] + v[2:]
-    return unicode('"' + v[0] + '"')
+            result += v[i]
+            i += 1
+    return unicode('"' + result + '"')
 
 
 def _dump_float(v):
