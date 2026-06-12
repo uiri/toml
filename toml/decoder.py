@@ -253,7 +253,7 @@ def loads(s, _dict=dict, decoder=None):
                     continue
             if item == '=':
                 keyname = 0
-                prev_key = key[:-1].rstrip()
+                prev_key = key[:-1].rstrip().strip('"')
                 key = ''
                 dottedkey = False
             else:
