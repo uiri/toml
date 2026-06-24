@@ -448,7 +448,10 @@ def loads(s, _dict=dict, decoder=None):
                                                   groupstr + "' Something " +
                                                   "went wrong.", original, pos)
                         groupstr = '.'.join(groups[i:j]).strip()
-                    groups[i] = groupstr[1:-1]
+                    if groupstr[0] == '"':
+                        groups[i] = _unescape(groupstr[1:-1])
+                    else:
+                        groups[i] = groupstr[1:-1]
                     groups[i + 1:j] = []
                 else:
                     if not _groupname_re.match(groups[i]):

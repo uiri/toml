@@ -180,6 +180,33 @@ def test_invalid_tests():
                     toml.load(fh)
 
 
+def test_section_header_key_escape_sequences():
+    """Escape sequences in double-quoted section header keys must be decoded.
+
+    TOML spec (https://toml.io/en/v1.0.0#keys): quoted keys follow the same
+    escaping rules as basic strings.  Before this fix, ``_unescape`` was
+    never called for section-header keys, so ``\\t`` survived as a literal
+    backslash-t instead of becoming a tab character.
+    """
+    import tomllib  # stdlib reference implementation
+
+    cases = [
+        '["a\\tb"]',        # \t -> tab
+        '["a\\nb"]',        # \n -> newline
+        '["a\\rb"]',        # \r -> carriage return
+        '["a\\\\b"]',       # \\\\ -> single backslash
+    ]
+    for toml_str in cases:
+        loaded_toml = toml.loads(toml_str)
+        loaded_ref = tomllib.loads(toml_str)
+        k_toml = list(loaded_toml.keys())[0]
+        k_ref = list(loaded_ref.keys())[0]
+        assert k_toml == k_ref, (
+            f"Section header key mismatch for {toml_str!r}: "
+            f"got {k_toml!r}, expected {k_ref!r}"
+        )
+
+
 def test_exceptions():
     with pytest.raises(TypeError):
         toml.loads(2)
