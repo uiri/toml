@@ -204,7 +204,7 @@ def loads(s, _dict=dict, decoder=None):
     line_no = 1
 
     for i, item in enumerate(sl):
-        if item == '\r' and len(sl) > (i + 1) and sl[i + 1] == '\n':
+        if item == '\r' and sl[i + 1] == '\n':
             sl[i] = ' '
             continue
         if keyname:
@@ -544,7 +544,7 @@ def _load_date(val):
                 microsecond = int(int(subsecondval) *
                                   (10 ** (6 - len(subsecondval))))
             else:
-                tz = TomlTz(val[19:].upper())
+                tz = TomlTz(val[19:])
     except ValueError:
         tz = None
     if "-" not in val[1:]:
@@ -942,6 +942,7 @@ class TomlDecoder(object):
         return False
 
     def load_array(self, a):
+        atype = None
         retval = []
         a = a.strip()
         if '[' not in a[1:-1] or "" != a[1:-1].split('[')[0].strip():
@@ -993,11 +994,12 @@ class TomlDecoder(object):
             if strarray:
                 while b < len(a) - 1:
                     ab = a[b].strip()
-                    while (not self.bounded_string(ab) or
+                    while ((not (ab.startswith('{') and ab.endswith('}'))) and
+                           (not self.bounded_string(ab) or
                            (len(ab) > 2 and
                             ab[0] == ab[1] == ab[2] and
                             ab[-2] != ab[0] and
-                            ab[-3] != ab[0])):
+                            ab[-3] != ab[0]))):
                         a[b] = a[b] + ',' + a[b + 1]
                         ab = a[b].strip()
                         if b < len(a) - 2:
@@ -1022,6 +1024,9 @@ class TomlDecoder(object):
         for i in _range(len(a)):
             a[i] = a[i].strip()
             if a[i] != '':
+                # TOML 1.0 allows heterogeneous arrays (e.g. PEP 735
+                # dependency groups mix strings and inline tables, #449),
+                # so no type homogeneity is enforced here.
                 nval, ntype = self.load_value(a[i])
                 retval.append(nval)
         return retval
