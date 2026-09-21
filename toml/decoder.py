@@ -676,7 +676,7 @@ class TomlDecoder(object):
             else:
                 raise ValueError("Invalid inline table value encountered")
         for group in groups:
-            status = self.load_line(group, currentlevel, multikey,
+            status = self.load_line(group.strip(), currentlevel, multikey,
                                     multibackslash)
             if status is not None:
                 break

@@ -173,7 +173,8 @@ class TomlEncoder(object):
 
     def dump_value(self, v):
         # Lookup function corresponding to v's type
-        dump_fn = next((f for t, f in self.dump_funcs.items() if isinstance(v, t)), None)
+        dump_fn = next((f for t, f in self.dump_funcs.items()
+                        if isinstance(v, t)), None)
         if dump_fn is None and hasattr(v, '__iter__'):
             dump_fn = self.dump_funcs[list]
         # Evaluate function (if it exists) else return v
@@ -212,7 +213,7 @@ class TomlEncoder(object):
                                 s1, d1 = self.dump_sections(d[dsec], sup +
                                                             qsection + "." +
                                                             dsec)
-                                if s1:
+                                if s1 or not d1:
                                     arraytabstr += ("[" + sup + qsection +
                                                     "." + dsec + "]\n")
                                     arraytabstr += s1
