@@ -956,15 +956,22 @@ class TomlDecoder(object):
                 end_group_index = 2
                 open_bracket_count = 1 if a[start_group_index] == '{' else 0
                 in_str = False
+                quote = None
                 while end_group_index < len(a[1:]):
-                    if a[end_group_index] == '"' or a[end_group_index] == "'":
-                        if in_str:
+                    char = a[end_group_index]
+                    if not in_str and char in ('"', "'"):
+                        in_str = True
+                        quote = char
+                    elif in_str and char == quote:
+                        escaped = False
+                        if quote == '"':
                             backslash_index = end_group_index - 1
                             while (backslash_index > -1 and
                                    a[backslash_index] == '\\'):
-                                in_str = not in_str
+                                escaped = not escaped
                                 backslash_index -= 1
-                        in_str = not in_str
+                        if not escaped:
+                            in_str = False
                     if not in_str and a[end_group_index] == '{':
                         open_bracket_count += 1
                     if in_str or a[end_group_index] != '}':
