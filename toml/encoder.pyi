@@ -1,5 +1,5 @@
 from toml.decoder import InlineTableDict as InlineTableDict
-from typing import Any, Optional
+from typing import Any, IO, Mapping, Optional
 
 unicode = str
 

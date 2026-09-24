@@ -1,11 +1,12 @@
+import os
+from typing import Any, IO, List, MutableMapping, Optional, Type, Union
+
 from toml.tz import TomlTz as TomlTz
-from typing import Any, Optional
 
 unicode = str
 basestring = str
 unichr = chr
 FNFError = FileNotFoundError
-FNFError = IOError
 TIME_RE: Any
 
 class TomlDecodeError(ValueError):
@@ -24,7 +25,9 @@ class CommentValue:
     def __setitem__(self, key: Any, value: Any) -> None: ...
     def dump(self, dump_value_func: Any): ...
 
-def load(f: Union[str, list, IO[str]],
+FilePath = Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]
+
+def load(f: Union[FilePath, List[FilePath], IO[str]],
          _dict: Type[MutableMapping[str, Any]] = ...,
          decoder: TomlDecoder = ...) \
          -> MutableMapping[str, Any]: ...
