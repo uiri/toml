@@ -665,7 +665,8 @@ class TomlDecoder(object):
                 raise ValueError("Invalid inline table encountered")
             value = value.strip()
             if ((value[0] == value[-1] and value[0] in ('"', "'")) or (
-                    value[0] in '-0123456789' or
+                    value[0] in '+-0123456789' or
+                    value.lower() in ('inf', 'nan') or
                     value in ('true', 'false') or
                     (value[0] == "[" and value[-1] == "]") or
                     (value[0] == '{' and value[-1] == '}'))):

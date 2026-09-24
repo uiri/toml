@@ -3,6 +3,7 @@ import copy
 import pytest
 import os
 import sys
+import math
 from decimal import Decimal
 
 from toml.decoder import InlineTableDict
@@ -101,6 +102,18 @@ def test_inline_dict():
     t['d']['x'] = "abc"
     o = toml.loads(toml.dumps(t, encoder=encoder))
     assert o == toml.loads(toml.dumps(o, encoder=encoder))
+
+
+@pytest.mark.parametrize(
+    'value', ['inf', 'nan', '+inf', '+nan', '-inf', '-nan', '+1']
+)
+def test_inline_numeric_values_match_regular_table(value):
+    expected = toml.loads('n = {}'.format(value))['n']
+    actual = toml.loads('t = {{n = {}}}'.format(value))['t']['n']
+    if math.isnan(expected):
+        assert math.isnan(actual)
+    else:
+        assert actual == expected
 
 
 def test_array_sep():
