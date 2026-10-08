@@ -290,3 +290,30 @@ def test_deepcopy_timezone():
     o2 = copy.deepcopy(o)
     assert o2["dob"] == o["dob"]
     assert o2["dob"] is not o["dob"]
+
+
+@pytest.mark.parametrize('key', ['@', '$', '@abc', 'a@', u'\u00e9', u'a\u00e9'])
+@pytest.mark.parametrize(
+    'document', ['{key} = 1', 'root.{key} = 1', 'root = {{{key} = 1}}']
+)
+def test_invalid_bare_keys(key, document):
+    with pytest.raises(toml.TomlDecodeError):
+        toml.loads(document.format(key=key))
+
+
+@pytest.mark.parametrize('key', ['@', '$', '@abc', u'\u00e9', u'a\u00e9'])
+@pytest.mark.parametrize('quote', ['"', "'"])
+def test_quoted_keys_allow_non_bare_characters(key, quote):
+    source = quote + key + quote + ' = 1'
+    assert toml.loads(source) == {key: 1}
+
+
+@pytest.mark.parametrize('key', ['a"@b', 'a"$b', 'a\\"@b'])
+@pytest.mark.parametrize('document', ['{key} = 1', 'root = {{{key} = 1}}'])
+def test_escaped_quoted_key_characters(key, document):
+    import json
+
+    result = toml.loads(document.format(key=json.dumps(key)))
+    if document != '{key} = 1':
+        result = result['root']
+    assert result == {key: 1}
