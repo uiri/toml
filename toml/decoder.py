@@ -338,8 +338,8 @@ def loads(s, _dict=dict, decoder=None):
             if openstring or multilinestr:
                 if not multilinestr:
                     raise TomlDecodeError("Unbalanced quotes", original, i)
-                if ((sl[i - 1] == "'" or sl[i - 1] == '"') and (
-                        sl[i - 2] == sl[i - 1])):
+                if ((s[i - 1] == "'" or s[i - 1] == '"') and (
+                        s[i - 2] == s[i - 1])):
                     sl[i] = sl[i - 1]
                     if sl[i - 3] == sl[i - 1]:
                         sl[i - 3] = ' '

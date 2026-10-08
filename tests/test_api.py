@@ -17,6 +17,24 @@ c = 2
 TEST_DICT = {"a": {"b": 1, "c": 2}}
 
 
+@pytest.mark.parametrize('quote', ['"""', "'''"])
+@pytest.mark.parametrize('content, expected', [
+    ('first\nsecond', 'first\nsecond'),
+    ('\nfirst\nsecond', 'first\nsecond'),
+    ('\n\nfirst\nsecond', '\nfirst\nsecond'),
+    ('\n\n\nfirst\nsecond', '\n\nfirst\nsecond'),
+    ('\n\n\n\nfirst\nsecond', '\n\n\nfirst\nsecond'),
+])
+def test_multiline_string_trims_only_first_newline(quote, content, expected):
+    assert toml.loads('s = ' + quote + content + quote) == {'s': expected}
+
+
+def test_multiline_string_line_continuation_trims_blank_lines():
+    assert toml.loads('s = """\\\n\n\n  first\\\n\n  second"""') == {
+        's': 'firstsecond',
+    }
+
+
 def test_bug_430():
     # https://github.com/uiri/toml/issues/430 - IndexError
     with pytest.raises(toml.TomlDecodeError, match="Key name found without value."):
