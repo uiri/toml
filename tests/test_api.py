@@ -290,3 +290,21 @@ def test_deepcopy_timezone():
     o2 = copy.deepcopy(o)
     assert o2["dob"] == o["dob"]
     assert o2["dob"] is not o["dob"]
+
+
+@pytest.mark.parametrize('key, encoded_key', [
+    ('a.b', '"a.b"'),
+    ('space key', '"space key"'),
+    ('line\n', '"line\\n"'),
+    ('quote"key', '"quote\\"key"'),
+    ('', '""'),
+    (u'unicode\u00e9', u'"unicode\u00e9"'),
+])
+def test_inline_dict_preserves_quoted_keys(key, encoded_key):
+    class TestDict(dict, InlineTableDict):
+        pass
+
+    data = {'value': TestDict({key: 1})}
+    encoded = toml.dumps(data, encoder=toml.TomlPreserveInlineDictEncoder())
+    assert encoded == 'value = { ' + encoded_key + ' = 1 }\n'
+    assert toml.loads(encoded) == data
