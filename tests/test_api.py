@@ -290,3 +290,17 @@ def test_deepcopy_timezone():
     o2 = copy.deepcopy(o)
     assert o2["dob"] == o["dob"]
     assert o2["dob"] is not o["dob"]
+
+
+@pytest.mark.skipif(sys.version_info < (3, 7),
+                    reason='Sub-minute UTC offsets require Python 3.7+')
+@pytest.mark.parametrize('offset_seconds', [30, -30, 30.5, -30.5, 3661.25, 3660, 0])
+def test_aware_time_encodes_as_local_time(offset_seconds):
+    import datetime
+
+    expected = datetime.time(12, 34, 56, 789012)
+    offset = datetime.timezone(datetime.timedelta(seconds=offset_seconds))
+    value = expected.replace(tzinfo=offset)
+    encoded = toml.dumps({'value': value})
+    assert encoded == 'value = 12:34:56.789012\n'
+    assert toml.loads(encoded) == {'value': expected}

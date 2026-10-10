@@ -123,7 +123,7 @@ def _dump_time(v):
     if utcoffset is None:
         return v.isoformat()
     # The TOML norm specifies that it's local time thus we drop the offset
-    return v.isoformat()[:-6]
+    return v.replace(tzinfo=None).isoformat()
 
 
 class TomlEncoder(object):
