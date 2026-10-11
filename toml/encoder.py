@@ -275,9 +275,8 @@ class TomlNumpyEncoder(TomlEncoder):
         self.dump_funcs[np.float16] = _dump_float
         self.dump_funcs[np.float32] = _dump_float
         self.dump_funcs[np.float64] = _dump_float
-        self.dump_funcs[np.int16] = self._dump_int
-        self.dump_funcs[np.int32] = self._dump_int
-        self.dump_funcs[np.int64] = self._dump_int
+        self.dump_funcs[np.integer] = self._dump_int
+        self.dump_funcs[np.bool_] = lambda v: unicode(v).lower()
 
     def _dump_int(self, v):
         return "{}".format(int(v))

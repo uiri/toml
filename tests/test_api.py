@@ -144,6 +144,24 @@ def test_numpy_ints():
     assert o == toml.loads(toml.dumps(o, encoder=encoder))
 
 
+@pytest.mark.parametrize('dtype', [
+    'int8', 'uint8', 'uint16', 'uint32', 'uint64'])
+def test_numpy_integer_types(dtype):
+    np = pytest.importorskip('numpy')
+    scalar_type = getattr(np, dtype)
+    data = {'scalar': scalar_type(7), 'array': np.array([1, 3], dtype=dtype)}
+    output = toml.loads(toml.dumps(data, encoder=toml.TomlNumpyEncoder()))
+    assert output == {'scalar': 7, 'array': [1, 3]}
+
+
+@pytest.mark.parametrize('value', [True, False])
+def test_numpy_booleans(value):
+    np = pytest.importorskip('numpy')
+    data = {'scalar': np.bool_(value), 'array': np.array([True, False])}
+    output = toml.loads(toml.dumps(data, encoder=toml.TomlNumpyEncoder()))
+    assert output == {'scalar': value, 'array': [True, False]}
+
+
 def test_ordered():
     from toml import ordered as toml_ordered
     encoder = toml_ordered.TomlOrderedEncoder()

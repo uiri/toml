@@ -146,6 +146,9 @@ Note
 
 For Numpy users, by default the data types ``np.floatX`` will not be translated to floats by toml, but will instead be encoded as strings. To get around this, specify the ``TomlNumpyEncoder`` when saving your data.
 
+``TomlNumpyEncoder`` also encodes signed and unsigned Numpy integers and
+Numpy booleans as TOML integers and booleans, including inside arrays.
+
 .. code:: pycon
 
   >>> import toml
