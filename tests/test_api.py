@@ -17,6 +17,20 @@ c = 2
 TEST_DICT = {"a": {"b": 1, "c": 2}}
 
 
+@pytest.mark.parametrize("source, expected", [
+    ('value = {"a=b" = 1}', {'value': {'a=b': 1}}),
+    ("value = {'a=b' = 1}", {'value': {'a=b': 1}}),
+    (r'value = {"a\"=b" = 1}', {'value': {'a"=b': 1}}),
+    (r'value = {"a\\=b" = 1}', {'value': {'a\\=b': 1}}),
+    (r'value = {"a=b".child = 1}', {'value': {'a=b': {'child': 1}}}),
+    ('value = {"outer" = {"a=b" = 1}}',
+     {'value': {'outer': {'a=b': 1}}}),
+])
+def test_inline_table_quoted_key_with_equals(source, expected):
+    parsed = toml.loads(source)
+    assert parsed == expected
+
+
 def test_bug_430():
     # https://github.com/uiri/toml/issues/430 - IndexError
     with pytest.raises(toml.TomlDecodeError, match="Key name found without value."):

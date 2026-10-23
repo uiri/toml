@@ -651,6 +651,23 @@ class TomlDecoder(object):
 
         return DynamicInlineTableDict()
 
+    def _unquoted_equals_index(self, line):
+        quote = None
+        escaped = False
+        for i, char in enumerate(line):
+            if quote is not None:
+                if quote == '"' and char == '\\' and not escaped:
+                    escaped = True
+                    continue
+                if char == quote and not escaped:
+                    quote = None
+                escaped = False
+            elif char in ('"', "'"):
+                quote = char
+            elif char == '=':
+                return i
+        return -1
+
     def load_inline_object(self, line, currentlevel, multikey=False,
                            multibackslash=False):
         candidate_groups = line[1:-1].split(",")
@@ -659,10 +676,10 @@ class TomlDecoder(object):
             candidate_groups.pop()
         while len(candidate_groups) > 0:
             candidate_group = candidate_groups.pop(0)
-            try:
-                _, value = candidate_group.split('=', 1)
-            except ValueError:
+            equal_index = self._unquoted_equals_index(candidate_group)
+            if equal_index == -1:
                 raise ValueError("Invalid inline table encountered")
+            value = candidate_group[equal_index + 1:]
             value = value.strip()
             if ((value[0] == value[-1] and value[0] in ('"', "'")) or (
                     value[0] in '-0123456789' or
