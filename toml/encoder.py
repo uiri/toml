@@ -83,35 +83,29 @@ def dumps(o, encoder=None):
     return retval
 
 
+_DUMP_STR_ESCAPES = {
+    '\\': '\\\\',
+    '"': '\\"',
+    '\b': '\\b',
+    '\t': '\\t',
+    '\n': '\\n',
+    '\f': '\\f',
+    '\r': '\\r',
+}
+
+
 def _dump_str(v):
     if sys.version_info < (3,) and hasattr(v, 'decode') and isinstance(v, str):
         v = v.decode('utf-8')
-    v = "%r" % v
-    if v[0] == 'u':
-        v = v[1:]
-    singlequote = v.startswith("'")
-    if singlequote or v.startswith('"'):
-        v = v[1:-1]
-    if singlequote:
-        v = v.replace("\\'", "'")
-        v = v.replace('"', '\\"')
-    v = v.split("\\x")
-    while len(v) > 1:
-        i = -1
-        if not v[0]:
-            v = v[1:]
-        v[0] = v[0].replace("\\\\", "\\")
-        # No, I don't know why != works and == breaks
-        joinx = v[0][i] != "\\"
-        while v[0][:i] and v[0][i] == "\\":
-            joinx = not joinx
-            i -= 1
-        if joinx:
-            joiner = "x"
+    result = []
+    for c in v:
+        if c in _DUMP_STR_ESCAPES:
+            result.append(_DUMP_STR_ESCAPES[c])
+        elif ord(c) < 0x20 or ord(c) == 0x7f:
+            result.append("\\u%04x" % ord(c))
         else:
-            joiner = "u00"
-        v = [v[0] + joiner + v[1]] + v[2:]
-    return unicode('"' + v[0] + '"')
+            result.append(c)
+    return unicode('"' + "".join(result) + '"')
 
 
 def _dump_float(v):

@@ -24,9 +24,21 @@ def test_bug_430():
 
 
 def test_bug_148():
-    assert 'a = "\\u0064"\n' == toml.dumps({'a': '\\x64'})
-    assert 'a = "\\\\x64"\n' == toml.dumps({'a': '\\\\x64'})
-    assert 'a = "\\\\\\u0064"\n' == toml.dumps({'a': '\\\\\\x64'})
+    # These strings contain a literal backslash followed by "x64" text, not
+    # an actual \x64 byte, so they must round-trip through dumps()/loads()
+    # unchanged rather than being misread as a hex escape.
+    for s in ('\\x64', '\\\\x64', '\\\\\\x64'):
+        assert toml.loads(toml.dumps({'a': s}))['a'] == s
+
+
+@pytest.mark.parametrize("code_point", list(range(0x20)) + [0x7f])
+def test_dump_control_chars_roundtrip(code_point):
+    # Every ASCII control character and DEL must survive a dumps()/loads()
+    # round trip, whether on its own or embedded in a longer string.
+    char = chr(code_point)
+    assert toml.loads(toml.dumps({'a': char}))['a'] == char
+    s = 'hello' + char + 'world'
+    assert toml.loads(toml.dumps({'a': s}))['a'] == s
 
 
 def test_bug_144():
