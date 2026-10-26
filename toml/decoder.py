@@ -459,9 +459,6 @@ def loads(s, _dict=dict, decoder=None):
             currentlevel = retval
             for i in _range(len(groups)):
                 group = groups[i]
-                if group == "":
-                    raise TomlDecodeError("Can't have a keygroup with an empty "
-                                          "name", original, pos)
                 try:
                     currentlevel[group]
                     if i == len(groups) - 1:

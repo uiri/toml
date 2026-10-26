@@ -290,3 +290,25 @@ def test_deepcopy_timezone():
     o2 = copy.deepcopy(o)
     assert o2["dob"] == o["dob"]
     assert o2["dob"] is not o["dob"]
+
+
+@pytest.mark.parametrize("header, expected", [
+    ('[""]', {'': {'value': 1}}),
+    ("['']", {'': {'value': 1}}),
+    ('[logging.loggers.""]', {'logging': {'loggers': {'': {'value': 1}}}}),
+    ('["".child]', {'': {'child': {'value': 1}}}),
+    ('[[""]]', {'': [{'value': 1}]}),
+])
+def test_quoted_empty_table_keys(header, expected):
+    assert toml.loads(header + '\nvalue = 1\n') == expected
+
+
+@pytest.mark.parametrize("header", ['[]', '[ ]', '[a..b]', '[a.]', '[[ ]]'])
+def test_unquoted_empty_table_keys_rejected(header):
+    with pytest.raises(toml.TomlDecodeError):
+        toml.loads(header + '\nvalue = 1\n')
+
+
+def test_empty_table_key_roundtrip():
+    config = {'logging': {'loggers': {'': {'level': 'NOTSET'}}}}
+    assert toml.loads(toml.dumps(config)) == config
