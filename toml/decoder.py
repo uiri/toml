@@ -541,8 +541,8 @@ def _load_date(val):
                         subsecondval = subsecondvalandtz
                 if tzval is not None:
                     tz = TomlTz(tzval)
-                microsecond = int(int(subsecondval) *
-                                  (10 ** (6 - len(subsecondval))))
+                microsecond = (int(subsecondval) * 1000000 //
+                               (10 ** len(subsecondval)))
             else:
                 tz = TomlTz(val[19:].upper())
     except ValueError:
