@@ -17,6 +17,21 @@ c = 2
 TEST_DICT = {"a": {"b": 1, "c": 2}}
 
 
+@pytest.mark.parametrize('delimiter, content, expected', [
+    ('"""', '<g filter="url(#a)">', '<g filter="url(#a)">'),
+    ('"""', 'before " # after', 'before " # after'),
+    ('"""', 'before "" # after', 'before "" # after'),
+    ("'''", "before ' # after", "before ' # after"),
+    ("'''", "before '' # after", "before '' # after"),
+    ('"""', r'before \" # after', 'before " # after'),
+    ('"""', r'before \\" # after', 'before \\" # after'),
+])
+def test_hash_after_quotes_in_multiline_string(delimiter, content, expected):
+    source = ('value = ' + delimiter + '\n' + content + '\n' + delimiter +
+              '\n# actual comment\nafter = 1 # actual comment\n')
+    assert toml.loads(source) == {'value': expected + '\n', 'after': 1}
+
+
 def test_bug_430():
     # https://github.com/uiri/toml/issues/430 - IndexError
     with pytest.raises(toml.TomlDecodeError, match="Key name found without value."):

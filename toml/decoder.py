@@ -272,7 +272,7 @@ def loads(s, _dict=dict, decoder=None):
             if k == 3:
                 multilinestr = not multilinestr
                 openstring = multilinestr
-            else:
+            elif not multilinestr:
                 openstring = not openstring
             if openstring:
                 openstrchar = "'"
@@ -298,7 +298,7 @@ def loads(s, _dict=dict, decoder=None):
                 if tripquote:
                     multilinestr = not multilinestr
                     openstring = multilinestr
-                else:
+                elif not multilinestr:
                     openstring = not openstring
             if openstring:
                 openstrchar = '"'
