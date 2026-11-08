@@ -653,7 +653,7 @@ class TomlDecoder(object):
 
     def load_inline_object(self, line, currentlevel, multikey=False,
                            multibackslash=False):
-        candidate_groups = line[1:-1].split(",")
+        candidate_groups = self._split_inline_table(line[1:-1])
         groups = []
         if len(candidate_groups) == 1 and not candidate_groups[0].strip():
             candidate_groups.pop()
@@ -680,6 +680,40 @@ class TomlDecoder(object):
                                     multibackslash)
             if status is not None:
                 break
+
+    def _split_inline_table(self, line):
+        groups = []
+        nesting = []
+        quote = None
+        start = 0
+        i = 0
+        while i < len(line):
+            char = line[i]
+            if quote is not None:
+                if char == '\\' and quote[0] == '"':
+                    i += 2
+                    continue
+                if line.startswith(quote, i):
+                    i += len(quote)
+                    quote = None
+                    continue
+            elif char in ('"', "'"):
+                quote = char * 3 if line.startswith(char * 3, i) else char
+                i += len(quote)
+                continue
+            elif char in '[{':
+                nesting.append(']' if char == '[' else '}')
+            elif char in ']}':
+                if not nesting or nesting.pop() != char:
+                    raise ValueError("Invalid inline table encountered")
+            elif char == ',' and not nesting:
+                groups.append(line[start:i])
+                start = i + 1
+            i += 1
+        if nesting or quote is not None:
+            raise ValueError("Invalid inline table encountered")
+        groups.append(line[start:])
+        return groups
 
     def _get_split_on_quotes(self, line):
         doublequotesplits = line.split('"')
