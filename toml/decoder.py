@@ -694,7 +694,12 @@ class TomlDecoder(object):
                     i += 2
                     continue
                 if line.startswith(quote, i):
-                    i += len(quote)
+                    end = i + len(quote)
+                    if len(quote) == 3:
+                        # Two content quotes may precede the closing delimiter.
+                        while end < min(i + 5, len(line)) and line[end] == char:
+                            end += 1
+                    i = end
                     quote = None
                     continue
             elif char in ('"', "'"):

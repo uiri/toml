@@ -33,3 +33,19 @@ def test_flat_inline_arrays_match_regular_tables(value):
 def test_invalid_nested_inline_arrays(value):
     with pytest.raises(toml.TomlDecodeError):
         toml.loads("a = {b = " + value + "}")
+
+
+@pytest.mark.parametrize("quote", ['"', "'"])
+@pytest.mark.parametrize("count", [4, 5])
+@pytest.mark.parametrize("wrapper", [
+    "{b = %s}", "{b = [%s]}", "{nested = {b = %s}}"])
+def test_inline_multiline_string_quote_runs(quote, count, wrapper):
+    value = quote * count + "a,b" + quote * count
+    expected = quote * (count - 3) + "a,b" + quote * (count - 3)
+    if wrapper == "{b = [%s]}":
+        expected = {"b": [expected]}
+    elif wrapper == "{nested = {b = %s}}":
+        expected = {"nested": {"b": expected}}
+    else:
+        expected = {"b": expected}
+    assert toml.loads("a = " + wrapper % value) == {"a": expected}
