@@ -290,3 +290,52 @@ def test_deepcopy_timezone():
     o2 = copy.deepcopy(o)
     assert o2["dob"] == o["dob"]
     assert o2["dob"] is not o["dob"]
+
+
+@pytest.mark.parametrize('key', [
+    'a.b', 'a\\b.c', 'a\tb.c', 'a\nb.c', 'a\rb.c', 'a"b.c', 'a.b"c', 'a.b\\c', ' a.b ', '".',
+    'a\\".b', 'a\\\\.b', "a'.b", 'a.b.c',
+])
+def test_quoted_dotted_key_round_trip(key):
+    value = {key: 1}
+    assert toml.loads(toml.dumps(value)) == value
+
+
+@pytest.mark.parametrize('source, expected', [
+    (r'a."b\tc" = 1', {'a': {'b\tc': 1}}),
+    (r'a."b\bc" = 1', {'a': {'b\bc': 1}}),
+    (r'a."b\fc" = 1', {'a': {'b\fc': 1}}),
+    (r'a."\u0062.c" = 1', {'a': {'b.c': 1}}),
+    (r'a."\U0001f600.c" = 1', {'a': {u'\U0001f600.c': 1}}),
+    (r'a."b\".c" = 1', {'a': {'b".c': 1}}),
+    (r'''a.'b\nc' = 1''', {'a': {r'b\nc': 1}}),
+    ('''a."".b = 1''', {'a': {'': {'b': 1}}}),
+    ('''"".a = 1''', {'': {'a': 1}}),
+    ('''a."" = 1''', {'a': {'': 1}}),
+    ('''' a.b '." c " = 1''', {' a.b ': {' c ': 1}}),
+    ('''"a.b".c = 1''', {'a.b': {'c': 1}}),
+    ('''a.b = 1\na.c = 2''', {'a': {'b': 1, 'c': 2}}),
+])
+def test_dotted_key_parts_preserve_string_rules(source, expected):
+    assert toml.loads(source) == expected
+
+
+def test_escaped_dotted_key_duplicate():
+    with pytest.raises(toml.TomlDecodeError, match='Duplicate keys'):
+        toml.loads(r'"a.\u0062" = 1' + '\n' + '"a.b" = 2')
+
+
+@pytest.mark.parametrize('source', [
+    r'a."b\qc" = 1', r'a."b\xc" = 1', r'a."\uD800.c" = 1',
+])
+def test_invalid_escapes_in_dotted_keys(source):
+    with pytest.raises(toml.TomlDecodeError):
+        toml.loads(source)
+
+
+@pytest.mark.parametrize('source', [
+    'a..b = 1', '.a = 1', 'a.b. = 1', 'a. = 1',
+])
+def test_empty_bare_dotted_key_components_rejected(source):
+    with pytest.raises(toml.TomlDecodeError):
+        toml.loads(source)
