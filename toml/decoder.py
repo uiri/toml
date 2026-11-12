@@ -739,28 +739,34 @@ class TomlDecoder(object):
                 strictly_valid = _strictly_valid_num(pair[-1])
         pair = ['='.join(pair[:-1]).strip(), pair[-1].strip()]
         if '.' in pair[0]:
-            if '"' in pair[0] or "'" in pair[0]:
-                quotesplits = self._get_split_on_quotes(pair[0])
-                quoted = False
-                levels = []
-                for quotesplit in quotesplits:
-                    if quoted:
-                        levels.append(quotesplit)
-                    else:
-                        levels += [level.strip() for level in
-                                   quotesplit.split('.')]
-                    quoted = not quoted
-            else:
-                levels = pair[0].split('.')
-            while levels[-1] == "":
-                levels = levels[:-1]
+            levels = []
+            start = 0
+            quote = None
+            escaped = False
+            for index, char in enumerate(pair[0]):
+                if quote is not None:
+                    if quote == '"' and char == '\\' and not escaped:
+                        escaped = True
+                        continue
+                    if char == quote and not escaped:
+                        quote = None
+                    escaped = False
+                elif char in ('"', "'"):
+                    quote = char
+                elif char == '.':
+                    levels.append(pair[0][start:index].strip())
+                    start = index + 1
+            levels.append(pair[0][start:].strip())
+            for index, level in enumerate(levels):
+                if not level:
+                    raise ValueError("Empty key in dotted key")
+                if level[0] in ('"', "'"):
+                    levels[index] = self.load_value(level)[0]
             for level in levels[:-1]:
-                if level == "":
-                    continue
                 if level not in currentlevel:
                     currentlevel[level] = self.get_empty_table()
                 currentlevel = currentlevel[level]
-            pair[0] = levels[-1].strip()
+            pair[0] = levels[-1]
         elif (pair[0][0] == '"' or pair[0][0] == "'") and \
                 (pair[0][-1] == pair[0][0]):
             pair[0] = _unescape(pair[0][1:-1])
