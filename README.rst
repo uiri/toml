@@ -5,7 +5,6 @@ TOML
 .. image:: https://img.shields.io/pypi/v/toml
     :target: https://pypi.org/project/toml/
 
-.. image:: https://travis-ci.org/uiri/toml.svg?branch=master
     :target: https://travis-ci.org/uiri/toml
 
 .. image:: https://img.shields.io/pypi/pyversions/toml.svg
