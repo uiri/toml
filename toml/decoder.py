@@ -632,6 +632,11 @@ class InlineTableDict(object):
     """Sentinel subclass of dict for inline tables."""
 
 
+def _new_inline_table(dict_type):
+    """Reconstruct an inline table without pickling its local sentinel class."""
+    return TomlDecoder(dict_type).get_empty_inline_table()
+
+
 class TomlDecoder(object):
 
     def __init__(self, _dict=dict):
@@ -641,6 +646,8 @@ class TomlDecoder(object):
         return self._dict()
 
     def get_empty_inline_table(self):
+        dict_type = self._dict
+
         class DynamicInlineTableDict(self._dict, InlineTableDict):
             """Concrete sentinel subclass for inline tables.
             It is a subclass of _dict which is passed in dynamically at load
@@ -648,6 +655,10 @@ class TomlDecoder(object):
 
             It is also a subclass of InlineTableDict
             """
+
+            def __reduce__(self):
+                return (_new_inline_table, (dict_type,), self.__dict__,
+                        None, iter(self.items()))
 
         return DynamicInlineTableDict()
 
