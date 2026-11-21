@@ -722,7 +722,10 @@ class TomlDecoder(object):
                                  pair[-1].strip() != 'true' and
                                  pair[-1].strip() != 'false'):
             try:
-                float(pair[-1])
+                if pair[-1].startswith(('0x', '0o', '0b')):
+                    int(pair[-1], 0)
+                else:
+                    float(pair[-1])
                 break
             except ValueError:
                 pass
