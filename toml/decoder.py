@@ -463,6 +463,9 @@ def loads(s, _dict=dict, decoder=None):
                     raise TomlDecodeError("Can't have a keygroup with an empty "
                                           "name", original, pos)
                 try:
+                    if (not isinstance(currentlevel, list) and
+                            group not in currentlevel):
+                        raise KeyError(group)
                     currentlevel[group]
                     if i == len(groups) - 1:
                         if group in implicitgroups:
@@ -492,11 +495,8 @@ def loads(s, _dict=dict, decoder=None):
                     if i == len(groups) - 1 and arrayoftables:
                         currentlevel[group] = [decoder.get_empty_table()]
                 currentlevel = currentlevel[group]
-                if arrayoftables:
-                    try:
-                        currentlevel = currentlevel[-1]
-                    except KeyError:
-                        pass
+                if arrayoftables and isinstance(currentlevel, list):
+                    currentlevel = currentlevel[-1]
         elif line[0] == "{":
             if line[-1] != "}":
                 raise TomlDecodeError("Line breaks are not allowed in inline"
@@ -777,6 +777,8 @@ class TomlDecoder(object):
         else:
             value, vtype = self.load_value(pair[1], strictly_valid)
         try:
+            if pair[0] not in currentlevel:
+                raise KeyError(pair[0])
             currentlevel[pair[0]]
             raise ValueError("Duplicate keys!")
         except TypeError:
