@@ -188,6 +188,8 @@ def loads(s, _dict=dict, decoder=None):
     if not isinstance(s, unicode):
         s = s.decode('utf8')
 
+    # Normalize TOML newlines before scanning multiline strings.
+    s = s.replace("\r\n", "\n")
     original = s
     sl = list(s)
     openarr = 0
@@ -204,9 +206,6 @@ def loads(s, _dict=dict, decoder=None):
     line_no = 1
 
     for i, item in enumerate(sl):
-        if item == '\r' and len(sl) > (i + 1) and sl[i + 1] == '\n':
-            sl[i] = ' '
-            continue
         if keyname:
             key += item
             if item == '\n':
