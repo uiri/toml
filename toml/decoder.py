@@ -44,7 +44,7 @@ except NameError:
     FNFError = IOError
 
 
-TIME_RE = re.compile(r"([0-9]{2}):([0-9]{2}):([0-9]{2})(\.([0-9]{3,6}))?")
+TIME_RE = re.compile(r"([0-9]{2}):([0-9]{2}):([0-9]{2})(\.([0-9]+))?$")
 
 
 class TomlDecodeError(ValueError):
@@ -884,7 +884,8 @@ class TomlDecoder(object):
             return (inline_object, "inline_object")
         elif TIME_RE.match(v):
             h, m, s, _, ms = TIME_RE.match(v).groups()
-            time = datetime.time(int(h), int(m), int(s), int(ms) if ms else 0)
+            microsecond = int(ms[:6].ljust(6, '0')) if ms else 0
+            time = datetime.time(int(h), int(m), int(s), microsecond)
             return (time, "time")
         else:
             parsed_date = _load_date(v)
