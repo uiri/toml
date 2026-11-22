@@ -942,89 +942,51 @@ class TomlDecoder(object):
         return False
 
     def load_array(self, a):
-        retval = []
-        a = a.strip()
-        if '[' not in a[1:-1] or "" != a[1:-1].split('[')[0].strip():
-            strarray = self._load_array_isstrarray(a)
-            if not a[1:-1].strip().startswith('{'):
-                a = a[1:-1].split(',')
-            else:
-                # a is an inline object, we must find the matching parenthesis
-                # to define groups
-                new_a = []
-                start_group_index = 1
-                end_group_index = 2
-                open_bracket_count = 1 if a[start_group_index] == '{' else 0
-                in_str = False
-                while end_group_index < len(a[1:]):
-                    if a[end_group_index] == '"' or a[end_group_index] == "'":
-                        if in_str:
-                            backslash_index = end_group_index - 1
-                            while (backslash_index > -1 and
-                                   a[backslash_index] == '\\'):
-                                in_str = not in_str
-                                backslash_index -= 1
-                        in_str = not in_str
-                    if not in_str and a[end_group_index] == '{':
-                        open_bracket_count += 1
-                    if in_str or a[end_group_index] != '}':
-                        end_group_index += 1
+        # Commas separate values only outside strings and nested containers.
+        # The first value does not determine the types of the remaining values.
+        a = a.strip()[1:-1]
+        values = []
+        brackets = []
+        quote = None
+        triple = False
+        start = 0
+        i = 0
+        while i < len(a):
+            char = a[i]
+            if quote is not None:
+                if quote == '"' and char == '\\':
+                    i += 2
+                    continue
+                if char == quote:
+                    if triple:
+                        end = i
+                        while end < len(a) and a[end] == quote:
+                            end += 1
+                        if end - i >= 3:
+                            quote = None
+                        i = end
                         continue
-                    elif a[end_group_index] == '}' and open_bracket_count > 1:
-                        open_bracket_count -= 1
-                        end_group_index += 1
-                        continue
-
-                    # Increase end_group_index by 1 to get the closing bracket
-                    end_group_index += 1
-
-                    new_a.append(a[start_group_index:end_group_index])
-
-                    # The next start index is at least after the closing
-                    # bracket, a closing bracket can be followed by a comma
-                    # since we are in an array.
-                    start_group_index = end_group_index + 1
-                    while (start_group_index < len(a[1:]) and
-                           a[start_group_index] != '{'):
-                        start_group_index += 1
-                    end_group_index = start_group_index + 1
-                a = new_a
-            b = 0
-            if strarray:
-                while b < len(a) - 1:
-                    ab = a[b].strip()
-                    while (not self.bounded_string(ab) or
-                           (len(ab) > 2 and
-                            ab[0] == ab[1] == ab[2] and
-                            ab[-2] != ab[0] and
-                            ab[-3] != ab[0])):
-                        a[b] = a[b] + ',' + a[b + 1]
-                        ab = a[b].strip()
-                        if b < len(a) - 2:
-                            a = a[:b + 1] + a[b + 2:]
-                        else:
-                            a = a[:b + 1]
-                    b += 1
-        else:
-            al = list(a[1:-1])
-            a = []
-            openarr = 0
-            j = 0
-            for i in _range(len(al)):
-                if al[i] == '[':
-                    openarr += 1
-                elif al[i] == ']':
-                    openarr -= 1
-                elif al[i] == ',' and not openarr:
-                    a.append(''.join(al[j:i]))
-                    j = i + 1
-            a.append(''.join(al[j:]))
-        for i in _range(len(a)):
-            a[i] = a[i].strip()
-            if a[i] != '':
-                nval, ntype = self.load_value(a[i])
-                retval.append(nval)
-        return retval
+                    quote = None
+            elif char in ('"', "'"):
+                quote = char
+                triple = a[i:i + 3] == char * 3
+                if triple:
+                    i += 3
+                    continue
+            elif char in '[{':
+                brackets.append(char)
+            elif char in ']}':
+                if not brackets or brackets.pop() != {']': '[', '}': '{'}[char]:
+                    raise ValueError("Mismatched closing bracket in array")
+            elif char == ',' and not brackets:
+                values.append(a[start:i])
+                start = i + 1
+            i += 1
+        if quote is not None or brackets:
+            raise ValueError("Unterminated string or container in array")
+        values.append(a[start:])
+        return [self.load_value(value.strip())[0]
+                for value in values if value.strip()]
 
     def preserve_comment(self, line_no, key, comment, beginline):
         pass
