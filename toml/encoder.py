@@ -165,7 +165,10 @@ class TomlEncoder(object):
             val_list = []
             for k, v in section.items():
                 val = self.dump_inline_table(v)
-                val_list.append(k + " = " + val)
+                key = unicode(k)
+                if not re.match(r'^[A-Za-z0-9_-]+$', key):
+                    key = _dump_str(key)
+                val_list.append(key + " = " + val)
             retval += "{ " + ", ".join(val_list) + " }\n"
             return retval
         else:
@@ -185,19 +188,19 @@ class TomlEncoder(object):
             sup += '.'
         retdict = self._dict()
         arraystr = ""
-        for section in o:
+        for section, value in o.items():
             section = unicode(section)
             qsection = section
             if not re.match(r'^[A-Za-z0-9_-]+$', section):
                 qsection = _dump_str(section)
-            if not isinstance(o[section], dict):
+            if not isinstance(value, dict):
                 arrayoftables = False
-                if isinstance(o[section], list):
-                    for a in o[section]:
+                if isinstance(value, list):
+                    for a in value:
                         if isinstance(a, dict):
                             arrayoftables = True
                 if arrayoftables:
-                    for a in o[section]:
+                    for a in value:
                         arraytabstr = "\n"
                         arraystr += "[[" + sup + qsection + "]]\n"
                         s, d = self.dump_sections(a, sup + qsection)
@@ -221,14 +224,14 @@ class TomlEncoder(object):
                             d = newd
                         arraystr += arraytabstr
                 else:
-                    if o[section] is not None:
+                    if value is not None:
                         retstr += (qsection + " = " +
-                                   unicode(self.dump_value(o[section])) + '\n')
-            elif self.preserve and isinstance(o[section], InlineTableDict):
+                                   unicode(self.dump_value(value)) + '\n')
+            elif self.preserve and isinstance(value, InlineTableDict):
                 retstr += (qsection + " = " +
-                           self.dump_inline_table(o[section]))
+                           self.dump_inline_table(value))
             else:
-                retdict[qsection] = o[section]
+                retdict[qsection] = value
         retstr += arraystr
         return (retstr, retdict)
 
