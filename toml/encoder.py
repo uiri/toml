@@ -128,6 +128,8 @@ def _dump_time(v):
 
 class TomlEncoder(object):
 
+    _section_pattern = re.compile(r'^[A-Za-z0-9_-]+$')
+
     def __init__(self, _dict=dict, preserve=False):
         self._dict = _dict
         self.preserve = preserve
@@ -188,7 +190,7 @@ class TomlEncoder(object):
         for section in o:
             section = unicode(section)
             qsection = section
-            if not re.match(r'^[A-Za-z0-9_-]+$', section):
+            if not self._section_pattern.match(section):
                 qsection = _dump_str(section)
             if not isinstance(o[section], dict):
                 arrayoftables = False
