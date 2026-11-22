@@ -674,7 +674,8 @@ class TomlDecoder(object):
                 candidate_groups[0] = (candidate_group + "," +
                                        candidate_groups[0])
             else:
-                raise ValueError("Invalid inline table value encountered")
+                raise ValueError("Invalid inline table value encountered. "
+                                 "String values must be quoted.")
         for group in groups:
             status = self.load_line(group, currentlevel, multikey,
                                     multibackslash)
@@ -890,6 +891,8 @@ class TomlDecoder(object):
             parsed_date = _load_date(v)
             if parsed_date is not None:
                 return (parsed_date, "date")
+            if v[0].isalpha() and v.lower() not in ('inf', 'nan'):
+                raise ValueError("Invalid value. String values must be quoted.")
             if not strictly_valid:
                 raise ValueError("Weirdness with leading zeroes or "
                                  "underscores in your number.")
