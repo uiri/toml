@@ -202,6 +202,7 @@ def loads(s, _dict=dict, decoder=None):
     key = ''
     prev_key = ''
     line_no = 1
+    line_quotes = []
 
     for i, item in enumerate(sl):
         if item == '\r' and len(sl) > (i + 1) and sl[i + 1] == '\n':
@@ -347,6 +348,8 @@ def loads(s, _dict=dict, decoder=None):
                 sl[i] = ' '
             else:
                 beginline = True
+            if sl[i] == '\n':
+                line_quotes.append(openstrchar)
             line_no += 1
         elif beginline and sl[i] != ' ' and sl[i] != '\t':
             beginline = False
@@ -361,6 +364,7 @@ def loads(s, _dict=dict, decoder=None):
     if openstring:  # reached EOF and have an unterminated string
         raise TomlDecodeError("Unterminated string found."
                               " Reached end of file.", original, len(s))
+    line_quotes.append(openstrchar)
     s = ''.join(sl)
     s = s.split('\n')
     multikey = None
@@ -400,7 +404,8 @@ def loads(s, _dict=dict, decoder=None):
                 multilinestr = ""
             else:
                 k = len(multilinestr) - 1
-                while k > -1 and multilinestr[k] == '\\':
+                while (line_quotes[idx] == '"' and k > -1 and
+                       multilinestr[k] == '\\'):
                     multibackslash = not multibackslash
                     k -= 1
                 if multibackslash:
@@ -509,7 +514,7 @@ def loads(s, _dict=dict, decoder=None):
         elif "=" in line:
             try:
                 ret = decoder.load_line(line, currentlevel, multikey,
-                                        multibackslash)
+                                        multibackslash, line_quotes[idx])
             except ValueError as err:
                 raise TomlDecodeError(str(err), original, pos)
             if ret is not None:
@@ -703,7 +708,8 @@ class TomlDecoder(object):
                 quoted = not quoted
         return quotesplits
 
-    def load_line(self, line, currentlevel, multikey, multibackslash):
+    def load_line(self, line, currentlevel, multikey, multibackslash,
+                  multilinequote=None):
         i = 1
         quotesplits = self._get_split_on_quotes(line)
         quoted = False
@@ -766,7 +772,10 @@ class TomlDecoder(object):
             pair[0] = _unescape(pair[0][1:-1])
         k, koffset = self._load_line_multiline_str(pair[1])
         if k > -1:
-            while k > -1 and pair[1][k + koffset] == '\\':
+            if multilinequote is None:
+                multilinequote = pair[1][koffset]
+            while (multilinequote == '"' and k > -1 and
+                   pair[1][k + koffset] == '\\'):
                 multibackslash = not multibackslash
                 k -= 1
             if multibackslash:
