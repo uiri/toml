@@ -160,13 +160,26 @@ For Numpy users, by default the data types ``np.floatX`` will not be translated 
 API Reference
 =============
 
-``toml.load(f, _dict=dict)``
+``toml.load(f, _dict=dict, decoder=None, merged=False)``
   Parse a file or a list of files as TOML and return a dictionary.
 
   :Args:
     * ``f``: A path to a file, list of filepaths (to be read into single
       object) or a file descriptor
     * ``_dict``: The class of the dictionary object to be returned
+    * ``decoder``: The decoder to use (defaults to ``TomlDecoder(_dict)``)
+    * ``merged``: Recursively merge tables from a list of files. The default,
+      ``False``, replaces each top-level value with the value from the later
+      file, including entire tables.
+
+  With ``merged=True``, settings in later files override earlier settings
+  while preserving other keys in the same table. For example,
+  ``toml.load(["base.toml", "local.toml"], merged=True)`` can override
+  ``server.port`` without discarding ``server.host`` from the base file.
+  Tables are merged only when both values are tables; otherwise the later
+  value wins. Arrays, including arrays of tables, are replaced as a whole.
+  An empty table preserves existing table keys. The option has no effect
+  when loading a single filename or file object.
 
   :Returns:
     A dictionary (or object ``_dict``) containing parsed TOML data

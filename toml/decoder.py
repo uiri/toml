@@ -6,6 +6,11 @@ import sys
 
 from toml.tz import TomlTz
 
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
+
 if sys.version_info < (3,):
     _range = xrange  # noqa: F821
 else:
@@ -110,7 +115,15 @@ def _strictly_valid_num(n):
     return True
 
 
-def load(f, _dict=dict, decoder=None):
+def _merge_tables(base, override):
+    for key, value in override.items():
+        if isinstance(base.get(key), Mapping) and isinstance(value, Mapping):
+            _merge_tables(base[key], value)
+        else:
+            base[key] = value
+
+
+def load(f, _dict=dict, decoder=None, merged=False):
     """Parses named file or files as toml and returns a dictionary
 
     Args:
@@ -118,6 +131,9 @@ def load(f, _dict=dict, decoder=None):
            or a file descriptor
         _dict: (optional) Specifies the class of the returned toml dictionary
         decoder: The decoder to use
+        merged: Recursively merge tables when loading a list of files.
+                Later scalars and arrays replace earlier values. Defaults
+                to False, which replaces top-level values, including tables.
 
     Returns:
         Parsed toml file represented as a dictionary
@@ -146,7 +162,11 @@ def load(f, _dict=dict, decoder=None):
         d = decoder.get_empty_table()
         for l in f:  # noqa: E741
             if op.exists(l):
-                d.update(load(l, _dict, decoder))
+                values = load(l, _dict, decoder)
+                if merged:
+                    _merge_tables(d, values)
+                else:
+                    d.update(values)
             else:
                 warn("Non-existent filename in list with at least one valid "
                      "filename")
