@@ -194,6 +194,7 @@ def loads(s, _dict=dict, decoder=None):
     openstring = False
     openstrchar = ""
     multilinestr = False
+    multilinestart = -1
     arrayoftables = False
     beginline = True
     keygroup = False
@@ -272,6 +273,8 @@ def loads(s, _dict=dict, decoder=None):
             if k == 3:
                 multilinestr = not multilinestr
                 openstring = multilinestr
+                if multilinestr:
+                    multilinestart = i
             else:
                 openstring = not openstring
             if openstring:
@@ -298,6 +301,8 @@ def loads(s, _dict=dict, decoder=None):
                 if tripquote:
                     multilinestr = not multilinestr
                     openstring = multilinestr
+                    if multilinestr:
+                        multilinestart = i
                 else:
                     openstring = not openstring
             if openstring:
@@ -338,11 +343,13 @@ def loads(s, _dict=dict, decoder=None):
             if openstring or multilinestr:
                 if not multilinestr:
                     raise TomlDecodeError("Unbalanced quotes", original, i)
-                if ((sl[i - 1] == "'" or sl[i - 1] == '"') and (
-                        sl[i - 2] == sl[i - 1])):
-                    sl[i] = sl[i - 1]
-                    if sl[i - 3] == sl[i - 1]:
-                        sl[i - 3] = ' '
+                if (i - multilinestart <= 2 and
+                        original[multilinestart + 1:i] in ('', '\r')):
+                    # Move the opening delimiter over its first LF or CRLF.
+                    # Later newlines and quote pairs are string contents.
+                    sl[multilinestart - 2:i + 1] = (
+                        [' '] * (i - multilinestart) +
+                        [sl[multilinestart]] * 3)
             elif openarr:
                 sl[i] = ' '
             else:
@@ -385,7 +392,7 @@ def loads(s, _dict=dict, decoder=None):
             multibackslash = False
             closed = False
             if multilinestr[0] == '[':
-                closed = line[-1] == ']'
+                closed = line.endswith(']')
             elif len(line) > 2:
                 closed = (line[-1] == multilinestr[0] and
                           line[-2] == multilinestr[0] and
