@@ -3,6 +3,11 @@ import re
 import sys
 from decimal import Decimal
 
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
+
 from toml.decoder import InlineTableDict
 
 if sys.version_info >= (3,):
@@ -161,7 +166,7 @@ class TomlEncoder(object):
         https://github.com/toml-lang/toml#user-content-inline-table
         """
         retval = ""
-        if isinstance(section, dict):
+        if isinstance(section, Mapping):
             val_list = []
             for k, v in section.items():
                 val = self.dump_inline_table(v)
@@ -190,11 +195,11 @@ class TomlEncoder(object):
             qsection = section
             if not re.match(r'^[A-Za-z0-9_-]+$', section):
                 qsection = _dump_str(section)
-            if not isinstance(o[section], dict):
+            if not isinstance(o[section], Mapping):
                 arrayoftables = False
                 if isinstance(o[section], list):
                     for a in o[section]:
-                        if isinstance(a, dict):
+                        if isinstance(a, Mapping):
                             arrayoftables = True
                 if arrayoftables:
                     for a in o[section]:
