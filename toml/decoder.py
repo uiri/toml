@@ -378,10 +378,7 @@ def loads(s, _dict=dict, decoder=None):
         if line == "" and (not multikey or multibackslash):
             continue
         if multikey:
-            if multibackslash:
-                multilinestr += line
-            else:
-                multilinestr += line
+            multilinestr += line
             multibackslash = False
             closed = False
             if multilinestr[0] == '[':
