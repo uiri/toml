@@ -448,7 +448,10 @@ def loads(s, _dict=dict, decoder=None):
                                                   groupstr + "' Something " +
                                                   "went wrong.", original, pos)
                         groupstr = '.'.join(groups[i:j]).strip()
-                    groups[i] = groupstr[1:-1]
+                    try:
+                        groups[i] = decoder.load_value(groupstr)[0]
+                    except ValueError as err:
+                        raise TomlDecodeError(str(err), original, pos)
                     groups[i + 1:j] = []
                 else:
                     if not _groupname_re.match(groups[i]):
