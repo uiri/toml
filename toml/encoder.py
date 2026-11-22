@@ -1,4 +1,5 @@
 import datetime
+import json
 import re
 import sys
 from decimal import Decimal
@@ -86,32 +87,11 @@ def dumps(o, encoder=None):
 def _dump_str(v):
     if sys.version_info < (3,) and hasattr(v, 'decode') and isinstance(v, str):
         v = v.decode('utf-8')
-    v = "%r" % v
-    if v[0] == 'u':
-        v = v[1:]
-    singlequote = v.startswith("'")
-    if singlequote or v.startswith('"'):
-        v = v[1:-1]
-    if singlequote:
-        v = v.replace("\\'", "'")
-        v = v.replace('"', '\\"')
-    v = v.split("\\x")
-    while len(v) > 1:
-        i = -1
-        if not v[0]:
-            v = v[1:]
-        v[0] = v[0].replace("\\\\", "\\")
-        # No, I don't know why != works and == breaks
-        joinx = v[0][i] != "\\"
-        while v[0][:i] and v[0][i] == "\\":
-            joinx = not joinx
-            i -= 1
-        if joinx:
-            joiner = "x"
-        else:
-            joiner = "u00"
-        v = [v[0] + joiner + v[1]] + v[2:]
-    return unicode('"' + v[0] + '"')
+    # JSON strings use the same basic escapes as TOML. Preserve Unicode
+    # characters directly (including non-BMP code points), and escape DEL,
+    # which JSON permits literally but TOML does not.
+    return json.dumps(unicode(v), ensure_ascii=False).replace(
+        u"\x7f", "\\u007f")
 
 
 def _dump_float(v):

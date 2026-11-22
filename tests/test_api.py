@@ -24,9 +24,10 @@ def test_bug_430():
 
 
 def test_bug_148():
-    assert 'a = "\\u0064"\n' == toml.dumps({'a': '\\x64'})
-    assert 'a = "\\\\x64"\n' == toml.dumps({'a': '\\\\x64'})
-    assert 'a = "\\\\\\u0064"\n' == toml.dumps({'a': '\\\\\\x64'})
+    # Backslashes in Python strings are data, not escapes to reinterpret.
+    for count in range(1, 4):
+        value = {'a': '\\' * count + 'x64'}
+        assert toml.loads(toml.dumps(value)) == value
 
 
 def test_bug_144():
