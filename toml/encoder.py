@@ -173,7 +173,8 @@ class TomlEncoder(object):
 
     def dump_value(self, v):
         # Lookup function corresponding to v's type
-        dump_fn = next((f for t, f in self.dump_funcs.items() if isinstance(v, t)), None)
+        dump_fn = next((f for t, f in self.dump_funcs.items()
+                        if isinstance(v, t)), None)
         if dump_fn is None and hasattr(v, '__iter__'):
             dump_fn = self.dump_funcs[list]
         # Evaluate function (if it exists) else return v
@@ -289,6 +290,11 @@ class TomlPreserveCommentEncoder(TomlEncoder):
         from toml.decoder import CommentValue
         super(TomlPreserveCommentEncoder, self).__init__(_dict, preserve)
         self.dump_funcs[CommentValue] = lambda v: v.dump(self.dump_value)
+
+    def dump_sections(self, o, sup):
+        values, sections = super(TomlPreserveCommentEncoder,
+                                 self).dump_sections(o, sup)
+        return getattr(o, "_toml_comments", "") + values, sections
 
 
 class TomlPathlibEncoder(TomlEncoder):
