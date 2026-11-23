@@ -162,6 +162,20 @@ def load(f, _dict=dict, decoder=None):
 _groupname_re = re.compile(r'^[A-Za-z0-9_-]+$')
 
 
+def _load_lines(s, inline_string_breaks):
+    start = pos = first_idx = 0
+    fragments = []
+    for idx, line in enumerate(s.split('\n')):
+        fragments.append(line)
+        end = pos + len(line)
+        if end not in inline_string_breaks:
+            yield first_idx, start, '\n'.join(fragments)
+            fragments = []
+            first_idx = idx + 1
+            start = end + 1
+        pos = end + 1
+
+
 def loads(s, _dict=dict, decoder=None):
     """Parses string as toml
 
@@ -191,6 +205,8 @@ def loads(s, _dict=dict, decoder=None):
     original = s
     sl = list(s)
     openarr = 0
+    openinline = 0
+    inline_string_breaks = set()
     openstring = False
     openstrchar = ""
     multilinestr = False
@@ -334,6 +350,11 @@ def loads(s, _dict=dict, decoder=None):
                     arrayoftables = False
             else:
                 openarr -= 1
+        if not openstring:
+            if item == '{':
+                openinline += 1
+            elif item == '}':
+                openinline -= 1
         if item == '\n':
             if openstring or multilinestr:
                 if not multilinestr:
@@ -343,6 +364,10 @@ def loads(s, _dict=dict, decoder=None):
                     sl[i] = sl[i - 1]
                     if sl[i - 3] == sl[i - 1]:
                         sl[i - 3] = ' '
+                if openinline and sl[i] == '\n':
+                    # These newlines belong to an inline table's string value,
+                    # not to the surrounding sequence of key/value statements.
+                    inline_string_breaks.add(i)
             elif openarr:
                 sl[i] = ' '
             else:
@@ -362,15 +387,10 @@ def loads(s, _dict=dict, decoder=None):
         raise TomlDecodeError("Unterminated string found."
                               " Reached end of file.", original, len(s))
     s = ''.join(sl)
-    s = s.split('\n')
     multikey = None
     multilinestr = ""
     multibackslash = False
-    pos = 0
-    for idx, line in enumerate(s):
-        if idx > 0:
-            pos += len(s[idx - 1]) + 1
-
+    for idx, pos, line in _load_lines(s, inline_string_breaks):
         decoder.embed_comments(idx, currentlevel)
 
         if not multilinestr or multibackslash or '\n' not in multilinestr:
