@@ -177,7 +177,9 @@ def loads(s, _dict=dict, decoder=None):
         TomlDecodeError: Error while decoding toml
     """
 
-    implicitgroups = []
+    # Names can repeat under different parents or array entries. Track the
+    # actual implicit tables rather than their final path component.
+    implicitgroups = set()
     if decoder is None:
         decoder = TomlDecoder(_dict)
     retval = decoder.get_empty_table()
@@ -465,8 +467,8 @@ def loads(s, _dict=dict, decoder=None):
                 try:
                     currentlevel[group]
                     if i == len(groups) - 1:
-                        if group in implicitgroups:
-                            implicitgroups.remove(group)
+                        if id(currentlevel[group]) in implicitgroups:
+                            implicitgroups.remove(id(currentlevel[group]))
                             if arrayoftables:
                                 raise TomlDecodeError("An implicitly defined "
                                                       "table can't be an array",
@@ -486,9 +488,9 @@ def loads(s, _dict=dict, decoder=None):
                         if i == len(groups) - 1 and arrayoftables:
                             currentlevel[group] = [decoder.get_empty_table()]
                 except KeyError:
-                    if i != len(groups) - 1:
-                        implicitgroups.append(group)
                     currentlevel[group] = decoder.get_empty_table()
+                    if i != len(groups) - 1:
+                        implicitgroups.add(id(currentlevel[group]))
                     if i == len(groups) - 1 and arrayoftables:
                         currentlevel[group] = [decoder.get_empty_table()]
                 currentlevel = currentlevel[group]

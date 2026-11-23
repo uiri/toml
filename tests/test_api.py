@@ -17,6 +17,33 @@ c = 2
 TEST_DICT = {"a": {"b": 1, "c": 2}}
 
 
+@pytest.mark.parametrize("source,expected", [
+    ("[foo.bar]\n[[baz.foo]]\n[[baz.foo]]",
+     {"foo": {"bar": {}}, "baz": {"foo": [{}, {}]}}),
+    ("[one.shared.child]\n[two.shared]\n[one.shared]\nvalue = 1",
+     {"one": {"shared": {"child": {}, "value": 1}},
+      "two": {"shared": {}}}),
+    ('["a.b".leaf]\n[[other."a.b"]]\n[[other."a.b"]]',
+     {"a.b": {"leaf": {}}, "other": {"a.b": [{}, {}]}}),
+    ("[[items]]\n[items.child.leaf]\n[items.child]\nvalue = 1\n"
+     "[[items]]\n[items.child.leaf]\n[items.child]\nvalue = 2",
+     {"items": [{"child": {"leaf": {}, "value": 1}},
+                {"child": {"leaf": {}, "value": 2}}]}),
+])
+def test_implicit_tables_are_scoped_to_their_actual_parent(source, expected):
+    assert toml.loads(source) == expected
+
+
+@pytest.mark.parametrize("source", [
+    "[foo.bar]\n[[foo]]",
+    "[foo.bar]\n[foo.bar]",
+    "[foo.bar]\n[foo]\n[foo]",
+])
+def test_implicit_table_scoping_keeps_redefinition_errors(source):
+    with pytest.raises(toml.TomlDecodeError):
+        toml.loads(source)
+
+
 def test_bug_430():
     # https://github.com/uiri/toml/issues/430 - IndexError
     with pytest.raises(toml.TomlDecodeError, match="Key name found without value."):
