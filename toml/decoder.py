@@ -200,7 +200,7 @@ def loads(s, _dict=dict, decoder=None):
     dottedkey = False
     keyname = 0
     key = ''
-    prev_key = ''
+    prev_key = None
     line_no = 1
 
     for i, item in enumerate(sl):
@@ -308,18 +308,16 @@ def loads(s, _dict=dict, decoder=None):
                             not arrayoftables):
             j = i
             comment = ""
-            try:
-                while sl[j] != '\n':
-                    comment += s[j]
-                    sl[j] = ' '
-                    j += 1
-            except IndexError:
-                break
+            while j < len(sl) and sl[j] != '\n':
+                comment += s[j]
+                sl[j] = ' '
+                j += 1
             if not openarr:
                 decoder.preserve_comment(line_no, prev_key, comment, beginline)
         if item == '[' and (not openstring and not keygroup and
                             not arrayoftables):
             if beginline:
+                prev_key = None
                 if len(sl) > i + 1 and sl[i + 1] == '[':
                     arrayoftables = True
                 else:
@@ -514,6 +512,7 @@ def loads(s, _dict=dict, decoder=None):
                 raise TomlDecodeError(str(err), original, pos)
             if ret is not None:
                 multikey, multilinestr, multibackslash = ret
+    decoder.embed_comments(len(s), currentlevel)
     return retval
 
 
@@ -1036,8 +1035,17 @@ class TomlDecoder(object):
 class TomlPreserveCommentDecoder(TomlDecoder):
 
     def __init__(self, _dict=dict):
+        class CommentedTable(_dict):
+            pass
+
+        self._commented_table = CommentedTable
         self.saved_comments = {}
         super(TomlPreserveCommentDecoder, self).__init__(_dict)
+
+    def get_empty_table(self):
+        table = self._commented_table()
+        table._toml_comments = ""
+        return table
 
     def preserve_comment(self, line_no, key, comment, beginline):
         self.saved_comments[line_no] = (key, comment, beginline)
@@ -1047,5 +1055,10 @@ class TomlPreserveCommentDecoder(TomlDecoder):
             return
 
         key, comment, beginline = self.saved_comments[idx]
+        if key is None:
+            # No value has been read since this table's header. Keep these
+            # comments on the table, not on a value in the preceding table.
+            currentlevel._toml_comments += comment + "\n"
+            return
         currentlevel[key] = CommentValue(currentlevel[key], comment, beginline,
                                          self._dict)
