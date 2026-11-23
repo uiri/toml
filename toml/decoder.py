@@ -392,10 +392,10 @@ def loads(s, _dict=dict, decoder=None):
                           line[-3] == multilinestr[0])
             if closed:
                 try:
-                    value, vtype = decoder.load_value(multilinestr)
+                    decoder.load_line(multikey + ' = ' + multilinestr,
+                                      currentlevel, None, False)
                 except ValueError as err:
                     raise TomlDecodeError(str(err), original, pos)
-                currentlevel[multikey] = value
                 multikey = None
                 multilinestr = ""
             else:
@@ -738,6 +738,18 @@ class TomlDecoder(object):
             if strictly_valid:
                 strictly_valid = _strictly_valid_num(pair[-1])
         pair = ['='.join(pair[:-1]).strip(), pair[-1].strip()]
+        k, koffset = self._load_line_multiline_str(pair[1])
+        if k > -1:
+            while k > -1 and pair[1][k + koffset] == '\\':
+                multibackslash = not multibackslash
+                k -= 1
+            if multibackslash:
+                multilinestr = pair[1][:-1]
+            else:
+                multilinestr = pair[1] + "\n"
+            # Resolve the complete key only once its value is available.
+            # Returning just the leaf loses the dotted path in loads().
+            return pair[0], multilinestr, multibackslash
         if '.' in pair[0]:
             if '"' in pair[0] or "'" in pair[0]:
                 quotesplits = self._get_split_on_quotes(pair[0])
@@ -764,28 +776,14 @@ class TomlDecoder(object):
         elif (pair[0][0] == '"' or pair[0][0] == "'") and \
                 (pair[0][-1] == pair[0][0]):
             pair[0] = _unescape(pair[0][1:-1])
-        k, koffset = self._load_line_multiline_str(pair[1])
-        if k > -1:
-            while k > -1 and pair[1][k + koffset] == '\\':
-                multibackslash = not multibackslash
-                k -= 1
-            if multibackslash:
-                multilinestr = pair[1][:-1]
-            else:
-                multilinestr = pair[1] + "\n"
-            multikey = pair[0]
-        else:
-            value, vtype = self.load_value(pair[1], strictly_valid)
+        value, vtype = self.load_value(pair[1], strictly_valid)
         try:
             currentlevel[pair[0]]
             raise ValueError("Duplicate keys!")
         except TypeError:
             raise ValueError("Duplicate keys!")
         except KeyError:
-            if multikey:
-                return multikey, multilinestr, multibackslash
-            else:
-                currentlevel[pair[0]] = value
+            currentlevel[pair[0]] = value
 
     def _load_line_multiline_str(self, p):
         poffset = 0
