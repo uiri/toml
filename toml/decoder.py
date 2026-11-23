@@ -420,42 +420,10 @@ def loads(s, _dict=dict, decoder=None):
             else:
                 line = line[1:]
                 splitstr = ']'
-            i = 1
-            quotesplits = decoder._get_split_on_quotes(line)
-            quoted = False
-            for quotesplit in quotesplits:
-                if not quoted and splitstr in quotesplit:
-                    break
-                i += quotesplit.count(splitstr)
-                quoted = not quoted
-            line = line.split(splitstr, i)
-            if len(line) < i + 1 or line[-1].strip() != "":
-                raise TomlDecodeError("Key group not on a line by itself.",
-                                      original, pos)
-            groups = splitstr.join(line[:-1]).split('.')
-            i = 0
-            while i < len(groups):
-                groups[i] = groups[i].strip()
-                if len(groups[i]) > 0 and (groups[i][0] == '"' or
-                                           groups[i][0] == "'"):
-                    groupstr = groups[i]
-                    j = i + 1
-                    while ((not groupstr[0] == groupstr[-1]) or
-                           len(groupstr) == 1):
-                        j += 1
-                        if j > len(groups) + 2:
-                            raise TomlDecodeError("Invalid group name '" +
-                                                  groupstr + "' Something " +
-                                                  "went wrong.", original, pos)
-                        groupstr = '.'.join(groups[i:j]).strip()
-                    groups[i] = groupstr[1:-1]
-                    groups[i + 1:j] = []
-                else:
-                    if not _groupname_re.match(groups[i]):
-                        raise TomlDecodeError("Invalid group name '" +
-                                              groups[i] + "'. Try quoting it.",
-                                              original, pos)
-                i += 1
+            try:
+                groups = decoder._load_table_groups(line, splitstr)
+            except ValueError as err:
+                raise TomlDecodeError(str(err), original, pos)
             currentlevel = retval
             for i in _range(len(groups)):
                 group = groups[i]
@@ -680,6 +648,45 @@ class TomlDecoder(object):
                                     multibackslash)
             if status is not None:
                 break
+
+    def _load_table_groups(self, line, closing):
+        """Split a table path outside strings, then decode each quoted key.
+
+        Quoted keys follow string escape rules. Decoding before splitting
+        would turn escaped dots or brackets into structural delimiters.
+        """
+        groups = []
+        start = 0
+        quote = None
+        escaped = False
+        for i, char in enumerate(line):
+            if quote is not None:
+                if escaped:
+                    escaped = False
+                elif quote == '"' and char == '\\':
+                    escaped = True
+                elif char == quote:
+                    quote = None
+            elif char in ('"', "'"):
+                quote = char
+            elif char == '.':
+                groups.append(line[start:i].strip())
+                start = i + 1
+            elif line.startswith(closing, i):
+                if line[i + len(closing):].strip():
+                    raise ValueError("Key group not on a line by itself.")
+                groups.append(line[start:i].strip())
+                break
+        else:
+            raise ValueError("Key group not on a line by itself.")
+
+        for i, group in enumerate(groups):
+            if group[:1] in ('"', "'"):
+                groups[i], _ = self.load_value(group)
+            elif not _groupname_re.match(group):
+                raise ValueError("Invalid group name '" + group +
+                                 "'. Try quoting it.")
+        return groups
 
     def _get_split_on_quotes(self, line):
         doublequotesplits = line.split('"')
