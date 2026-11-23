@@ -333,6 +333,9 @@ def loads(s, _dict=dict, decoder=None):
                 if sl[i - 1] == ']':
                     arrayoftables = False
             else:
+                if not openarr:
+                    raise TomlDecodeError("Unexpected closing bracket",
+                                          original, i)
                 openarr -= 1
         if item == '\n':
             if openstring or multilinestr:
