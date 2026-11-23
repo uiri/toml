@@ -305,7 +305,7 @@ def loads(s, _dict=dict, decoder=None):
             else:
                 openstrchar = ""
         if item == '#' and (not openstring and not keygroup and
-                            not arrayoftables):
+                            not arrayoftables and not multilinestr):
             j = i
             comment = ""
             try:
@@ -387,12 +387,10 @@ def loads(s, _dict=dict, decoder=None):
             if multilinestr[0] == '[':
                 closed = line[-1] == ']'
             elif len(line) > 2:
-                closed = (line[-1] == multilinestr[0] and
-                          line[-2] == multilinestr[0] and
-                          line[-3] == multilinestr[0])
+                closed = line.rstrip().endswith(multilinestr[0] * 3)
             if closed:
                 try:
-                    value, vtype = decoder.load_value(multilinestr)
+                    value, vtype = decoder.load_value(multilinestr.rstrip())
                 except ValueError as err:
                     raise TomlDecodeError(str(err), original, pos)
                 currentlevel[multikey] = value
